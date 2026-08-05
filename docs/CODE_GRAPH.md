@@ -8,8 +8,9 @@ Tai lieu nay mo ta graph kien truc muc tieu, module boundaries va dependency dir
 flowchart TD
     UI["App/UI"] --> APP["Application services"]
     APP --> DOMAIN["Domain"]
-    APP --> PERSIST_IF["Persistence interfaces"]
-    PERSIST_IMPL["Persistence implementation"] --> PERSIST_IF
+    PERSIST_CONTRACT["Persistence-facing contracts"] --> APP
+    PERSIST_CONTRACT --> DOMAIN
+    PERSIST_IMPL["Persistence implementation"] --> PERSIST_CONTRACT
     FB["Facebook adapter"] --> APP
     FB --> RAW["RawPost mapping contract"]
     RAW --> APP
@@ -26,13 +27,13 @@ flowchart TD
 - `internal/blocklist`: Go package cho deterministic local blocklist identity primitives.
 - `internal/rules`: Go package cho deterministic buyer rules ownership.
 - `internal/dedup`: Go package cho deduplication ownership.
-- `internal/persistence`: Go package cho persistence boundary ownership.
+- `internal/persistence`: Go package cho persistence-facing completed-batch contract ownership.
 - `internal/facebook`: Go package cho Facebook/browser adapter boundary ownership.
 - `internal/ui`: Go package cho presentation boundary ownership.
 - App/UI: owner cua views, tabs, lead cards, settings va user actions.
-- Application services: owner cua scan orchestration, batch state, time window va transaction flow.
+- Application services: owner cua scan orchestration, batch state va time window.
 - Domain: owner cua normalization contracts, SearchProfile, BuyerIntentClassifier, rule engine, geographic classifier, deduplication, lead aggregation va reason codes.
-- Persistence interfaces: owner cua repository contracts.
+- Persistence-facing contracts: owner cua completed batch snapshot contracts.
 - Persistence implementation: owner cua local storage implementation.
 - Facebook adapter: owner cua page reading, DOM parsing va fail-closed adapter errors.
 
@@ -54,17 +55,21 @@ Phase 5A them `internal/application/evaluation_pipeline.go` cho deterministic in
 
 Phase 5B them `internal/application/scan_batch.go` cho deterministic in-memory manual batch model gom mot den nam explicit groups. Batch validate group identity va post/group consistency, flatten posts theo group order roi post order, goi Phase 5A pipeline mot lan va tao batch/per-group count summaries. Chua co Facebook collection, persistence, UI, CLI behavior, scheduling, retries, progress reporting, concurrency hoac network behavior.
 
+Phase 5C them `internal/persistence/batch_record.go` cho completed scan batch snapshot contract. Contract gom opaque `BatchRecordID`, immutable-style `BatchRecord`, structural validation, deterministic converter tu `application.ScanBatchInput`/`ScanBatchResult` va save-only `BatchRepository.SaveBatch`. Chua co SQLite, schema, migration, file I/O, load/list/update/delete/search/paging API, ID generation, Facebook adapter, UI/CLI, concurrency hoac network behavior.
+
 ## Allowed dependencies
 
 - App/UI duoc goi Application services.
-- Application services duoc goi Domain, Rules, Dedup, Blocklist va Persistence interfaces.
-- Persistence implementation duoc implement Persistence interfaces.
+- Application services duoc goi Domain, Rules, Dedup va Blocklist.
+- Persistence-facing contracts duoc goi Application services va Domain de copy completed batch snapshots.
+- Persistence implementation duoc implement Persistence-facing contracts.
 - Facebook adapter duoc goi Application services bang adapter boundary.
 - Tests duoc import Domain truc tiep de chay fixture deterministic.
 - `internal/rules` duoc import `internal/domain`.
 - `internal/dedup` duoc import `internal/domain`.
 - `internal/blocklist` duoc import `internal/domain`.
 - `internal/application` duoc import `internal/domain`, `internal/rules`, `internal/dedup` va `internal/blocklist`.
+- `internal/persistence` duoc import `internal/application` va `internal/domain`.
 
 ## Forbidden dependencies
 
@@ -74,6 +79,8 @@ Phase 5B them `internal/application/scan_batch.go` cho deterministic in-memory m
 - Facebook adapter khong duoc chua buyer business rules hoac product-specific extraction.
 - UI khong duoc tu quyet dinh include/exclude thay rule engine.
 - Persistence implementation khong duoc dieu khien browser.
+- Application, Domain, Rules, Dedup va Blocklist khong duoc import `internal/persistence`.
+- `internal/persistence` khong duoc import Facebook adapter, UI, CLI package hoac persistence implementation package.
 - Khong module nao trong ScanFB duoc them seller mode, `SellerLead`, `SellerIntentClassifier`, `LeadIntent` buyer/seller hoac `SELLER_SCAN`.
 
 ## Entry points
@@ -112,6 +119,7 @@ RawPost
 -> Local blocklist lead filtering
 -> Explicit allowed, blocked, unresolved, unaggregated va conflict outputs
 -> Count-only batch summary va per-group rule-stage summaries
+-> Persistence-facing completed BatchRecord snapshot contract
 ```
 
 ## SearchProfile va buyer-only boundary

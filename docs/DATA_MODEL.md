@@ -2,7 +2,7 @@
 
 Tai lieu nay dinh nghia entity toi thieu va quan he muc domain. Kieu du lieu cu the se duoc khoa trong milestone sau. ScanFB hien tai la buyer-only: khong co `LeadIntent` buyer/seller, `SellerLead` hoac seller mode.
 
-Phase 2 Go implementation chi trien khai subset domain toi thieu cho normalized post input va cau hinh mot scan: `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Phase 4C Go implementation chi them in-memory blocklist identity primitives trong `internal/blocklist`. Phase 4D Go implementation chi them application-layer in-memory filtering cua aggregated leads qua blocklist. Phase 5A Go implementation them application-layer deterministic pipeline cho already-collected `RawPost` values qua rules, eligible selection, in-memory aggregation va blocklist filtering. Phase 5B Go implementation them application-layer in-memory batch model cho mot den nam explicit groups, deterministic flattening va count summaries; persistence va workflow storage van la model muc tai lieu cho phase sau.
+Phase 2 Go implementation chi trien khai subset domain toi thieu cho normalized post input va cau hinh mot scan: `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Phase 4C Go implementation chi them in-memory blocklist identity primitives trong `internal/blocklist`. Phase 4D Go implementation chi them application-layer in-memory filtering cua aggregated leads qua blocklist. Phase 5A Go implementation them application-layer deterministic pipeline cho already-collected `RawPost` values qua rules, eligible selection, in-memory aggregation va blocklist filtering. Phase 5B Go implementation them application-layer in-memory batch model cho mot den nam explicit groups, deterministic flattening va count summaries. Phase 5C Go implementation them persistence-facing completed `BatchRecord` snapshot contract va save-only repository interface; chua co storage implementation, schema, migration, load/list API hoac ID generation.
 
 ## WatchedGroup
 
@@ -60,6 +60,22 @@ Invariants:
 - Khong mo nhieu group dong thoi.
 - Neu qua 00:00, group chua hoan tat duoc ghi `expired_at_day_boundary`.
 - Phase 5B implementation chi la in-memory model cho already-collected posts va chap nhan mot den nam explicit groups de test/summary deterministic; chua phai production batch queue, adapter hoac persistence behavior.
+
+## BatchRecord
+
+Purpose: Completed immutable snapshot cua mot `ScanBatch` da co application result, de future persistence adapter co the save nguyen batch.
+
+Phase 5C Go implementation nam trong `internal/persistence` va chi tao value contract: `BatchRecordID`, `BatchRecord`, structural `Validate()` va `BatchRepository.SaveBatch(record)`.
+
+Required content: scan window, SearchProfile snapshot, GeographicMode, ordered groups, flattened posts, evaluated/included/review/excluded posts voi exact decisions/reasons, aggregated leads, source posts, unaggregated posts, source conflicts, blocklist outcomes/reasons, application reasons, batch summary va group summaries.
+
+Invariants:
+
+- `BatchRecordID` opaque, non-empty va duoc supplied tu future boundary; persistence khong generate ID.
+- Snapshot chi dai dien completed batch; khong co partial save, update, delete, search, paging, migration hoac transaction API.
+- Validation chi structural, khong recompute rule, geography, dedup hoac blocklist decisions.
+- Batched group IDs phai non-empty, unique va co 1 den 5 group trong Phase 5C contract.
+- Count summaries phai khop preserved collections.
 
 ## GroupScanAttempt
 
@@ -153,7 +169,7 @@ Lifecycle: Tao sau normalization/rule/geographic classification; co the duoc use
 
 Invariants:
 
-- Moi decision phai co it nhat mot `FilterReason`.
+- Review/exclude decision phai preserve exact `FilterReason`; include decision preserve exact rule result va co the khong co reason trong Go implementation hien tai.
 - Reason codes phai deterministic va machine-readable.
 - Include decision trong ScanFB luon la buyer include cho SearchProfile dang bat.
 - Phase 5A pipeline giu rule-evaluated, eligible, review va excluded posts explicit trong memory; chua ghi `FilterDecision` vao persistence.

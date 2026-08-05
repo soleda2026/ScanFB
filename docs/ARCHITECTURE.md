@@ -38,7 +38,7 @@ Trong Go skeleton, cac layer duoc anh xa toi package:
 - `internal/application`: orchestration/use cases; phu thuoc domain.
 - `internal/rules`: deterministic buyer-intent, author, time va geographic rules.
 - `internal/dedup`: duplicate detection va lead aggregation.
-- `internal/persistence`: persistence interfaces/adapters; chua co SQLite trong Phase 1.
+- `internal/persistence`: persistence-facing contracts cho completed batch snapshots; chua co SQLite, file I/O hoac storage adapter.
 - `internal/facebook`: adapter bien ngoai cho Facebook/browser; domain khong duoc import.
 - `internal/ui`: presentation layer; chua chon UI framework.
 
@@ -48,7 +48,7 @@ Hien thi group, batch state, lead tabs, settings, blocklist va Dry Run review. U
 
 ### Application services
 
-Dieu phoi scan batch, time window, state machine, persistence transaction va domain services. Day la noi noi adapter voi domain.
+Dieu phoi scan batch, time window, state machine va domain services. Day la noi noi adapter voi domain. Application khong import `internal/persistence` trong contract hien tai.
 
 ### Domain
 
@@ -58,7 +58,7 @@ Domain duoc giu trung lap o phan tai su dung nhu `ScanSession`, `ScanBatch`, `Ra
 
 ### Persistence interfaces
 
-Dinh nghia repository contract cho group, session, raw post, decision, lead, source va blocklist. Domain co the phu thuoc vao interface neu can, nhung khong phu thuoc implementation.
+Dinh nghia persistence-facing contract cho completed scan batch snapshot. Phase 5C chi co opaque `BatchRecordID`, completed `BatchRecord`, structural validation va save-only `BatchRepository.SaveBatch`; khong co load/list/update/delete/search/paging/schema/migration/transaction API. `internal/persistence` duoc phu thuoc `internal/application` va `internal/domain` de copy completed batch result; application, domain, rules, dedup va blocklist khong phu thuoc persistence.
 
 ### Persistence implementation
 
@@ -72,8 +72,9 @@ Doc trang Facebook ma nguoi dung da dang nhap trong browser profile. Adapter chu
 
 ```text
 App/UI -> Application services -> Domain
-App/UI -> Application services -> Persistence interfaces
-Persistence implementation -> Persistence interfaces
+Persistence-facing contracts -> Application services
+Persistence-facing contracts -> Domain
+Persistence implementation -> Persistence-facing contracts
 Facebook adapter -> Application services
 Facebook adapter -> RawPost mapping contract
 ```

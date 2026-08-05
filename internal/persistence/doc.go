@@ -1,4 +1,5 @@
-// Package persistence will own persistence interfaces and local storage adapters.
+// Package persistence owns persistence-facing contracts for completed scan batch snapshots.
 //
-// Phase 1 intentionally does not define SQLite schema or repository abstractions.
+// It intentionally does not implement local storage, schemas, migrations, file I/O,
+// network I/O, UI, CLI, or Facebook integration.
 package persistence

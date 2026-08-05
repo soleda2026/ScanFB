@@ -172,6 +172,18 @@ Tests: Synthetic in-memory unit tests cho batch validation, group/post consisten
 
 Stop conditions: Can Facebook collection, database/repository, UI/CLI wiring, scheduler, retry/progress state, parallel scan hoac heuristic moi.
 
+## Phase 5C - Persistence-facing completed batch contracts
+
+Exact scope: Dinh nghia value contracts nho cho completed scan batch snapshot trong `internal/persistence`: opaque `BatchRecordID`, `BatchRecord`, structural validation, deterministic converter tu `ScanBatchInput`/`ScanBatchResult` va save-only `BatchRepository.SaveBatch`.
+
+Protected areas: Khong persistence implementation, SQLite, schema, migration, JSON/file I/O, network I/O, load/list/update/delete/search/paging API, ID generation, Facebook adapter, UI/CLI, concurrency hoac dependency moi.
+
+Acceptance criteria: Completed batch snapshot preserve scan window, SearchProfile snapshot, GeographicMode, group order, flattened post order, exact decisions/reasons, lead sources, blocklist/application outcomes, unaggregated/conflict outputs va summaries; malformed records fail closed; application/domain/rules/dedup/blocklist khong import persistence.
+
+Tests: Unit tests cho record ID, conversion, source/outcome/reason preservation, summary consistency, invalid records, defensive copies, save-only repository contract va dependency boundary.
+
+Stop conditions: Can storage backend, query/loading behavior, migrations, repository expansion, generated IDs, UI workflow, Facebook collection hoac schema design.
+
 ## Phase 5 - Geographic classifier hardening
 
 Exact scope: Harden geographic classifier behavior sau Phase 3C neu can, van theo [SCAN_RULES.md](SCAN_RULES.md) va khong mo rong vocabulary khi chua co milestone rieng.
