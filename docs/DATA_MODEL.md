@@ -2,6 +2,8 @@
 
 Tai lieu nay dinh nghia entity toi thieu va quan he muc domain. Kieu du lieu cu the se duoc khoa trong milestone sau. ScanFB hien tai la buyer-only: khong co `LeadIntent` buyer/seller, `SellerLead` hoac seller mode.
 
+Phase 2 Go implementation chi trien khai subset domain toi thieu cho normalized post input va cau hinh mot scan: `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Cac entity lien quan rule decision, deduplication, persistence, lead aggregation va blocklist van la model muc tai lieu cho phase sau.
+
 ## WatchedGroup
 
 Purpose: Luu group Facebook nguoi dung chu dong theo doi.
@@ -79,6 +81,8 @@ Invariants:
 
 Purpose: Ban ghi raw da doc tu Facebook truoc khi normalize va filter.
 
+Phase 2 Go fields: `PostID`, `GroupID`, `GroupName`, `PostURL`, `Author`, `Body`, `CreatedAt`, `CapturedAt`.
+
 Required fields: `id`, `sourcePostUrl`, `canonicalPostUrl`, `groupId`, `author`, `rawText`, `createdAt`, `capturedAt`.
 
 Optional fields: `facebookPostId`, `permalink`, `rawTimestampText`, `attachmentsMetadata`, `readerMetadata`.
@@ -96,6 +100,8 @@ Invariants:
 
 Purpose: Dinh danh nguoi dang bai.
 
+Phase 2 Go fields: `FacebookUserID`, `CanonicalProfileURL`, `Username`, `DisplayName`. Khong co password, cookie, access token, session token, email, phone hoac profile image.
+
 Required fields: `displayName`.
 
 Optional fields: `facebookUserId`, `canonicalProfileUrl`, `username`, `profileUrl`, `isAnonymousSignal`.
@@ -112,6 +118,8 @@ Invariants:
 ## SearchProfile
 
 Purpose: Dinh nghia cau hinh buyer search cho mot product/category muc tieu.
+
+Phase 2 Go implementation co built-in `MacBookSearchProfile()` va term slices duoc copy khi nhan/tra de tranh mutation leak.
 
 Required fields: `id`, `displayName`, `targetKeywords`, `keywordAliases`, `buyerIntentPhrases`, `exclusionPhrases`, `isEnabled`.
 

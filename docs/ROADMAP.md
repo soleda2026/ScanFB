@@ -30,13 +30,13 @@ Stop conditions: Can cai dependency ngoai scope, can browser/DB/UI implementatio
 
 ## Phase 2 - Domain models
 
-Exact scope: Implement entity/value object trong [DATA_MODEL.md](DATA_MODEL.md), gom built-in MacBook `SearchProfile`.
+Exact scope: Implement minimal Go domain types cho normalized post input va cau hinh mot scan: `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow`, `ScanRequest`, gom built-in MacBook `SearchProfile`.
 
 Protected areas: Khong browser, khong UI, khong database implementation, khong seller mode.
 
-Acceptance criteria: Model co invariant co ban va serialization neu can.
+Acceptance criteria: Model co invariant co ban cho timezone, same-day scan window, geographic mode va batch 1-5 group; domain chi import standard library; slices khong leak mutation.
 
-Tests: Unit tests cho key, lifecycle va invariant.
+Tests: Unit tests cho valid/invalid value cases va invariant.
 
 Stop conditions: Field identity khong ro.
 

@@ -1,6 +1,6 @@
 # Code Graph
 
-Tai lieu nay mo ta graph kien truc muc tieu, module boundaries va dependency direction. Phase 1 da co Go skeleton toi thieu nhung chua gia dinh codebase-memory-mcp/codegraph da duoc cau hinh va khong tu cai tool.
+Tai lieu nay mo ta graph kien truc muc tieu, module boundaries va dependency direction. Phase 2 da co Go domain types toi thieu nhung chua gia dinh codebase-memory-mcp/codegraph da duoc cau hinh va khong tu cai tool.
 
 ## Mermaid dependency graph
 
@@ -33,6 +33,8 @@ flowchart TD
 - Persistence interfaces: owner cua repository contracts.
 - Persistence implementation: owner cua local storage implementation.
 - Facebook adapter: owner cua page reading, DOM parsing va fail-closed adapter errors.
+
+Phase 2 files trong `internal/domain` gom minimal models cho `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Domain package chi duoc import Go standard library.
 
 ## Allowed dependencies
 
