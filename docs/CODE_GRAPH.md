@@ -15,6 +15,8 @@ flowchart TD
     PERSIST_CONTRACT --> DOMAIN
     PERSIST_IMPL["Persistence implementation"] --> PERSIST_CONTRACT
     SQLITE["SQLite schema bootstrap, SaveBatch, and concrete LoadBatch"] --> PERSIST_CONTRACT
+    MACOS_APP["Planned macos/ScanFBApp SwiftUI shell"] -.future bridge.-> ORCH
+    MACOS_APP -.future bridge.-> APP
     FB["Facebook adapter"] --> APP
     FB --> RAW["RawPost mapping contract"]
     RAW --> APP
@@ -34,7 +36,8 @@ flowchart TD
 - `internal/persistence`: Go package cho persistence-facing completed-batch contract, in-memory adapter va SQLite schema-bootstrap/SaveBatch/concrete LoadBatch ownership.
 - `internal/orchestration`: Go package cho thin synchronous use-case orchestration ownership.
 - `internal/facebook`: Go package cho Facebook/browser adapter boundary ownership.
-- `internal/ui`: Go package cho presentation boundary ownership.
+- `internal/ui`: Go-layer documentation/package placeholder; not the SwiftUI app root.
+- `macos/ScanFBApp`: planned future SwiftUI native macOS app root, not implemented in Phase 8A.
 - App/UI: owner cua views, tabs, lead cards, settings va user actions.
 - Application services: owner cua deterministic in-memory scan batch model, batch state va time window.
 - Use-case orchestration: owner cua glue logic giua completed application result, `BatchRecord` conversion va repository save boundary.
@@ -42,6 +45,7 @@ flowchart TD
 - Persistence-facing contracts: owner cua completed batch snapshot contracts.
 - Persistence implementation: owner cua local storage implementation.
 - Facebook adapter: owner cua page reading, DOM parsing va fail-closed adapter errors.
+- Planned SwiftUI shell: future owner cua native windows, navigation, tabs, presentation state, accessibility va fixture-driven screens.
 
 Phase 2 files trong `internal/domain` gom minimal models cho `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Domain package chi duoc import Go standard library.
 
@@ -69,6 +73,8 @@ Phase 5E them `internal/orchestration/run_and_save_scan_batch.go` cho synchronou
 
 Phase 5F them documentation-only SQLite schema design tai `docs/PERSISTENCE_SCHEMA.md`. Phase 5G1 them `internal/persistence/sqlite_repository.go` va `internal/persistence/sqlite_schema.go` cho SQLite foundation: `modernc.org/sqlite` driver import chi trong persistence, explicit-path open/create, foreign-key enable/verify, transactional empty schema v1 creation, schema metadata validation va `Close`. Phase 5G2 them `SQLiteBatchRepository.SaveBatch(record BatchRecord) error`, nen SQLite adapter satisfy save-only `BatchRepository` va ghi mot completed snapshot vao schema version 1 trong mot transaction. Phase 5G3 them concrete-only `SQLiteBatchRepository.LoadBatch(id BatchRecordID) (BatchRecord, error)` de reconstruct mot snapshot trong read transaction, fail closed voi malformed schema/data va khong mo rong `BatchRepository`. Chua co list/update/delete/search/paging/migration execution, production DB path, UI/CLI wiring hoac Facebook behavior.
 
+Phase 8A documents native macOS UI direction only. SwiftUI is approved as the presentation shell for a future app at `macos/ScanFBApp/`. No `macos/` directory, Xcode project, Swift package, Swift source, bridge, fixture UI, database path or app bundle is implemented in Phase 8A.
+
 ## Allowed dependencies
 
 - App/UI duoc goi Application services.
@@ -85,6 +91,7 @@ Phase 5F them documentation-only SQLite schema design tai `docs/PERSISTENCE_SCHE
 - `internal/persistence` duoc import `internal/application` va `internal/domain`.
 - `modernc.org/sqlite` chi duoc import trong `internal/persistence`.
 - `internal/orchestration` duoc import `internal/application` va `internal/persistence`.
+- Planned `macos/ScanFBApp` may depend only through a future narrow bridge to application/orchestration boundaries after a separate bridge decision milestone.
 
 ## Forbidden dependencies
 
@@ -100,6 +107,8 @@ Phase 5F them documentation-only SQLite schema design tai `docs/PERSISTENCE_SCHE
 - `internal/persistence` khong duoc import Facebook adapter, UI, CLI package hoac persistence implementation package.
 - Khong package nao ngoai `internal/persistence` duoc import `modernc.org/sqlite`.
 - Khong module nao trong ScanFB duoc them seller mode, `SellerLead`, `SellerIntentClassifier`, `LeadIntent` buyer/seller hoac `SELLER_SCAN`.
+- SwiftUI code, when created later, must not import or mirror Facebook adapter internals, directly access SQLite, expose database-local IDs, or reimplement Go business logic.
+- Go application/domain packages must not depend on Swift or macOS UI code.
 
 ## Entry points
 
@@ -141,6 +150,7 @@ RawPost
 -> Optional in-memory BatchRepository adapter cho deterministic inspection/testing
 -> Optional thin RunAndSaveScanBatch orchestration cho explicit caller-supplied record ID
 -> Optional SQLite schema-bootstrap, SaveBatch and concrete LoadBatch adapter neu caller mo explicit local DB path
+-> Future SwiftUI presentation shell qua bridge duoc chon trong milestone rieng
 ```
 
 ## SearchProfile va buyer-only boundary

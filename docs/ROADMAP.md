@@ -302,6 +302,116 @@ Tests: UI fixture tests va manual validation.
 
 Stop conditions: Yeu cau scan Facebook that.
 
+## Phase 8A - Native macOS UI architecture decision and app-shell plan
+
+Status: complete after Phase 8A acceptance checks pass.
+
+Exact scope: Documentation-only decision that SwiftUI is the native macOS presentation shell, future app root is `macos/ScanFBApp/`, Go core remains authoritative, bridge selection is deferred, and Phase 8 is split into narrow future milestones.
+
+Protected areas: Khong tao `macos/`, Xcode project, Swift package, Swift source, Go bridge, IPC, HTTP, local database path, UI fixtures, production code, dependency, Facebook integration hoac seller mode.
+
+Acceptance criteria: [MACOS_UI_ARCHITECTURE.md](MACOS_UI_ARCHITECTURE.md) documents SwiftUI, layer ownership, prohibited duplication, bridge candidates/deferred decision, fixture policy, privacy policy, testing/manual validation policy va Phase 8B-8I plan; README/architecture docs reflect the approved SwiftUI direction.
+
+Tests: Documentation consistency checks plus existing Go verification: `go test ./...`, `go vet ./...`, CLI build/run output.
+
+Stop conditions: Can tao app project, Swift code, bridge, database path, UI fixture implementation, Facebook integration, dependency hoac production scan workflow.
+
+## Phase 8B - Empty native SwiftUI app shell only
+
+Exact scope: Create minimal native SwiftUI macOS app shell at `macos/ScanFBApp/` with app name ScanFB, one main window and placeholder navigation.
+
+Protected areas: Khong Go bridge, database, Facebook, networking, third-party dependency, production settings, persistence, generated fixture business data, seller mode hoac business-rule logic in Swift.
+
+Acceptance criteria: App builds and launches locally; window title/app identity are ScanFB; placeholder navigation is visible; no Go code or bridge is touched.
+
+Tests: Xcode build, manual app launch after killing stale process, verify rebuilt app bundle is running, plus Go `go test ./...`, `go vet ./...` and CLI output unchanged.
+
+Stop conditions: Need bridge, fixture dashboard, real data, persistence, signing/notarization, Facebook controls hoac deployment target decision beyond app-shell minimum.
+
+## Phase 8C - Static fixture dashboard and batch summary
+
+Exact scope: Add deterministic sample/demo overview screen and batch summary using static fixture values only.
+
+Protected areas: Khong Go bridge, SQLite access, Facebook data, generated business data, networking, persistence, status mutation hoac business-rule recomputation in Swift.
+
+Acceptance criteria: Overview clearly labeled sample/demo, Vietnamese text and diacritics preserved, summary values are fixture-only and do not claim live Facebook data.
+
+Tests: Xcode build, fixture rendering/manual launch, stale-process kill before relaunch, Go regression checks.
+
+Stop conditions: Need real batch data, bridge, database, scan button behavior hoac non-fixture summaries.
+
+## Phase 8D - Fixture lead tabs and lead cards
+
+Exact scope: Add deterministic fixture lead tabs and lead cards for buyer-only lead presentation.
+
+Protected areas: Khong seller tab, seller mode, Go bridge, SQLite direct access, Facebook data, status persistence, scoring recomputation hoac reason-code generation in Swift.
+
+Acceptance criteria: Lead tabs and cards present sample buyer leads, source counts, reason-code display and disabled/placeholder actions without claiming live data.
+
+Tests: Xcode build, manual fixture validation, accessibility spot checks where practical, stale-process kill before relaunch, Go regression checks.
+
+Stop conditions: Need real lead loading, bridge, status workflow, persistence hoac Facebook adapter.
+
+## Phase 8E - Fixture Dry Run review
+
+Exact scope: Add deterministic fixture Dry Run review screen for included/review/excluded sample posts.
+
+Protected areas: Khong rule recomputation, reason-code inference, restore behavior backed by persistence, Facebook data, bridge, network hoac seller review mode.
+
+Acceptance criteria: Dry Run is presented as default-on product behavior; sample/demo labels are clear; rejected/review sample reasons preserve exact codes and diacritics.
+
+Tests: Xcode build, manual fixture validation, stale-process kill before relaunch, Go regression checks.
+
+Stop conditions: Need real filter decisions, persistence, bridge, user edits hoac production review workflow.
+
+## Phase 8F - Fixture settings and blocklist presentation
+
+Exact scope: Add deterministic fixture settings and blocklist screens.
+
+Protected areas: Khong persistence, SQLite direct access, real blocklist import/export, Facebook identity lookup, network, bridge, credentials, cookies hoac production settings writes.
+
+Acceptance criteria: Settings and blocklist are sample/demo only, local-first/privacy copy is visible where appropriate, display name is not represented as authoritative block identity.
+
+Tests: Xcode build, manual fixture validation, stale-process kill before relaunch, Go regression checks.
+
+Stop conditions: Need real settings storage, blocklist mutation, database path, bridge hoac identity resolution.
+
+## Phase 8G - Fixture UI interaction state
+
+Exact scope: Add in-memory fixture-only UI state for viewed/contacted/ignored interactions.
+
+Protected areas: Khong persistence, database, bridge, production lead status, Facebook action, network, business logic recomputation hoac seller workflow.
+
+Acceptance criteria: Interactions affect only the current in-memory fixture session and reset on relaunch; UI does not imply production persistence.
+
+Tests: Xcode build, Swift tests if state reducers/helpers exist, manual interaction validation after stale-process kill/relaunch, Go regression checks.
+
+Stop conditions: Need status persistence, Go integration, SQLite, import/export hoac real lead workflow.
+
+## Phase 8H - Bridge evaluation and architecture decision
+
+Exact scope: Documentation/prototype-decision milestone to evaluate C-compatible exported Go library, subprocess with structured stdin/stdout, and local IPC boundary, then select exactly one narrow integration model.
+
+Protected areas: Khong production bridge, UI wiring, direct Swift SQLite access, HTTP server by default, cloud API, arbitrary JSON maps, credential transfer, database-local ID exposure hoac business logic in Swift.
+
+Acceptance criteria: Decision compares deterministic request/response behavior, no hidden network, no credential transfer, explicit schemas, error propagation, cancellation, build complexity, packaging, testing, crash isolation and Apple Silicon support.
+
+Tests: Documentation consistency and any approved tiny prototype checks only if explicitly scoped.
+
+Stop conditions: Need production integration, broad API, live Facebook data, database path policy hoac bridge implementation beyond decision scope.
+
+## Phase 8I+ - Narrow Go integration after bridge decision
+
+Exact scope: Only after Phase 8H, add tiny bridge-specific integration milestones for one request/response slice at a time.
+
+Protected areas: Khong broad bridge API, arbitrary JSON maps, direct Swift SQLite access, hidden networking, Facebook automation, seller mode, migration execution, search/list expansion without separate milestone hoac business-rule duplication.
+
+Acceptance criteria: Each slice has explicit schema, deterministic fixture-backed behavior, error propagation, cancellation policy, tests on both sides as needed, and no regression to Go core checks.
+
+Tests: Bridge-specific unit/integration tests, Xcode build/manual launch, stale-process kill before relaunch, Go `go test ./...`, `go vet ./...`, CLI output unchanged.
+
+Stop conditions: Need broad production workflow, Facebook adapter, database path policy, packaging/signing/notarization hoac unsupported bridge behavior.
+
 ## Phase 9 - Group management va batch state machine
 
 Exact scope: Quan ly group, queue batch 5 group, attempt state.

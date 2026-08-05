@@ -13,6 +13,7 @@ Testing cua ScanFB uu tien deterministic fixtures cho domain, rule engine, geogr
 - Rule thoi gian, dia ly, author, blocklist va dedup la rule chung, khong phu thuoc MacBook.
 - Author/time rule tests phai kiem tra exact reason codes va deterministic ordering.
 - Buyer-intent rule tests phai dung synthetic posts, active `SearchProfile`, exact reason codes, seller/noise precedence va boundary-aware matching.
+- Future native macOS UI milestones phai build app moi, kill stale app process, relaunch rebuilt app bundle va xac minh dung bundle moi dang duoc test truoc khi manual verification.
 
 ## Test matrix toi thieu
 
@@ -77,6 +78,10 @@ Testing cua ScanFB uu tien deterministic fixtures cho domain, rule engine, geogr
 - Phase 5: geographic classifier hardening/regression fixtures neu can.
 - Phase 6: deduplication va lead aggregation fixtures.
 - Phase 7: persistence repository tests voi database local tam.
-- Phase 8: UI fixture tests, chua ket noi Facebook.
+- Phase 8A: documentation-only native macOS UI architecture decision; checks cover SwiftUI-as-presentation-shell wording, future `macos/ScanFBApp/` location, no existing app code/project, no bridge selected, no business logic in Swift, fixture/privacy policy, stale-process manual validation policy, and Go regression verification.
+- Phase 8B: empty native SwiftUI app shell tests must include Xcode build, manual app launch, stale process termination before relaunch, verification that the rebuilt app bundle is running, and Go `go test ./...`, `go vet ./...`, CLI build/run output unchanged.
+- Phase 8C-8G: fixture UI milestones must include deterministic fixture rendering/manual validation, sample/demo labeling, Vietnamese diacritic preservation, no live Facebook data claims, no direct SQLite access, no hidden networking, no seller mode, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
+- Phase 8H: bridge evaluation tests are documentation/prototype checks only if explicitly scoped; bridge selection must not skip deterministic request/response, explicit schema, cancellation, error propagation, packaging, crash isolation and Apple Silicon considerations.
+- Phase 8I+: post-bridge integration milestones must add bridge-specific tests for each narrow slice while retaining Xcode build/manual launch, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
 - Phase 9: batch state machine tests.
 - Phase 10 tro di: manual validation co kiem soat cho Facebook adapter.

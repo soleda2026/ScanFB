@@ -2,7 +2,7 @@
 
 ScanFB la ung dung local tren macOS ho tro nguoi dung tim cac bai Facebook the hien nhu cau **can mua**. MVP trien khai duy nhat built-in MacBook Search Profile de tim nguoi can mua MacBook hoac MacBook Pro.
 
-Trang thai hien tai: **Phase 1 - Go project skeleton va test harness**. Project da chon Go lam ngon ngu chinh va moi co skeleton/package boundaries toi thieu. Chua co production scan workflow, browser extension, Facebook integration, database, UI framework hoac dependency ben thu ba.
+Trang thai hien tai: Go core da co deterministic domain/rules/dedup/blocklist/application/orchestration foundations va SQLite save/load foundations cho completed batch snapshots. Phase 8 chon SwiftUI lam native macOS presentation shell trong tuong lai. Chua co production scan workflow, browser extension, Facebook integration, native app implementation, SwiftUI project, bridge hoac production database path.
 
 ## ScanFB khong lam gi
 
@@ -25,6 +25,7 @@ Trang thai hien tai: **Phase 1 - Go project skeleton va test harness**. Project 
 - [docs/ROADMAP.md](docs/ROADMAP.md): roadmap milestone nho.
 - [docs/SECURITY_AND_PRIVACY.md](docs/SECURITY_AND_PRIVACY.md): yeu cau bao mat va quyen rieng tu.
 - [docs/CODE_GRAPH.md](docs/CODE_GRAPH.md): graph kien truc muc tieu va cach cap nhat graph.
+- [docs/MACOS_UI_ARCHITECTURE.md](docs/MACOS_UI_ARCHITECTURE.md): quyet dinh SwiftUI native macOS shell va plan Phase 8.
 
 ## Quy trinh phat trien
 
@@ -32,9 +33,11 @@ Moi milestone chi co mot muc tieu chinh, scope nho va acceptance criteria ro ran
 
 Nguoi dung tu quan ly Git. Agent khong duoc commit, merge, tag, push, reset, clean hoac xoa ngoai scope.
 
-## Go skeleton
+## Go core va UI direction
 
-Phase 1 tao module `github.com/soleda2026/ScanFB`, CLI toi thieu tai `cmd/scanfb` va package boundaries trong `internal/`. Cac package hien chi co package comments va architecture test; domain model, SearchProfile implementation, rule engine, deduplication, SQLite, Facebook adapter va UI that se lam o cac phase sau.
+Module Go `github.com/soleda2026/ScanFB` hien giu core authoritative cho domain invariant, SearchProfile MacBook MVP, deterministic rules, geographic classification, deduplication, blocklist behavior, application batch evaluation, orchestration va SQLite snapshot persistence.
+
+Native macOS UI direction cho Phase 8 la SwiftUI app shell trong future root `macos/ScanFBApp/`. SwiftUI se chi la presentation layer; khong reimplement business rules, reason codes, summaries, deduplication, blocklist outcomes hoac SQLite access. Bridge SwiftUI-Go van deferred va phai co milestone rieng.
 
 ## Luu y ve Facebook integration
 

@@ -41,11 +41,11 @@ Trong Go skeleton, cac layer duoc anh xa toi package:
 - `internal/dedup`: duplicate detection va lead aggregation.
 - `internal/persistence`: persistence-facing contracts, deterministic in-memory adapter cho completed batch snapshots, va SQLite schema-bootstrap/transactional `SaveBatch`/concrete `LoadBatch` implementation; chua co list/update/delete/search/paging API hoac migration execution.
 - `internal/facebook`: adapter bien ngoai cho Facebook/browser; domain khong duoc import.
-- `internal/ui`: presentation layer; chua chon UI framework.
+- `internal/ui`: Go-layer documentation/package placeholder. Native macOS UI implementation is planned outside `internal/` using SwiftUI.
 
 ### App/UI
 
-Hien thi group, batch state, lead tabs, settings, blocklist va Dry Run review. UI goi application services, khong import Facebook adapter truc tiep.
+SwiftUI la approved native macOS presentation direction cho Phase 8. Future app root duoc du kien la `macos/ScanFBApp/`, nam ngoai Go `internal/` package tree. SwiftUI se hien thi group, batch state, lead tabs, settings, blocklist va Dry Run review, nhung khong reimplement Go business logic. UI goi future narrow application/orchestration adapter sau khi bridge duoc quyet dinh, va khong import Facebook adapter truc tiep.
 
 ### Application services
 
@@ -92,6 +92,10 @@ Facebook adapter khong duoc domain import nguoc lai. Domain khong duoc import ad
 
 Application, domain, rules, dedup, blocklist va persistence khong duoc import `internal/orchestration`. `internal/orchestration` chi duoc import `internal/application`, `internal/persistence` va standard library trong production code.
 
+Native SwiftUI code, khi duoc tao trong milestone sau, phai song ngoai `internal/`. Go application/domain packages khong duoc phu thuoc Swift hoac macOS UI code. Bridge SwiftUI-Go chua duoc chon; candidate bridge phai duoc danh gia trong milestone rieng va khong duoc ngam dinh HTTP, cloud API, direct SQLite access tu Swift hoac arbitrary JSON maps.
+
+Chi tiet Phase 8 nam trong [MACOS_UI_ARCHITECTURE.md](MACOS_UI_ARCHITECTURE.md).
+
 ## Search Profile boundary
 
 `SearchProfile` dinh nghia buyer target cua mot lan scan. MVP chi co built-in MacBook Search Profile. Cac profile buyer khac nhu iPhone, may anh hoac laptop chi la future architecture note sau MVP, khong phai acceptance criterion cua MVP.
@@ -102,6 +106,6 @@ Khong xay abstraction, enum hoac code cho app tim nguoi can ban trong ScanFB hie
 
 Khi adapter gap CAPTCHA, checkpoint, login required, verification page, DOM unknown, missing critical selector hoac lost group access, application service phai danh dau group/batch that bai dung muc va dung workflow theo [SCAN_RULES.md](SCAN_RULES.md).
 
-## Ung vien cong nghe
+## UI technology
 
-Python, Rust va Go la ung vien can danh gia sau. Phase 0 khong chon ngon ngu lap trinh cuoi cung.
+SwiftUI is the approved native macOS presentation technology for Phase 8. The Go core remains authoritative for rules, deduplication, blocklist behavior, batch evaluation, persistence snapshots, reason codes and deterministic decisions.

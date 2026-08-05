@@ -47,6 +47,15 @@ Log chi dung de chan doan trang thai app va loi adapter. Log phai redact:
 - Header nhay cam.
 - Noi dung private khong can thiet.
 
+## Native macOS UI va fixture data
+
+Phase 8 SwiftUI milestones phai giu local-first boundary:
+
+- Khong dua Facebook credentials, cookies, browser profile copies, token hoac private user data vao fixture, screenshot hoac log.
+- Khong hidden networking, cloud sync hoac telemetry trong Phase 8.
+- Fixture UI phai duoc label la sample/demo data va khong duoc tu nhan la live Facebook data.
+- SwiftUI khong duoc truy cap SQLite truc tiep, expose database-local IDs hoac reimplement reason codes/business decisions cua Go core.
+
 ## Blocklist va quyen rieng tu
 
 Blocklist la local user preference. Dinh danh uu tien user ID, canonical profile URL va username; display name chi la thong tin phu. Nguoi dung phai xem va bo block duoc trong Settings.
