@@ -14,6 +14,7 @@ flowchart TD
     PERSIST_CONTRACT["Persistence-facing contracts"] --> APP
     PERSIST_CONTRACT --> DOMAIN
     PERSIST_IMPL["Persistence implementation"] --> PERSIST_CONTRACT
+    SQLITE["Future SQLite adapter design"] --> PERSIST_CONTRACT
     FB["Facebook adapter"] --> APP
     FB --> RAW["RawPost mapping contract"]
     RAW --> APP
@@ -66,12 +67,15 @@ Phase 5D them `internal/persistence/in_memory_batch_repository.go` cho determini
 
 Phase 5E them `internal/orchestration/run_and_save_scan_batch.go` cho synchronous use case `RunAndSaveScanBatch`. Use case validate repository boundary, chap nhan caller-supplied `BatchRecordID`, chay `application.RunScanBatch`, convert successful result bang `persistence.NewBatchRecord`, save dung mot lan qua `persistence.BatchRepository`, va chi tra result/record sau khi save thanh cong. Chua co UI/CLI wiring, Facebook collection, durable storage, concurrency, retry, generated ID hoac rule moi.
 
+Phase 5F them documentation-only SQLite schema design tai `docs/PERSISTENCE_SCHEMA.md`. Future SQLite adapter van thuoc `internal/persistence`, implement persistence-facing contract, save snapshot transactionally va khong own/recompute business rules. Chua co runtime SQLite adapter, SQL, migration, database file, repository expansion hoac dependency moi.
+
 ## Allowed dependencies
 
 - App/UI duoc goi Application services.
 - Application services duoc goi Domain, Rules, Dedup va Blocklist.
 - Persistence-facing contracts duoc goi Application services va Domain de copy completed batch snapshots.
 - Persistence implementation duoc implement Persistence-facing contracts.
+- Future SQLite adapter duoc implement Persistence-facing contracts trong `internal/persistence`.
 - Facebook adapter duoc goi Application services bang adapter boundary.
 - Tests duoc import Domain truc tiep de chay fixture deterministic.
 - `internal/rules` duoc import `internal/domain`.

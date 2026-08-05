@@ -67,7 +67,9 @@ Dinh nghia persistence-facing contract cho completed scan batch snapshot. Phase 
 
 ### Persistence implementation
 
-Durable local storage van deferred. In-memory adapter hien tai chi validate/save completed snapshot trong process de test va future wiring, khong phai persistence ben vung. SQLite la ung vien cho Phase 7, nhung Phase 0 chua khoa cong nghe.
+Durable local storage van deferred. In-memory adapter hien tai chi validate/save completed snapshot trong process de test va future wiring, khong phai persistence ben vung. Phase 5F chon SQLite la intended future local durable storage technology va ghi schema design tai [PERSISTENCE_SCHEMA.md](PERSISTENCE_SCHEMA.md), nhung chua co SQLite runtime adapter, SQL execution, migration, database file hoac repository expansion.
+
+Future SQLite adapter van nam trong `internal/persistence`, consume validated `BatchRecord` snapshots, save whole snapshot trong mot transaction va khong recompute buyer intent, geography, dedup, blocklist, aggregation hoac summary. `BatchRepository` van save-only.
 
 ### Facebook adapter
 

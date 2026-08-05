@@ -208,6 +208,18 @@ Tests: Unit tests voi spy repository va in-memory adapter cho success, save-once
 
 Stop conditions: Can UI/CLI wiring, Facebook collection, durable storage, retry/progress state, generated ID, repository expansion, concurrency hoac thay doi lower-layer semantics.
 
+## Phase 5F - Durable persistence strategy and SQLite schema design
+
+Exact scope: Create documentation-only SQLite schema design for future local durable persistence of completed `BatchRecord` snapshots, including root aggregate, normalized tables, explicit ordering, reason-code storage, schema version, migration policy, transaction policy, fail-closed reconstruction, indexes and deferred work.
+
+Protected areas: Khong SQLite package, `database/sql`, executable SQL, migration file, database file, runtime I/O, durable adapter, repository expansion, production Go API change, application/orchestration behavior, business rules, UI/CLI, Facebook integration hoac dependency moi.
+
+Acceptance criteria: [PERSISTENCE_SCHEMA.md](PERSISTENCE_SCHEMA.md) maps every `BatchRecord` field to storage, preserves ordered source posts/reasons/summaries, keeps `BatchRecordID` caller-supplied authoritative, defines duplicate-ID fail-closed transaction behavior, future load fail-closed behavior, schema-version and migration policy, and confirms implementation remains deferred.
+
+Tests: Documentation/design verification plus existing Go checks. Future implementation tests will use temporary SQLite databases for constraints, transactions, migrations, duplicate IDs, fail-closed load and deterministic reconstruction.
+
+Stop conditions: Can SQL implementation, database driver, repository load/list API, migration execution, database file, generated ID, runtime I/O, encryption/key management decision hoac product-level deletion/search behavior.
+
 ## Phase 5 - Geographic classifier hardening
 
 Exact scope: Harden geographic classifier behavior sau Phase 3C neu can, van theo [SCAN_RULES.md](SCAN_RULES.md) va khong mo rong vocabulary khi chua co milestone rieng.
