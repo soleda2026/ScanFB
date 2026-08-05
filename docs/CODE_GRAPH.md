@@ -36,7 +36,7 @@ flowchart TD
 
 Phase 2 files trong `internal/domain` gom minimal models cho `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Domain package chi duoc import Go standard library.
 
-Phase 3A files trong `internal/rules` gom deterministic primitives cho post-time eligibility va author exclusion. Rules package chi duoc import Go standard library va `internal/domain`.
+Phase 3A files trong `internal/rules` gom deterministic primitives cho post-time eligibility va author exclusion. Phase 3B them deterministic buyer-intent va seller/noise text matching dua tren active `SearchProfile`. Rules package chi duoc import Go standard library va `internal/domain`.
 
 ## Allowed dependencies
 

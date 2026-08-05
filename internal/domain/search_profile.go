@@ -53,8 +53,8 @@ func MacBookSearchProfile() SearchProfile {
 		id:               macBookSearchProfileID,
 		displayName:      "MacBook",
 		productTerms:     []string{"MacBook", "MacBook Pro"},
-		buyerIntentTerms: []string{"can mua", "tim mua", "muon mua", "can tim", "co ai ban", "can may", "can MacBook gap"},
-		noiseTerms:       []string{"can tien nen ban", "shop can thu mua"},
+		buyerIntentTerms: []string{"can mua", "cần mua", "tim mua", "muon mua", "can tim", "đang tìm", "co ai ban", "có ai bán", "can may", "can MacBook gap"},
+		noiseTerms:       []string{"Bán MacBook Pro", "có sẵn", "quảng cáo", "can tien nen ban", "shop can thu mua"},
 		enabled:          true,
 	}
 }

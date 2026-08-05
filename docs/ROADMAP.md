@@ -52,6 +52,18 @@ Tests: Unit tests cho time boundaries, anonymous labels, no-space author policy 
 
 Stop conditions: Can mo rong sang buyer intent, geographic classification, blocklist hoac dedup.
 
+## Phase 3B - Deterministic buyer-intent and seller/noise rules
+
+Exact scope: Implement deterministic text matching cho product terms, buyer-intent terms va seller/noise exclusion terms tu active `SearchProfile`.
+
+Protected areas: Khong geographic classification, khong dedup, khong persistence, khong Facebook adapter, khong UI, khong seller mode.
+
+Acceptance criteria: Product va buyer-intent term deu phai match, seller/noise term co uu tien exclude, empty/unmatched body fail-closed, matching boundary-aware va deterministic.
+
+Tests: Unit tests cho product matching, buyer intent, seller/noise precedence, empty input, MacBook profile examples va composition voi Phase 3A rules.
+
+Stop conditions: Can fuzzy matching, scoring, LLM, marketplace classifier, geography, blocklist hoac dedup.
+
 ## Phase 3 - Deterministic normalization
 
 Exact scope: Normalize text, URL, timestamp, author va keywords.

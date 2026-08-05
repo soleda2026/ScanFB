@@ -9,3 +9,12 @@ func EvaluatePost(post domain.RawPost, window domain.ScanWindow) Result {
 		EvaluateAuthor(post.Author),
 	)
 }
+
+// EvaluatePostForBuyerSearch applies time, author, and buyer-intent rules in deterministic order.
+func EvaluatePostForBuyerSearch(post domain.RawPost, window domain.ScanWindow, profile domain.SearchProfile) Result {
+	return combineResults(
+		EvaluatePostTime(post, window),
+		EvaluateAuthor(post.Author),
+		EvaluateBuyerIntent(post, profile),
+	)
+}

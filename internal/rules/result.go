@@ -24,6 +24,14 @@ const (
 	ReasonAuthorDisplayNameMissing ReasonCode = "excluded.author_display_name_missing"
 	// ReasonAuthorNameHasNoWhitespace means the trimmed display name contains no whitespace.
 	ReasonAuthorNameHasNoWhitespace ReasonCode = "excluded.author_name_has_no_space"
+	// ReasonPostBodyMissing means RawPost.Body is empty after trimming.
+	ReasonPostBodyMissing ReasonCode = "excluded.post_body_missing"
+	// ReasonTargetKeywordMissing means no SearchProfile product term matched RawPost.Body.
+	ReasonTargetKeywordMissing ReasonCode = "excluded.target_keyword_missing"
+	// ReasonBuyerIntentMissing means no SearchProfile buyer-intent term matched RawPost.Body.
+	ReasonBuyerIntentMissing ReasonCode = "excluded.buyer_intent_missing"
+	// ReasonSellerIntent means a SearchProfile seller/noise term matched RawPost.Body.
+	ReasonSellerIntent ReasonCode = "excluded.seller_intent"
 )
 
 // Result contains the decision and stable reason codes for a limited rule evaluation.
@@ -42,9 +50,16 @@ func excludeResult(reasons ...ReasonCode) Result {
 
 func combineResults(results ...Result) Result {
 	var reasons []ReasonCode
+	seen := make(map[ReasonCode]struct{})
 	for _, result := range results {
 		if result.Decision == DecisionExclude {
-			reasons = append(reasons, result.Reasons...)
+			for _, reason := range result.Reasons {
+				if _, ok := seen[reason]; ok {
+					continue
+				}
+				seen[reason] = struct{}{}
+				reasons = append(reasons, reason)
+			}
 		}
 	}
 	if len(reasons) == 0 {
