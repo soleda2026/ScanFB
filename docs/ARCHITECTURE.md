@@ -2,7 +2,7 @@
 
 Tai lieu nay la nguon chuan tac cho dependency boundaries cua ScanFB.
 
-Phase 1 da chon Go lam ngon ngu chinh va tao skeleton package toi thieu. Tai lieu nay van la nguon chuan tac cho boundary; skeleton hien tai chua trien khai domain model, rule engine, persistence, Facebook adapter hoac UI framework.
+Phase 1 da chon Go lam ngon ngu chinh va tao skeleton package toi thieu. Tai lieu nay van la nguon chuan tac cho boundary.
 
 ## Nguyen tac
 
@@ -39,7 +39,7 @@ Trong Go skeleton, cac layer duoc anh xa toi package:
 - `internal/orchestration`: thin synchronous use cases ket noi completed application result voi persistence-facing contract.
 - `internal/rules`: deterministic buyer-intent, author, time va geographic rules.
 - `internal/dedup`: duplicate detection va lead aggregation.
-- `internal/persistence`: persistence-facing contracts va deterministic in-memory adapter cho completed batch snapshots; chua co SQLite, file I/O hoac durable storage adapter.
+- `internal/persistence`: persistence-facing contracts, deterministic in-memory adapter cho completed batch snapshots, va SQLite schema-bootstrap foundation; chua co durable `SaveBatch`, load/list/update/delete/search/paging API hoac migration execution.
 - `internal/facebook`: adapter bien ngoai cho Facebook/browser; domain khong duoc import.
 - `internal/ui`: presentation layer; chua chon UI framework.
 
@@ -67,9 +67,9 @@ Dinh nghia persistence-facing contract cho completed scan batch snapshot. Phase 
 
 ### Persistence implementation
 
-Durable local storage van deferred. In-memory adapter hien tai chi validate/save completed snapshot trong process de test va future wiring, khong phai persistence ben vung. Phase 5F chon SQLite la intended future local durable storage technology va ghi schema design tai [PERSISTENCE_SCHEMA.md](PERSISTENCE_SCHEMA.md), nhung chua co SQLite runtime adapter, SQL execution, migration, database file hoac repository expansion.
+Durable batch saving van deferred. In-memory adapter hien tai chi validate/save completed snapshot trong process de test va future wiring, khong phai persistence ben vung. Phase 5F chon SQLite la local durable storage technology va ghi schema design tai [PERSISTENCE_SCHEMA.md](PERSISTENCE_SCHEMA.md). Phase 5G1 them `SQLiteBatchRepository` bootstrap trong `internal/persistence`: open/create explicit local SQLite path, enable va verify foreign keys, create empty schema version 1 transactionally, validate schema metadata, va `Close`.
 
-Future SQLite adapter van nam trong `internal/persistence`, consume validated `BatchRecord` snapshots, save whole snapshot trong mot transaction va khong recompute buyer intent, geography, dedup, blocklist, aggregation hoac summary. `BatchRepository` van save-only.
+`SQLiteBatchRepository` chua co `SaveBatch` va khong satisfy `BatchRepository`. Future durable save adapter van nam trong `internal/persistence`, consume validated `BatchRecord` snapshots, save whole snapshot trong mot transaction va khong recompute buyer intent, geography, dedup, blocklist, aggregation hoac summary. `BatchRepository` van save-only.
 
 ### Facebook adapter
 

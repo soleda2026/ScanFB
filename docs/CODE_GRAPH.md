@@ -14,7 +14,7 @@ flowchart TD
     PERSIST_CONTRACT["Persistence-facing contracts"] --> APP
     PERSIST_CONTRACT --> DOMAIN
     PERSIST_IMPL["Persistence implementation"] --> PERSIST_CONTRACT
-    SQLITE["Future SQLite adapter design"] --> PERSIST_CONTRACT
+    SQLITE["SQLite schema bootstrap"] --> PERSIST_CONTRACT
     FB["Facebook adapter"] --> APP
     FB --> RAW["RawPost mapping contract"]
     RAW --> APP
@@ -31,7 +31,7 @@ flowchart TD
 - `internal/blocklist`: Go package cho deterministic local blocklist identity primitives.
 - `internal/rules`: Go package cho deterministic buyer rules ownership.
 - `internal/dedup`: Go package cho deduplication ownership.
-- `internal/persistence`: Go package cho persistence-facing completed-batch contract va in-memory adapter ownership.
+- `internal/persistence`: Go package cho persistence-facing completed-batch contract, in-memory adapter va SQLite schema-bootstrap ownership.
 - `internal/orchestration`: Go package cho thin synchronous use-case orchestration ownership.
 - `internal/facebook`: Go package cho Facebook/browser adapter boundary ownership.
 - `internal/ui`: Go package cho presentation boundary ownership.
@@ -67,7 +67,7 @@ Phase 5D them `internal/persistence/in_memory_batch_repository.go` cho determini
 
 Phase 5E them `internal/orchestration/run_and_save_scan_batch.go` cho synchronous use case `RunAndSaveScanBatch`. Use case validate repository boundary, chap nhan caller-supplied `BatchRecordID`, chay `application.RunScanBatch`, convert successful result bang `persistence.NewBatchRecord`, save dung mot lan qua `persistence.BatchRepository`, va chi tra result/record sau khi save thanh cong. Chua co UI/CLI wiring, Facebook collection, durable storage, concurrency, retry, generated ID hoac rule moi.
 
-Phase 5F them documentation-only SQLite schema design tai `docs/PERSISTENCE_SCHEMA.md`. Future SQLite adapter van thuoc `internal/persistence`, implement persistence-facing contract, save snapshot transactionally va khong own/recompute business rules. Chua co runtime SQLite adapter, SQL, migration, database file, repository expansion hoac dependency moi.
+Phase 5F them documentation-only SQLite schema design tai `docs/PERSISTENCE_SCHEMA.md`. Phase 5G1 them `internal/persistence/sqlite_repository.go` va `internal/persistence/sqlite_schema.go` cho SQLite foundation: `modernc.org/sqlite` driver import chi trong persistence, explicit-path open/create, foreign-key enable/verify, transactional empty schema v1 creation, schema metadata validation va `Close`. `SQLiteBatchRepository` chua co `SaveBatch`, khong satisfy `BatchRepository`, va chua co durable snapshot write/load/list/migration behavior.
 
 ## Allowed dependencies
 
@@ -75,7 +75,7 @@ Phase 5F them documentation-only SQLite schema design tai `docs/PERSISTENCE_SCHE
 - Application services duoc goi Domain, Rules, Dedup va Blocklist.
 - Persistence-facing contracts duoc goi Application services va Domain de copy completed batch snapshots.
 - Persistence implementation duoc implement Persistence-facing contracts.
-- Future SQLite adapter duoc implement Persistence-facing contracts trong `internal/persistence`.
+- SQLite schema bootstrap duoc implement trong `internal/persistence`; future durable save adapter se implement Persistence-facing contracts trong cung package.
 - Facebook adapter duoc goi Application services bang adapter boundary.
 - Tests duoc import Domain truc tiep de chay fixture deterministic.
 - `internal/rules` duoc import `internal/domain`.
@@ -83,6 +83,7 @@ Phase 5F them documentation-only SQLite schema design tai `docs/PERSISTENCE_SCHE
 - `internal/blocklist` duoc import `internal/domain`.
 - `internal/application` duoc import `internal/domain`, `internal/rules`, `internal/dedup` va `internal/blocklist`.
 - `internal/persistence` duoc import `internal/application` va `internal/domain`.
+- `modernc.org/sqlite` chi duoc import trong `internal/persistence`.
 - `internal/orchestration` duoc import `internal/application` va `internal/persistence`.
 
 ## Forbidden dependencies
@@ -97,6 +98,7 @@ Phase 5F them documentation-only SQLite schema design tai `docs/PERSISTENCE_SCHE
 - Application, Domain, Rules, Dedup, Blocklist va Persistence khong duoc import `internal/orchestration`.
 - `internal/orchestration` khong duoc import Facebook adapter, UI hoac CLI package.
 - `internal/persistence` khong duoc import Facebook adapter, UI, CLI package hoac persistence implementation package.
+- Khong package nao ngoai `internal/persistence` duoc import `modernc.org/sqlite`.
 - Khong module nao trong ScanFB duoc them seller mode, `SellerLead`, `SellerIntentClassifier`, `LeadIntent` buyer/seller hoac `SELLER_SCAN`.
 
 ## Entry points
@@ -138,6 +140,7 @@ RawPost
 -> Persistence-facing completed BatchRecord snapshot contract
 -> Optional in-memory BatchRepository adapter cho deterministic inspection/testing
 -> Optional thin RunAndSaveScanBatch orchestration cho explicit caller-supplied record ID
+-> Optional SQLite schema-bootstrap foundation neu caller mo explicit local DB path
 ```
 
 ## SearchProfile va buyer-only boundary
@@ -155,6 +158,7 @@ Khi bat dau co code, moi thay doi module boundary phai cap nhat tai lieu nay neu
 - Them entry point moi.
 - Doi pipeline scan/filter/dedup.
 - Them persistence hoac adapter implementation moi.
+- Thay doi SQLite schema bootstrap, dependency boundary hoac schema version.
 
 Khong cap nhat graph de hop thuc hoa dependency bi cam. Neu code can dependency bi cam, phai sua design hoac xin quyet dinh san pham/kien truc truoc.
 

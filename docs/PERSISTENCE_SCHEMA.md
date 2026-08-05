@@ -1,6 +1,6 @@
 # Persistence Schema Design
 
-Phase 5F defines the intended durable local SQLite storage model for completed ScanFB batch snapshots. This is a design contract only: no SQLite package, SQL execution, migration file, database file, adapter, repository expansion, runtime I/O, or production behavior is introduced in this phase.
+Phase 5F defined the durable local SQLite storage model for completed ScanFB batch snapshots. Phase 5G1 implements only the SQLite foundation for schema version 1: explicit-path open/create, foreign-key enable/verify, transactional empty-schema creation, schema metadata validation, and close. Durable `SaveBatch`, load/list APIs, migrations, UI/CLI wiring, and production scan persistence remain deferred.
 
 ## 1. Purpose And Non-Goals
 
@@ -8,19 +8,20 @@ Purpose:
 
 - Store one completed `persistence.BatchRecord` as the root aggregate.
 - Preserve every historical decision, reason code, source post, lead, outcome, conflict, and summary value.
-- Allow a future adapter to reconstruct the same `BatchRecord` deterministically without rerunning buyer-intent classification, geography classification, deduplication, blocklist evaluation, aggregation, or summary calculation.
+- Allow a future save/load adapter to reconstruct the same `BatchRecord` deterministically without rerunning buyer-intent classification, geography classification, deduplication, blocklist evaluation, aggregation, or summary calculation.
 - Keep storage local-only and inside `internal/persistence`.
 
 Non-goals:
 
-- No executable SQL, table-creation statements, migration scripts, database creation, schema files, or runtime I/O.
-- No `database/sql` import, SQLite driver, third-party dependency, durable repository adapter, `LoadBatch`, `ListBatches`, update, delete, search, or paging API.
+- No durable `SaveBatch`, `LoadBatch`, `ListBatches`, update, delete, search, or paging API.
+- No migration files, migration execution, production database location policy, UI/CLI wiring, or production scan persistence.
 - No JSON blobs, generic metadata maps for business data, polymorphic `entity_type/entity_id` references, ORM naming assumptions, cloud sync, cross-device sync, multi-user tenancy, soft deletion, or audit logging.
 
 ## 2. Approved Dependency Boundary
 
-- `internal/persistence` remains the future home for SQLite storage implementation.
-- Future SQLite adapters consume validated `persistence.BatchRecord` snapshots and implement the existing save-only `BatchRepository.SaveBatch(record)` contract.
+- `internal/persistence` owns the SQLite schema-bootstrap implementation and remains the future home for durable SQLite save/load implementation.
+- `SQLiteBatchRepository` opens and validates schema version 1 but intentionally does not implement `SaveBatch`.
+- Future durable SQLite save adapters consume validated `persistence.BatchRecord` snapshots and implement the existing save-only `BatchRepository.SaveBatch(record)` contract.
 - Storage must not own or recompute business decisions.
 - `internal/application` does not import persistence.
 - `internal/orchestration` may import application and persistence, and may pass completed snapshots to the repository.
@@ -31,7 +32,7 @@ Non-goals:
 
 One row in `scan_batches` is the root aggregate for one completed batch snapshot. `batch_record_id` is caller-supplied, opaque, unique, and authoritative at the contract boundary.
 
-A future schema may also use an internal integer surrogate primary key, `batch_pk`, to make child foreign keys compact and stable inside SQLite. `batch_pk` is database-local only, must never be exposed through `BatchRecordID`, and must never be required for public reconstruction. Reconstruction starts from `batch_record_id`, then loads children through the internal key.
+Schema version 1 uses an internal integer surrogate primary key, `batch_pk`, to make child foreign keys compact and stable inside SQLite. `batch_pk` is database-local only, must never be exposed through `BatchRecordID`, and must never be required for public reconstruction. Reconstruction starts from `batch_record_id`, then loads children through the internal key.
 
 The root stores:
 
@@ -81,7 +82,7 @@ No random UUID generation, current-time generation, or SQLite-generated public I
 
 ## 5. Columns For Each Table
 
-Column lists are design contracts, not executable SQL.
+Column lists are schema contracts. Executable DDL lives in `internal/persistence` and must stay aligned with this document.
 
 ### `schema_metadata`
 
@@ -382,12 +383,12 @@ Application reasons are expected mainly for unresolved outcomes.
 - Reason, evidence, and source tables reference their narrow parent records.
 - Post references use `post_occurrence_pk`, not `PostID`.
 - Lead outcome references use `lead_pk`, not recomputed lead keys.
-- Foreign keys must be enabled by future SQLite connections.
+- SQLite connections must enable and verify foreign-key enforcement before schema initialization or validation.
 - Public delete is not part of `BatchRepository`; delete behavior is deferred. If internal cascading is chosen later, it must be documented as schema integrity behavior, not product-level deletion semantics.
 
 ## 8. Unique Constraints
 
-Future schema constraints should include:
+Schema constraints include:
 
 - `scan_batches.batch_record_id` unique.
 - `batch_search_profile_terms(batch_pk, term_kind, term_position)` unique.
@@ -447,7 +448,7 @@ Future loads must reject duplicate positions and gaps in required ordered positi
 
 ## 11. Source-Post Occurrence Identity
 
-`RawPost.PostID` is not guaranteed to be present or globally unique. A future schema must therefore identify source posts by `raw_post_occurrences.post_occurrence_pk`, with unique positional constraints:
+`RawPost.PostID` is not guaranteed to be present or globally unique. The schema therefore identifies source posts by `raw_post_occurrences.post_occurrence_pk`, with unique positional constraints:
 
 - one batch-local `flattened_position`
 - one group-local `group_post_position`
@@ -477,7 +478,7 @@ Required behavior:
 
 ## 13. Future Load And Reconstruction Policy
 
-`BatchRepository` remains save-only in Phase 5F. If a future milestone adds loading, it must fail closed:
+`BatchRepository` remains save-only. If a future milestone adds loading, it must fail closed:
 
 - fetch one root by `BatchRecordID`;
 - reject missing or unsupported database/schema version;
@@ -508,6 +509,7 @@ Database constraints do not replace application validation. Application validati
 - `scan_batches.schema_version` stores the snapshot interpretation version for each root batch.
 - Missing version fails closed.
 - Unsupported newer versions fail closed.
+- Duplicate or malformed schema metadata fails closed.
 - No best-effort loading of unknown schemas.
 - No automatic destructive downgrade.
 - Migration execution remains deferred.
@@ -556,8 +558,7 @@ No network access is part of persistence. Encryption at rest and key management 
 
 Deferred:
 
-- SQLite adapter implementation;
-- database connection handling;
+- durable SQLite `SaveBatch` implementation;
 - migrations and migration tests;
 - storage-layer error taxonomy;
 - durable load/list APIs;

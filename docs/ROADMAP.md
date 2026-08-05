@@ -214,11 +214,23 @@ Exact scope: Create documentation-only SQLite schema design for future local dur
 
 Protected areas: Khong SQLite package, `database/sql`, executable SQL, migration file, database file, runtime I/O, durable adapter, repository expansion, production Go API change, application/orchestration behavior, business rules, UI/CLI, Facebook integration hoac dependency moi.
 
-Acceptance criteria: [PERSISTENCE_SCHEMA.md](PERSISTENCE_SCHEMA.md) maps every `BatchRecord` field to storage, preserves ordered source posts/reasons/summaries, keeps `BatchRecordID` caller-supplied authoritative, defines duplicate-ID fail-closed transaction behavior, future load fail-closed behavior, schema-version and migration policy, and confirms implementation remains deferred.
+Acceptance criteria: [PERSISTENCE_SCHEMA.md](PERSISTENCE_SCHEMA.md) maps every `BatchRecord` field to storage, preserves ordered source posts/reasons/summaries, keeps `BatchRecordID` caller-supplied authoritative, defines duplicate-ID fail-closed transaction behavior, future load fail-closed behavior, schema-version and migration policy, and confirms durable save implementation remains deferred.
 
 Tests: Documentation/design verification plus existing Go checks. Future implementation tests will use temporary SQLite databases for constraints, transactions, migrations, duplicate IDs, fail-closed load and deterministic reconstruction.
 
 Stop conditions: Can SQL implementation, database driver, repository load/list API, migration execution, database file, generated ID, runtime I/O, encryption/key management decision hoac product-level deletion/search behavior.
+
+## Phase 5G1 - SQLite schema bootstrap foundation
+
+Exact scope: Add `modernc.org/sqlite` dependency and `SQLiteBatchRepository` foundation inside `internal/persistence` to open/create an explicit local SQLite path, enable/verify foreign keys, transactionally create empty schema version 1, initialize/validate schema metadata, and close.
+
+Protected areas: Khong implement `SaveBatch`, khong make `SQLiteBatchRepository` satisfy `BatchRepository`, khong load/list/update/delete/search/paging API, khong migration execution, khong application/orchestration/domain/rules/dedup/blocklist/Facebook/UI/CLI behavior.
+
+Acceptance criteria: Empty temp DB gets complete schema version 1, existing valid schema reopens without mutation, missing/malformed/unsupported metadata and partial schema fail closed, representative foreign-key/unique/check/not-null constraints work, SQLite driver import stays only in `internal/persistence`.
+
+Tests: Temporary SQLite DB tests for bootstrap, metadata, foreign keys, representative constraints, rollback, deterministic object inventory, invalid paths and architecture dependency boundary.
+
+Stop conditions: Can durable batch saving, repository interface expansion, migrations, production DB path policy, UI/CLI wiring, Facebook collection, generated IDs, concurrency hoac encryption/key management.
 
 ## Phase 5 - Geographic classifier hardening
 

@@ -234,7 +234,7 @@ func TestApplicationImportsOnlyAllowedPackages(t *testing.T) {
 	}
 }
 
-func TestPersistenceImportsOnlyApplicationDomainAndStandardLibrary(t *testing.T) {
+func TestPersistenceImportsOnlyApplicationDomainSQLiteDriverAndStandardLibrary(t *testing.T) {
 	files, err := filepath.Glob(filepath.Join(repoRoot(), "internal", "persistence", "*.go"))
 	if err != nil {
 		t.Fatalf("glob persistence files: %v", err)
@@ -267,12 +267,59 @@ func TestPersistenceImportsOnlyApplicationDomainAndStandardLibrary(t *testing.T)
 			if _, ok := allowedInternal[importPath]; ok {
 				continue
 			}
+			if importPath == "modernc.org/sqlite" {
+				continue
+			}
 			if strings.HasPrefix(importPath, "github.com/soleda2026/ScanFB/internal/") {
 				t.Fatalf("persistence imports forbidden internal package %q in %s", importPath, path)
 			}
 			firstPart := strings.Split(importPath, "/")[0]
 			if strings.Contains(firstPart, ".") {
 				t.Fatalf("persistence imports non-standard package %q in %s", importPath, path)
+			}
+		}
+	}
+}
+
+func TestSQLiteDriverImportsStayInsidePersistence(t *testing.T) {
+	forbiddenPackages := []string{
+		"application",
+		"blocklist",
+		"dedup",
+		"domain",
+		"facebook",
+		"orchestration",
+		"rules",
+		"ui",
+	}
+	forbiddenFiles := []string{
+		filepath.Join(repoRoot(), "cmd", "scanfb", "*.go"),
+	}
+	for _, packageName := range forbiddenPackages {
+		forbiddenFiles = append(forbiddenFiles, filepath.Join(repoRoot(), "internal", packageName, "*.go"))
+	}
+
+	fset := token.NewFileSet()
+	for _, pattern := range forbiddenFiles {
+		files, err := filepath.Glob(pattern)
+		if err != nil {
+			t.Fatalf("glob %s: %v", pattern, err)
+		}
+		for _, path := range files {
+			src, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatalf("read %s: %v", path, err)
+			}
+			parsed, err := parser.ParseFile(fset, path, src, parser.ImportsOnly)
+			if err != nil {
+				t.Fatalf("parse imports for %s: %v", path, err)
+			}
+
+			for _, imp := range parsed.Imports {
+				importPath := strings.Trim(imp.Path.Value, `"`)
+				if importPath == "modernc.org/sqlite" {
+					t.Fatalf("sqlite driver imported outside persistence in %s", path)
+				}
 			}
 		}
 	}
