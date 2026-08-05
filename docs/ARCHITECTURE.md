@@ -38,7 +38,7 @@ Trong Go skeleton, cac layer duoc anh xa toi package:
 - `internal/application`: orchestration/use cases; phu thuoc domain.
 - `internal/rules`: deterministic buyer-intent, author, time va geographic rules.
 - `internal/dedup`: duplicate detection va lead aggregation.
-- `internal/persistence`: persistence-facing contracts cho completed batch snapshots; chua co SQLite, file I/O hoac storage adapter.
+- `internal/persistence`: persistence-facing contracts va deterministic in-memory adapter cho completed batch snapshots; chua co SQLite, file I/O hoac durable storage adapter.
 - `internal/facebook`: adapter bien ngoai cho Facebook/browser; domain khong duoc import.
 - `internal/ui`: presentation layer; chua chon UI framework.
 
@@ -58,11 +58,11 @@ Domain duoc giu trung lap o phan tai su dung nhu `ScanSession`, `ScanBatch`, `Ra
 
 ### Persistence interfaces
 
-Dinh nghia persistence-facing contract cho completed scan batch snapshot. Phase 5C chi co opaque `BatchRecordID`, completed `BatchRecord`, structural validation va save-only `BatchRepository.SaveBatch`; khong co load/list/update/delete/search/paging/schema/migration/transaction API. `internal/persistence` duoc phu thuoc `internal/application` va `internal/domain` de copy completed batch result; application, domain, rules, dedup va blocklist khong phu thuoc persistence.
+Dinh nghia persistence-facing contract cho completed scan batch snapshot. Phase 5C chi co opaque `BatchRecordID`, completed `BatchRecord`, structural validation va save-only `BatchRepository.SaveBatch`; khong co load/list/update/delete/search/paging/schema/migration/transaction API. Phase 5D them `InMemoryBatchRepository` lam concrete adapter chi trong memory; inspection methods nam tren adapter, khong mo rong `BatchRepository`. `internal/persistence` duoc phu thuoc `internal/application` va `internal/domain` de copy completed batch result; application, domain, rules, dedup va blocklist khong phu thuoc persistence.
 
 ### Persistence implementation
 
-Luu du lieu local. SQLite la ung vien cho Phase 7, nhung Phase 0 chua khoa cong nghe.
+Durable local storage van deferred. In-memory adapter hien tai chi validate/save completed snapshot trong process de test va future wiring, khong phai persistence ben vung. SQLite la ung vien cho Phase 7, nhung Phase 0 chua khoa cong nghe.
 
 ### Facebook adapter
 

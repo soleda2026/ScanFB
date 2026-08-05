@@ -184,6 +184,18 @@ Tests: Unit tests cho record ID, conversion, source/outcome/reason preservation,
 
 Stop conditions: Can storage backend, query/loading behavior, migrations, repository expansion, generated IDs, UI workflow, Facebook collection hoac schema design.
 
+## Phase 5D - Deterministic in-memory batch persistence adapter
+
+Exact scope: Implement `InMemoryBatchRepository` trong `internal/persistence` de satisfy save-only `BatchRepository`, validate completed `BatchRecord`, save defensive snapshots trong memory, preserve insertion order, reject duplicate `BatchRecordID` va expose concrete read-only inspection helpers.
+
+Protected areas: Khong SQLite, SQL, durable storage, schema, migration, JSON/file I/O, network I/O, third-party dependency, repository interface expansion, update/delete/search API, ID generation, UI/CLI, Facebook adapter, concurrency hoac business-rule recomputation.
+
+Acceptance criteria: Zero-value repository usable; valid snapshots save; malformed snapshots fail before storage; duplicate IDs fail without overwrite; order deterministic; reads return defensive snapshots; `BatchRepository` van save-only; durable persistence van deferred.
+
+Tests: Unit tests cho construction/interface, valid saves, five snapshots, ordering, duplicate IDs, validation failures, defensive storage/read copies, source/outcome preservation, empty/not-found reads va deterministic save sequences.
+
+Stop conditions: Can durable backend, schema/query design, generated IDs, repository load/list requirements tren interface, concurrency support, UI workflow hoac Facebook collection.
+
 ## Phase 5 - Geographic classifier hardening
 
 Exact scope: Harden geographic classifier behavior sau Phase 3C neu can, van theo [SCAN_RULES.md](SCAN_RULES.md) va khong mo rong vocabulary khi chua co milestone rieng.

@@ -27,7 +27,7 @@ flowchart TD
 - `internal/blocklist`: Go package cho deterministic local blocklist identity primitives.
 - `internal/rules`: Go package cho deterministic buyer rules ownership.
 - `internal/dedup`: Go package cho deduplication ownership.
-- `internal/persistence`: Go package cho persistence-facing completed-batch contract ownership.
+- `internal/persistence`: Go package cho persistence-facing completed-batch contract va in-memory adapter ownership.
 - `internal/facebook`: Go package cho Facebook/browser adapter boundary ownership.
 - `internal/ui`: Go package cho presentation boundary ownership.
 - App/UI: owner cua views, tabs, lead cards, settings va user actions.
@@ -56,6 +56,8 @@ Phase 5A them `internal/application/evaluation_pipeline.go` cho deterministic in
 Phase 5B them `internal/application/scan_batch.go` cho deterministic in-memory manual batch model gom mot den nam explicit groups. Batch validate group identity va post/group consistency, flatten posts theo group order roi post order, goi Phase 5A pipeline mot lan va tao batch/per-group count summaries. Chua co Facebook collection, persistence, UI, CLI behavior, scheduling, retries, progress reporting, concurrency hoac network behavior.
 
 Phase 5C them `internal/persistence/batch_record.go` cho completed scan batch snapshot contract. Contract gom opaque `BatchRecordID`, immutable-style `BatchRecord`, structural validation, deterministic converter tu `application.ScanBatchInput`/`ScanBatchResult` va save-only `BatchRepository.SaveBatch`. Chua co SQLite, schema, migration, file I/O, load/list/update/delete/search/paging API, ID generation, Facebook adapter, UI/CLI, concurrency hoac network behavior.
+
+Phase 5D them `internal/persistence/in_memory_batch_repository.go` cho deterministic in-memory adapter satisfy `BatchRepository`. Adapter validate `BatchRecord`, reject duplicate ID without overwrite, preserve insertion order bang slice, dung map chi cho lookup, va expose concrete helpers `Count`, `Records`, `RecordByID`. `BatchRepository` van save-only; chua co durable storage, SQLite, SQL, schema, migration, JSON/file I/O, goroutine, network hoac ID generation.
 
 ## Allowed dependencies
 
@@ -120,6 +122,7 @@ RawPost
 -> Explicit allowed, blocked, unresolved, unaggregated va conflict outputs
 -> Count-only batch summary va per-group rule-stage summaries
 -> Persistence-facing completed BatchRecord snapshot contract
+-> Optional in-memory BatchRepository adapter cho deterministic inspection/testing
 ```
 
 ## SearchProfile va buyer-only boundary

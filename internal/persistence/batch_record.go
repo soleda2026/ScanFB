@@ -878,6 +878,9 @@ func copyRawPosts(posts []domain.RawPost) []domain.RawPost {
 }
 
 func copyGroupRecords(groups []GroupRecord) []GroupRecord {
+	if len(groups) == 0 {
+		return nil
+	}
 	copied := make([]GroupRecord, len(groups))
 	for i, group := range groups {
 		copied[i] = group
@@ -887,6 +890,9 @@ func copyGroupRecords(groups []GroupRecord) []GroupRecord {
 }
 
 func copyEvaluatedPostRecords(posts []EvaluatedPostRecord) []EvaluatedPostRecord {
+	if len(posts) == 0 {
+		return nil
+	}
 	copied := make([]EvaluatedPostRecord, len(posts))
 	for i, post := range posts {
 		copied[i] = post
@@ -897,6 +903,9 @@ func copyEvaluatedPostRecords(posts []EvaluatedPostRecord) []EvaluatedPostRecord
 }
 
 func copyLeadRecords(leads []LeadRecord) []LeadRecord {
+	if len(leads) == 0 {
+		return nil
+	}
 	copied := make([]LeadRecord, len(leads))
 	for i, lead := range leads {
 		copied[i] = lead
@@ -910,10 +919,16 @@ func copyLeadRecords(leads []LeadRecord) []LeadRecord {
 }
 
 func copySourcePostRecords(sources []SourcePostRecord) []SourcePostRecord {
+	if len(sources) == 0 {
+		return nil
+	}
 	return append([]SourcePostRecord(nil), sources...)
 }
 
 func copyAllowedLeadRecords(leads []AllowedLeadRecord) []AllowedLeadRecord {
+	if len(leads) == 0 {
+		return nil
+	}
 	copied := make([]AllowedLeadRecord, len(leads))
 	for i, lead := range leads {
 		copied[i] = lead
@@ -924,6 +939,9 @@ func copyAllowedLeadRecords(leads []AllowedLeadRecord) []AllowedLeadRecord {
 }
 
 func copyBlockedLeadRecords(leads []BlockedLeadRecord) []BlockedLeadRecord {
+	if len(leads) == 0 {
+		return nil
+	}
 	copied := make([]BlockedLeadRecord, len(leads))
 	for i, lead := range leads {
 		copied[i] = lead
@@ -934,6 +952,9 @@ func copyBlockedLeadRecords(leads []BlockedLeadRecord) []BlockedLeadRecord {
 }
 
 func copyUnresolvedLeadRecords(leads []UnresolvedLeadRecord) []UnresolvedLeadRecord {
+	if len(leads) == 0 {
+		return nil
+	}
 	copied := make([]UnresolvedLeadRecord, len(leads))
 	for i, lead := range leads {
 		copied[i] = lead
@@ -950,6 +971,9 @@ func copyBlocklistMatchRecord(match BlocklistMatchRecord) BlocklistMatchRecord {
 }
 
 func copyUnaggregatedPostRecords(posts []UnaggregatedPostRecord) []UnaggregatedPostRecord {
+	if len(posts) == 0 {
+		return nil
+	}
 	copied := make([]UnaggregatedPostRecord, len(posts))
 	for i, post := range posts {
 		copied[i] = post
@@ -960,6 +984,9 @@ func copyUnaggregatedPostRecords(posts []UnaggregatedPostRecord) []UnaggregatedP
 }
 
 func copySourceConflictRecords(conflicts []SourceConflictRecord) []SourceConflictRecord {
+	if len(conflicts) == 0 {
+		return nil
+	}
 	copied := make([]SourceConflictRecord, len(conflicts))
 	for i, conflict := range conflicts {
 		copied[i] = conflict
