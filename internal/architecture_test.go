@@ -17,6 +17,7 @@ var skeletonPackages = []string{
 	"./internal/dedup",
 	"./internal/domain",
 	"./internal/facebook",
+	"./internal/orchestration",
 	"./internal/persistence",
 	"./internal/rules",
 	"./internal/ui",
@@ -277,6 +278,50 @@ func TestPersistenceImportsOnlyApplicationDomainAndStandardLibrary(t *testing.T)
 	}
 }
 
+func TestOrchestrationImportsOnlyApplicationPersistenceAndStandardLibrary(t *testing.T) {
+	files, err := filepath.Glob(filepath.Join(repoRoot(), "internal", "orchestration", "*.go"))
+	if err != nil {
+		t.Fatalf("glob orchestration files: %v", err)
+	}
+	if len(files) == 0 {
+		t.Fatal("expected orchestration package files")
+	}
+
+	allowedInternal := map[string]struct{}{
+		"github.com/soleda2026/ScanFB/internal/application": {},
+		"github.com/soleda2026/ScanFB/internal/persistence": {},
+	}
+
+	fset := token.NewFileSet()
+	for _, path := range files {
+		if strings.HasSuffix(path, "_test.go") {
+			continue
+		}
+		src, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatalf("read %s: %v", path, err)
+		}
+		parsed, err := parser.ParseFile(fset, path, src, parser.ImportsOnly)
+		if err != nil {
+			t.Fatalf("parse imports for %s: %v", path, err)
+		}
+
+		for _, imp := range parsed.Imports {
+			importPath := strings.Trim(imp.Path.Value, `"`)
+			if _, ok := allowedInternal[importPath]; ok {
+				continue
+			}
+			if strings.HasPrefix(importPath, "github.com/soleda2026/ScanFB/internal/") {
+				t.Fatalf("orchestration imports forbidden internal package %q in %s", importPath, path)
+			}
+			firstPart := strings.Split(importPath, "/")[0]
+			if strings.Contains(firstPart, ".") {
+				t.Fatalf("orchestration imports non-standard package %q in %s", importPath, path)
+			}
+		}
+	}
+}
+
 func TestCorePackagesDoNotImportPersistence(t *testing.T) {
 	corePackages := []string{"application", "blocklist", "dedup", "domain", "rules"}
 	fset := token.NewFileSet()
@@ -307,6 +352,42 @@ func TestCorePackagesDoNotImportPersistence(t *testing.T) {
 				importPath := strings.Trim(imp.Path.Value, `"`)
 				if importPath == "github.com/soleda2026/ScanFB/internal/persistence" {
 					t.Fatalf("%s imports persistence in %s", packageName, path)
+				}
+			}
+		}
+	}
+}
+
+func TestCorePackagesDoNotImportOrchestration(t *testing.T) {
+	corePackages := []string{"application", "blocklist", "dedup", "domain", "persistence", "rules"}
+	fset := token.NewFileSet()
+
+	for _, packageName := range corePackages {
+		files, err := filepath.Glob(filepath.Join(repoRoot(), "internal", packageName, "*.go"))
+		if err != nil {
+			t.Fatalf("glob %s files: %v", packageName, err)
+		}
+		if len(files) == 0 {
+			t.Fatalf("expected %s package files", packageName)
+		}
+
+		for _, path := range files {
+			if strings.HasSuffix(path, "_test.go") {
+				continue
+			}
+			src, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatalf("read %s: %v", path, err)
+			}
+			parsed, err := parser.ParseFile(fset, path, src, parser.ImportsOnly)
+			if err != nil {
+				t.Fatalf("parse imports for %s: %v", path, err)
+			}
+
+			for _, imp := range parsed.Imports {
+				importPath := strings.Trim(imp.Path.Value, `"`)
+				if importPath == "github.com/soleda2026/ScanFB/internal/orchestration" {
+					t.Fatalf("%s imports orchestration in %s", packageName, path)
 				}
 			}
 		}

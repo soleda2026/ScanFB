@@ -7,6 +7,9 @@ Tai lieu nay mo ta graph kien truc muc tieu, module boundaries va dependency dir
 ```mermaid
 flowchart TD
     UI["App/UI"] --> APP["Application services"]
+    UI --> ORCH["Use-case orchestration"]
+    ORCH --> APP
+    ORCH --> PERSIST_CONTRACT
     APP --> DOMAIN["Domain"]
     PERSIST_CONTRACT["Persistence-facing contracts"] --> APP
     PERSIST_CONTRACT --> DOMAIN
@@ -28,10 +31,12 @@ flowchart TD
 - `internal/rules`: Go package cho deterministic buyer rules ownership.
 - `internal/dedup`: Go package cho deduplication ownership.
 - `internal/persistence`: Go package cho persistence-facing completed-batch contract va in-memory adapter ownership.
+- `internal/orchestration`: Go package cho thin synchronous use-case orchestration ownership.
 - `internal/facebook`: Go package cho Facebook/browser adapter boundary ownership.
 - `internal/ui`: Go package cho presentation boundary ownership.
 - App/UI: owner cua views, tabs, lead cards, settings va user actions.
-- Application services: owner cua scan orchestration, batch state va time window.
+- Application services: owner cua deterministic in-memory scan batch model, batch state va time window.
+- Use-case orchestration: owner cua glue logic giua completed application result, `BatchRecord` conversion va repository save boundary.
 - Domain: owner cua normalization contracts, SearchProfile, BuyerIntentClassifier, rule engine, geographic classifier, deduplication, lead aggregation va reason codes.
 - Persistence-facing contracts: owner cua completed batch snapshot contracts.
 - Persistence implementation: owner cua local storage implementation.
@@ -59,6 +64,8 @@ Phase 5C them `internal/persistence/batch_record.go` cho completed scan batch sn
 
 Phase 5D them `internal/persistence/in_memory_batch_repository.go` cho deterministic in-memory adapter satisfy `BatchRepository`. Adapter validate `BatchRecord`, reject duplicate ID without overwrite, preserve insertion order bang slice, dung map chi cho lookup, va expose concrete helpers `Count`, `Records`, `RecordByID`. `BatchRepository` van save-only; chua co durable storage, SQLite, SQL, schema, migration, JSON/file I/O, goroutine, network hoac ID generation.
 
+Phase 5E them `internal/orchestration/run_and_save_scan_batch.go` cho synchronous use case `RunAndSaveScanBatch`. Use case validate repository boundary, chap nhan caller-supplied `BatchRecordID`, chay `application.RunScanBatch`, convert successful result bang `persistence.NewBatchRecord`, save dung mot lan qua `persistence.BatchRepository`, va chi tra result/record sau khi save thanh cong. Chua co UI/CLI wiring, Facebook collection, durable storage, concurrency, retry, generated ID hoac rule moi.
+
 ## Allowed dependencies
 
 - App/UI duoc goi Application services.
@@ -72,6 +79,7 @@ Phase 5D them `internal/persistence/in_memory_batch_repository.go` cho determini
 - `internal/blocklist` duoc import `internal/domain`.
 - `internal/application` duoc import `internal/domain`, `internal/rules`, `internal/dedup` va `internal/blocklist`.
 - `internal/persistence` duoc import `internal/application` va `internal/domain`.
+- `internal/orchestration` duoc import `internal/application` va `internal/persistence`.
 
 ## Forbidden dependencies
 
@@ -82,6 +90,8 @@ Phase 5D them `internal/persistence/in_memory_batch_repository.go` cho determini
 - UI khong duoc tu quyet dinh include/exclude thay rule engine.
 - Persistence implementation khong duoc dieu khien browser.
 - Application, Domain, Rules, Dedup va Blocklist khong duoc import `internal/persistence`.
+- Application, Domain, Rules, Dedup, Blocklist va Persistence khong duoc import `internal/orchestration`.
+- `internal/orchestration` khong duoc import Facebook adapter, UI hoac CLI package.
 - `internal/persistence` khong duoc import Facebook adapter, UI, CLI package hoac persistence implementation package.
 - Khong module nao trong ScanFB duoc them seller mode, `SellerLead`, `SellerIntentClassifier`, `LeadIntent` buyer/seller hoac `SELLER_SCAN`.
 
@@ -123,6 +133,7 @@ RawPost
 -> Count-only batch summary va per-group rule-stage summaries
 -> Persistence-facing completed BatchRecord snapshot contract
 -> Optional in-memory BatchRepository adapter cho deterministic inspection/testing
+-> Optional thin RunAndSaveScanBatch orchestration cho explicit caller-supplied record ID
 ```
 
 ## SearchProfile va buyer-only boundary

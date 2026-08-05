@@ -196,6 +196,18 @@ Tests: Unit tests cho construction/interface, valid saves, five snapshots, order
 
 Stop conditions: Can durable backend, schema/query design, generated IDs, repository load/list requirements tren interface, concurrency support, UI workflow hoac Facebook collection.
 
+## Phase 5E - Thin run-and-save orchestration
+
+Exact scope: Add `internal/orchestration.RunAndSaveScanBatch` de chap nhan caller-supplied `BatchRecordID`, chay `application.RunScanBatch`, convert successful result bang `persistence.NewBatchRecord`, save dung mot lan qua `persistence.BatchRepository` va tra completed result/record chi sau khi save thanh cong.
+
+Protected areas: Khong thay application, persistence, domain, rules, dedup, blocklist, Facebook adapter, UI, CLI behavior, durable storage, concurrency, retry, generated ID, repository load/list API hoac business-rule semantics.
+
+Acceptance criteria: Nil repository fail closed; empty ID fail qua persistence identity boundary; scan failure khong save; record conversion/save failure tra zero result; duplicate repository error detect duoc; orchestration chi import application va persistence; core packages khong import orchestration.
+
+Tests: Unit tests voi spy repository va in-memory adapter cho success, save-once, zero-result failure paths, duplicate ID propagation, saved/returned record preservation va architecture boundary.
+
+Stop conditions: Can UI/CLI wiring, Facebook collection, durable storage, retry/progress state, generated ID, repository expansion, concurrency hoac thay doi lower-layer semantics.
+
 ## Phase 5 - Geographic classifier hardening
 
 Exact scope: Harden geographic classifier behavior sau Phase 3C neu can, van theo [SCAN_RULES.md](SCAN_RULES.md) va khong mo rong vocabulary khi chua co milestone rieng.

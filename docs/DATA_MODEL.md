@@ -2,7 +2,7 @@
 
 Tai lieu nay dinh nghia entity toi thieu va quan he muc domain. Kieu du lieu cu the se duoc khoa trong milestone sau. ScanFB hien tai la buyer-only: khong co `LeadIntent` buyer/seller, `SellerLead` hoac seller mode.
 
-Phase 2 Go implementation chi trien khai subset domain toi thieu cho normalized post input va cau hinh mot scan: `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Phase 4C Go implementation chi them in-memory blocklist identity primitives trong `internal/blocklist`. Phase 4D Go implementation chi them application-layer in-memory filtering cua aggregated leads qua blocklist. Phase 5A Go implementation them application-layer deterministic pipeline cho already-collected `RawPost` values qua rules, eligible selection, in-memory aggregation va blocklist filtering. Phase 5B Go implementation them application-layer in-memory batch model cho mot den nam explicit groups, deterministic flattening va count summaries. Phase 5C Go implementation them persistence-facing completed `BatchRecord` snapshot contract va save-only repository interface. Phase 5D Go implementation them `InMemoryBatchRepository` adapter chi trong memory; chua co durable storage, schema, migration, load/list API tren interface hoac ID generation.
+Phase 2 Go implementation chi trien khai subset domain toi thieu cho normalized post input va cau hinh mot scan: `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Phase 4C Go implementation chi them in-memory blocklist identity primitives trong `internal/blocklist`. Phase 4D Go implementation chi them application-layer in-memory filtering cua aggregated leads qua blocklist. Phase 5A Go implementation them application-layer deterministic pipeline cho already-collected `RawPost` values qua rules, eligible selection, in-memory aggregation va blocklist filtering. Phase 5B Go implementation them application-layer in-memory batch model cho mot den nam explicit groups, deterministic flattening va count summaries. Phase 5C Go implementation them persistence-facing completed `BatchRecord` snapshot contract va save-only repository interface. Phase 5D Go implementation them `InMemoryBatchRepository` adapter chi trong memory. Phase 5E Go implementation them thin `internal/orchestration` use case de run completed batch, convert thanh `BatchRecord` va save qua repository contract; chua co durable storage, schema, migration, load/list API tren interface, UI/CLI wiring hoac ID generation.
 
 ## WatchedGroup
 
@@ -65,7 +65,7 @@ Invariants:
 
 Purpose: Completed immutable snapshot cua mot `ScanBatch` da co application result, de future persistence adapter co the save nguyen batch.
 
-Phase 5C Go implementation nam trong `internal/persistence` va chi tao value contract: `BatchRecordID`, `BatchRecord`, structural `Validate()` va `BatchRepository.SaveBatch(record)`. Phase 5D them `InMemoryBatchRepository` de save snapshots trong memory, preserve insertion order va reject duplicate ID ma khong overwrite.
+Phase 5C Go implementation nam trong `internal/persistence` va chi tao value contract: `BatchRecordID`, `BatchRecord`, structural `Validate()` va `BatchRepository.SaveBatch(record)`. Phase 5D them `InMemoryBatchRepository` de save snapshots trong memory, preserve insertion order va reject duplicate ID ma khong overwrite. Phase 5E orchestration dung caller-supplied `BatchRecordID`, tao completed `BatchRecord` tu successful application result va chi tra ve sau khi repository save thanh cong.
 
 Required content: scan window, SearchProfile snapshot, GeographicMode, ordered groups, flattened posts, evaluated/included/review/excluded posts voi exact decisions/reasons, aggregated leads, source posts, unaggregated posts, source conflicts, blocklist outcomes/reasons, application reasons, batch summary va group summaries.
 
@@ -74,6 +74,7 @@ Invariants:
 - `BatchRecordID` opaque, non-empty va duoc supplied tu future boundary; persistence khong generate ID.
 - Snapshot chi dai dien completed batch; khong co partial save, update, delete, search, paging, migration hoac transaction API.
 - Validation chi structural, khong recompute rule, geography, dedup hoac blocklist decisions.
+- Orchestration khong generate ID va khong mo rong `BatchRepository` ngoai `SaveBatch`.
 - Batched group IDs phai non-empty, unique va co 1 den 5 group trong Phase 5C contract.
 - Count summaries phai khop preserved collections.
 - In-memory adapter inspection methods (`Count`, `Records`, `RecordByID`) chi la concrete-adapter helpers va tra defensive snapshots; `BatchRepository` van save-only.

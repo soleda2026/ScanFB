@@ -35,7 +35,8 @@ Trong Go skeleton, cac layer duoc anh xa toi package:
 
 - `cmd/scanfb`: CLI entry point toi thieu.
 - `internal/domain`: entity, value object va invariant thuan.
-- `internal/application`: orchestration/use cases; phu thuoc domain.
+- `internal/application`: application services/use cases; phu thuoc domain, rules, dedup va blocklist.
+- `internal/orchestration`: thin synchronous use cases ket noi completed application result voi persistence-facing contract.
 - `internal/rules`: deterministic buyer-intent, author, time va geographic rules.
 - `internal/dedup`: duplicate detection va lead aggregation.
 - `internal/persistence`: persistence-facing contracts va deterministic in-memory adapter cho completed batch snapshots; chua co SQLite, file I/O hoac durable storage adapter.
@@ -49,6 +50,10 @@ Hien thi group, batch state, lead tabs, settings, blocklist va Dry Run review. U
 ### Application services
 
 Dieu phoi scan batch, time window, state machine va domain services. Day la noi noi adapter voi domain. Application khong import `internal/persistence` trong contract hien tai.
+
+### Use-case orchestration
+
+Ket noi application services voi persistence-facing contract o boundary mong. Phase 5E chi co `RunAndSaveScanBatch`: nhan caller-supplied `BatchRecordID`, goi `application.RunScanBatch`, convert successful result bang `persistence.NewBatchRecord`, save dung mot lan qua `BatchRepository`, va chi tra completed result/record sau khi save thanh cong. Orchestration khong import Facebook adapter, UI hoac CLI.
 
 ### Domain
 
@@ -72,6 +77,8 @@ Doc trang Facebook ma nguoi dung da dang nhap trong browser profile. Adapter chu
 
 ```text
 App/UI -> Application services -> Domain
+App/UI -> Use-case orchestration -> Application services
+Use-case orchestration -> Persistence-facing contracts
 Persistence-facing contracts -> Application services
 Persistence-facing contracts -> Domain
 Persistence implementation -> Persistence-facing contracts
@@ -80,6 +87,8 @@ Facebook adapter -> RawPost mapping contract
 ```
 
 Facebook adapter khong duoc domain import nguoc lai. Domain khong duoc import adapter.
+
+Application, domain, rules, dedup, blocklist va persistence khong duoc import `internal/orchestration`. `internal/orchestration` chi duoc import `internal/application`, `internal/persistence` va standard library trong production code.
 
 ## Search Profile boundary
 
