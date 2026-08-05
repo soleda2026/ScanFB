@@ -54,10 +54,14 @@ Che do mo rong:
 - Chi kich hoat khi nguoi dung chu dong chon.
 - Khong tu ghi de mac dinh TP.HCM.
 - Van chi xet bai trong ngay hien tai.
-- Loai bai ro rang o ngoai Viet Nam.
+- Foreign-location classification is deferred trong MVP; chua co foreign exclusion rules.
 - Bai khong xac dinh duoc dia diem dua vao Can kiem tra.
 
-Dia danh TP.HCM phai nhan dien duoc:
+### MVP geographic vocabulary
+
+MVP geographic vocabulary la danh sach huu han, implementation-neutral. MVP khong co comprehensive city/province database. Moi mo rong vocabulary sau nay phai explicit va documented.
+
+Approved HCM terms:
 
 - HCM
 - TPHCM
@@ -65,7 +69,31 @@ Dia danh TP.HCM phai nhan dien duoc:
 - Ho Chi Minh
 - Sai Gon
 - Saigon
-- Ten cac quan, huyen va thanh pho Thu Duc
+
+District, ward va county names khong duoc support trong MVP; recognition cho cac cap dia danh nay deferred beyond MVP.
+
+Approved outside-HCM Vietnam terms:
+
+- Hà Nội
+- Ha Noi
+- Đà Nẵng
+- Da Nang
+- Cần Thơ
+- Can Tho
+
+Do not add more cities or provinces trong MVP.
+
+Unknown geographic text:
+
+- Bat ky post nao khong match approved HCM terms hoac approved outside-HCM Vietnam terms phai giu la geographically unknown va dua vao Can kiem tra.
+- Unknown khong tuong duong foreign.
+- Khong infer dia ly tu unmatched text, shipping-based location phrases, fuzzy matching, geocoding hoac accent stripping ngoai cac bien the co dau/khong dau da duoc liet ke explicit.
+
+Foreign classification:
+
+- Foreign-location classification is deferred.
+- MVP khong define foreign country hoac city indicators.
+- Chua add foreign exclusion rules.
 
 ## SearchProfile
 

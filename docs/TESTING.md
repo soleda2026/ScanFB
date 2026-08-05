@@ -18,7 +18,7 @@ Testing cua ScanFB uu tien deterministic fixtures cho domain, rule engine, geogr
 
 | ID | Fixture | Expected |
 | --- | --- | --- |
-| T01 | Nguoi that can mua MacBook tai Binh Thanh | Include buyer lead, `included.buyer_intent`, `included.target_keyword`, `included.location_hcm` |
+| T01 | Nguoi that can mua MacBook tai HCM | Include buyer lead, `included.buyer_intent`, `included.target_keyword`, `included.location_hcm` |
 | T02 | Bai ban co cau "can tien ban MacBook" | Exclude, `excluded.seller_intent` |
 | T03 | Shop "can thu mua MacBook" | Review hoac exclude voi `excluded.dealer_or_shop` theo tin hieu shop, khong mac dinh include lead khach ca nhan |
 | T04 | Anonymous ro rang | Exclude, `excluded.anonymous_author` |
@@ -31,10 +31,10 @@ Testing cua ScanFB uu tien deterministic fixtures cho domain, rule engine, geogr
 | T11 | Bai trong ngay truoc thoi diem Scan | Duoc xet neu qua cac rule khac |
 | T12 | Bai sau thoi diem bat dau Scan | Exclude hoac skip theo time window, khong include |
 | T13 | Scan sau ngay moi khong backfill hom truoc | Khong doc lai ngay truoc, khong tao lead moi tu bai hom truoc |
-| T14 | HCM bang ten quan | Classify HCM |
-| T15 | Tinh khac trong che do HCM | Exclude, `excluded.outside_scope` |
-| T16 | Tinh khac trong che do Toan Viet Nam | Duoc xet neu trong Viet Nam va qua rule khac |
-| T17 | Ngoai Viet Nam | Exclude, `excluded.outside_scope` |
+| T14 | Supported HCM variants: HCM, TPHCM, TP.HCM, Ho Chi Minh, Sai Gon, Saigon | Classify HCM |
+| T15 | District/ward/county-only location text | Review, `review.unknown_location`; district/ward/county recognition deferred |
+| T16 | Supported outside-HCM Vietnam variants: Hà Nội, Ha Noi, Đà Nẵng, Da Nang, Cần Thơ, Can Tho | Classify Vietnam outside HCM; duoc xet neu qua rule khac |
+| T17 | Unmatched or foreign-looking geographic text | Review, `review.unknown_location`; foreign classification deferred |
 | T18 | Khong ro dia diem | Review, `review.unknown_location` |
 | T19 | Group loi giua batch | Attempt `failed`, batch summary khong danh dau thanh cong gia |
 | T20 | Batch di qua ranh gioi 00:00 | Group chua hoan tat `expired_at_day_boundary` |

@@ -187,8 +187,9 @@ Lifecycle: Tao sau normalization, dung trong filter va lead display.
 
 Invariants:
 
-- Bai ro rang ngoai Viet Nam bi loai.
-- Bai khong ro dia diem vao Can kiem tra.
+- Foreign-location classification va foreign exclusion deferred trong MVP.
+- Geography khong match approved vocabulary trong [SCAN_RULES.md](SCAN_RULES.md) la unknown.
+- Unknown geography vao Can kiem tra va khong duoc coi la foreign.
 - Mac dinh mode moi ngay va moi lan mo app la TP.HCM.
 
 ## Lead
