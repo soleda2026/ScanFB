@@ -2,7 +2,7 @@
 
 Tai lieu nay dinh nghia entity toi thieu va quan he muc domain. Kieu du lieu cu the se duoc khoa trong milestone sau. ScanFB hien tai la buyer-only: khong co `LeadIntent` buyer/seller, `SellerLead` hoac seller mode.
 
-Phase 2 Go implementation chi trien khai subset domain toi thieu cho normalized post input va cau hinh mot scan: `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Cac entity lien quan rule decision, deduplication, persistence, lead aggregation va blocklist van la model muc tai lieu cho phase sau.
+Phase 2 Go implementation chi trien khai subset domain toi thieu cho normalized post input va cau hinh mot scan: `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Phase 4C Go implementation chi them in-memory blocklist identity primitives trong `internal/blocklist`; cac entity lien quan rule decision, persistence va workflow blocklist van la model muc tai lieu cho phase sau.
 
 ## WatchedGroup
 
@@ -234,6 +234,8 @@ Invariants:
 
 Purpose: Luu account nguoi dung bo qua.
 
+Phase 4C Go implementation chi cung cap in-memory identity primitives: `Entry`, `IdentityKey`, `List` va deterministic author matching. Chua co persistence schema, database ID, timestamp, repository, scan filtering orchestration, UI hoac CLI behavior.
+
 Required fields: `id`, `identityKind`, `identityValue`, `reason`, `createdAt`.
 
 Optional fields: `displayName`, `note`, `unblockedAt`.
@@ -244,7 +246,9 @@ Lifecycle: Tao tu thao tac `Bo qua account nay`, co the bo block trong Settings.
 
 Invariants:
 
-- Uu tien identity theo user ID, canonical profile URL, username, display name phu.
+- Uu tien identity theo Facebook user ID, canonical profile URL, username; display name chi la metadata va khong duoc tu minh authorize block.
+- Matching dung strongest available stable identity va khong fallback sang identity yeu hon khi identity manh hon ton tai nhung khong match.
+- Matching la exact, same-kind, deterministic; thieu stable author identity thi fail closed va khong block.
 - Account bi block phai bi bo qua tren moi group va lan scan tuong lai.
 
 ## LeadStatus

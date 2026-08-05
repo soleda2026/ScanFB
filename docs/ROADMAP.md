@@ -124,6 +124,18 @@ Tests: Synthetic unit tests cho basic aggregation, source preservation, separati
 
 Stop conditions: Can storage, lead workflow status, browser data, concurrency hoac conflict resolution.
 
+## Phase 4C - Local blocklist identity primitives
+
+Exact scope: Implement deterministic in-memory blocklist entry, identity key, list construction va author matching primitives.
+
+Protected areas: Khong persistence, khong database schema, khong repository interface, khong Facebook integration, khong scan orchestration, khong rules/dedup wiring, khong UI, khong CLI.
+
+Acceptance criteria: Supported identity kinds la Facebook user ID, canonical profile URL va username; display name alone khong block; strongest available stable identity wins; exact same-kind matching; duplicate entries xu ly deterministic; outcomes va reason codes stable.
+
+Tests: Synthetic unit tests cho identity normalization, author key priority, list construction, duplicate handling, exact matching, strongest-identity policy, fail-closed cases va architecture boundary.
+
+Stop conditions: Can storage, import/export, profile lookup, fuzzy matching, network identity resolution, scan filtering integration hoac UI/CLI behavior.
+
 ## Phase 5 - Geographic classifier hardening
 
 Exact scope: Harden geographic classifier behavior sau Phase 3C neu can, van theo [SCAN_RULES.md](SCAN_RULES.md) va khong mo rong vocabulary khi chua co milestone rieng.

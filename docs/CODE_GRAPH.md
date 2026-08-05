@@ -15,6 +15,7 @@ flowchart TD
     RAW --> APP
     PROFILE["SearchProfile"] --> DOMAIN
     DOMAIN --> TYPES["Domain types and reason codes"]
+    BLOCKLIST["Blocklist identity primitives"] --> DOMAIN
 ```
 
 ## Module ownership
@@ -22,6 +23,7 @@ flowchart TD
 - `cmd/scanfb`: binary entry point toi thieu.
 - `internal/domain`: Go package cho domain ownership.
 - `internal/application`: Go package cho application service ownership.
+- `internal/blocklist`: Go package cho deterministic local blocklist identity primitives.
 - `internal/rules`: Go package cho deterministic buyer rules ownership.
 - `internal/dedup`: Go package cho deduplication ownership.
 - `internal/persistence`: Go package cho persistence boundary ownership.
@@ -44,6 +46,8 @@ Phase 4A them `internal/dedup/identity.go`, `internal/dedup/compare.go` va `inte
 
 Phase 4B them `internal/dedup/aggregate.go` va `internal/dedup/aggregate_test.go` cho deterministic in-memory lead aggregation. Moi source post duoc preserve bang full `RawPost`; post khong auto-aggregated va source conflicts duoc tra ve explicit. Chua co persistence, repository, Facebook adapter, UI hoac scan orchestration.
 
+Phase 4C them `internal/blocklist` cho local deterministic blocklist identity primitives. Supported stable identity kinds la Facebook user ID, canonical profile URL va username. Matching dung strongest available stable author identity, exact same-kind normalized key va fail closed khi thieu stable identity. Display name chi la metadata, khong duoc dung de block. Chua co persistence, scan orchestration, application integration, UI hoac CLI.
+
 ## Allowed dependencies
 
 - App/UI duoc goi Application services.
@@ -53,6 +57,7 @@ Phase 4B them `internal/dedup/aggregate.go` va `internal/dedup/aggregate_test.go
 - Tests duoc import Domain truc tiep de chay fixture deterministic.
 - `internal/rules` duoc import `internal/domain`.
 - `internal/dedup` duoc import `internal/domain`.
+- `internal/blocklist` duoc import `internal/domain`.
 
 ## Forbidden dependencies
 
