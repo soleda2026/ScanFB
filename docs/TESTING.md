@@ -1,0 +1,64 @@
+# Testing
+
+Testing cua ScanFB uu tien deterministic fixtures cho domain, rule engine, geographic classifier, deduplication va lead aggregation. Facebook integration chi duoc them sau khi domain/rule engine da co test rieng.
+
+## Nguyen tac
+
+- Rule engine va deduplication phai test duoc khong can Facebook hoac browser.
+- Test phai kiem tra reason codes, khong chi kiem tra ket qua UI.
+- Moi production code phai co test phu hop voi risk va blast radius.
+- MVP khong dung LLM trong critical classification path nen test phai deterministic.
+- Dry Run phai giu raw record bi loai de review.
+- Test phai xac nhan ScanFB buyer-only va khong co product behavior cho seller mode.
+- Rule thoi gian, dia ly, author, blocklist va dedup la rule chung, khong phu thuoc MacBook.
+
+## Test matrix toi thieu
+
+| ID | Fixture | Expected |
+| --- | --- | --- |
+| T01 | Nguoi that can mua MacBook tai Binh Thanh | Include buyer lead, `included.buyer_intent`, `included.target_keyword`, `included.location_hcm` |
+| T02 | Bai ban co cau "can tien ban MacBook" | Exclude, `excluded.seller_intent` |
+| T03 | Shop "can thu mua MacBook" | Review hoac exclude voi `excluded.dealer_or_shop` theo tin hieu shop, khong mac dinh include lead khach ca nhan |
+| T04 | Anonymous ro rang | Exclude, `excluded.anonymous_author` |
+| T05 | Author `motivatedsalamander3113` | Exclude, `excluded.author_name_has_no_space` |
+| T06 | Ten mot tu bi loai theo product policy | Exclude, `excluded.author_name_has_no_space` |
+| T07 | Account trong blocklist | Exclude, `excluded.blocked_author` |
+| T08 | Mot nguoi dang cung bai o 5 group | Mot lead, 5 `LeadSource`, hien thi so group da dang la 5 |
+| T09 | Mot nguoi co hai nhu cau khac nhau | Hai lead rieng |
+| T10 | Bai hom qua noi lai vi comment hom nay | Exclude, `excluded.previous_day` |
+| T11 | Bai trong ngay truoc thoi diem Scan | Duoc xet neu qua cac rule khac |
+| T12 | Bai sau thoi diem bat dau Scan | Exclude hoac skip theo time window, khong include |
+| T13 | Scan sau ngay moi khong backfill hom truoc | Khong doc lai ngay truoc, khong tao lead moi tu bai hom truoc |
+| T14 | HCM bang ten quan | Classify HCM |
+| T15 | Tinh khac trong che do HCM | Exclude, `excluded.outside_scope` |
+| T16 | Tinh khac trong che do Toan Viet Nam | Duoc xet neu trong Viet Nam va qua rule khac |
+| T17 | Ngoai Viet Nam | Exclude, `excluded.outside_scope` |
+| T18 | Khong ro dia diem | Review, `review.unknown_location` |
+| T19 | Group loi giua batch | Attempt `failed`, batch summary khong danh dau thanh cong gia |
+| T20 | Batch di qua ranh gioi 00:00 | Group chua hoan tat `expired_at_day_boundary` |
+| T21 | Duplicate source URL | Khong tao duplicate `LeadSource` vo nghia |
+| T22 | Cung noi dung nhung khac tac gia | Khong gop chi vi noi dung giong |
+| T23 | Dry Run giu bai bi loai | RawPost va FilterDecision duoc luu trong tab Da loai |
+| T24 | Reason codes on dinh va deterministic | Cung fixture tao cung ordered reason codes |
+
+## Test bo sung cho SearchProfile
+
+- MacBook profile nhan dung `targetKeywords` va `keywordAliases`.
+- Bai co buyer intent nhung khong chua target product cua SearchProfile bi loai voi `excluded.target_keyword_missing`.
+- Bai seller intent chua target product bi loai voi `excluded.seller_intent`; reason nay khong tao seller mode.
+- Rule thoi gian, dia ly, author, blocklist va dedup dung chung cho SearchProfile, khong phu thuoc MacBook.
+- Product behavior khong co seller mode, seller tab, seller mode selector, `SellerLead`, `SellerIntentClassifier`, `LeadIntent` buyer/seller hoac `SELLER_SCAN`.
+- SearchProfile khac chi la future architecture note, khong phai MVP acceptance criterion.
+
+## Test types theo milestone
+
+- Phase 1: test harness co the chay fixture rong va bao fail ro.
+- Phase 2: model invariants va serialization fixtures.
+- Phase 3: normalization fixtures.
+- Phase 4: BuyerIntentClassifier, target keyword, author va blocklist rules.
+- Phase 5: geographic classifier fixtures.
+- Phase 6: deduplication va lead aggregation fixtures.
+- Phase 7: persistence repository tests voi database local tam.
+- Phase 8: UI fixture tests, chua ket noi Facebook.
+- Phase 9: batch state machine tests.
+- Phase 10 tro di: manual validation co kiem soat cho Facebook adapter.
