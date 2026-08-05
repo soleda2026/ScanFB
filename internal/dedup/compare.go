@@ -27,6 +27,8 @@ const (
 	ReasonBuyerIntentEvidenceMissing  ReasonCode = "dedup.buyer_intent_evidence_missing"
 	ReasonNormalizedNeedDiffers       ReasonCode = "dedup.normalized_need_differs"
 	ReasonDuplicateNeedMatched        ReasonCode = "dedup.duplicate_need_matched"
+	ReasonSourceIdentityMissing       ReasonCode = "dedup.source_identity_missing"
+	ReasonSourceIdentityConflict      ReasonCode = "dedup.source_identity_conflict"
 )
 
 // Comparison contains the deterministic duplicate comparison result.

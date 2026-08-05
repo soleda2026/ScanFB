@@ -112,6 +112,18 @@ Tests: Synthetic unit tests cho author key priority, need key normalization/evid
 
 Stop conditions: Can fuzzy matching, semantic similarity, profile lookup qua network, lead aggregation hoac persistence.
 
+## Phase 4B - In-memory lead aggregation
+
+Exact scope: Implement deterministic in-memory aggregation tu duplicate buyer posts thanh logical lead, preserve full source posts va explicit unaggregated/conflict outputs.
+
+Protected areas: Khong persistence, khong database schema, khong repository interface, khong Facebook adapter, khong blocklist, khong UI, khong scan orchestration.
+
+Acceptance criteria: Same stable author + same deterministic need gom vao mot lead, moi source post duoc giu, duplicate source occurrence khong lap lai, source conflict fail closed, output order deterministic.
+
+Tests: Synthetic unit tests cho basic aggregation, source preservation, separation, duplicate source occurrence, source conflicts, profile behavior va edge cases.
+
+Stop conditions: Can storage, lead workflow status, browser data, concurrency hoac conflict resolution.
+
 ## Phase 5 - Geographic classifier hardening
 
 Exact scope: Harden geographic classifier behavior sau Phase 3C neu can, van theo [SCAN_RULES.md](SCAN_RULES.md) va khong mo rong vocabulary khi chua co milestone rieng.

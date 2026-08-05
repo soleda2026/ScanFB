@@ -42,6 +42,8 @@ Phase 3C them `internal/rules/geography.go` va `internal/rules/geography_test.go
 
 Phase 4A them `internal/dedup/identity.go`, `internal/dedup/compare.go` va `internal/dedup/identity_test.go` cho stable author key, buyer need key, candidate key va deterministic duplicate comparison primitives. Chua co lead aggregation, persistence hoac source-post merging.
 
+Phase 4B them `internal/dedup/aggregate.go` va `internal/dedup/aggregate_test.go` cho deterministic in-memory lead aggregation. Moi source post duoc preserve bang full `RawPost`; post khong auto-aggregated va source conflicts duoc tra ve explicit. Chua co persistence, repository, Facebook adapter, UI hoac scan orchestration.
+
 ## Allowed dependencies
 
 - App/UI duoc goi Application services.
@@ -98,7 +100,7 @@ RawPost
 -> Geographic classification
 -> FilterDecision + FilterReason
 -> PostDeduplicator fingerprint
--> Buyer lead aggregation
+-> In-memory buyer lead aggregation
 -> LeadSource append hoac Lead moi
 ```
 

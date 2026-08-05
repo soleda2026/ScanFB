@@ -196,6 +196,8 @@ Invariants:
 
 Purpose: Dai dien mot buyer lead sau dedup va aggregation.
 
+Phase 4B Go implementation chi cung cap in-memory aggregation primitive trong `internal/dedup`: logical lead identity, stable author identity, deterministic need identity, full preserved source posts, explicit unaggregated posts va source conflicts. Chua co persistence schema, repository, database ID hoac workflow status implementation.
+
 Required fields: `id`, `searchProfileId`, `authorIdentityKey`, `status`, `createdAt`, `updatedAt`, `firstPostCreatedAt`, `sources`.
 
 Optional fields: `score`, `confidence`, `summary`, `productAttributes`, `budget`, `area`.
