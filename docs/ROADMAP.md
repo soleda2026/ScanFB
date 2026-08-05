@@ -232,6 +232,16 @@ Tests: Temporary SQLite DB tests for bootstrap, metadata, foreign keys, represen
 
 Stop conditions: Can durable batch saving, repository interface expansion, migrations, production DB path policy, UI/CLI wiring, Facebook collection, generated IDs, concurrency hoac encryption/key management.
 
+## Phase 5G2 - Transactional SQLite SaveBatch
+
+Exact scope: Implement `SQLiteBatchRepository.SaveBatch(record BatchRecord) error` trong `internal/persistence` de validate completed `BatchRecord`, ghi root va toan bo child collections vao SQLite schema version 1 trong mot transaction, preserve explicit ordering, translate duplicate `BatchRecordID` thanh `ErrBatchRecordAlreadyExists`, rollback moi write failure va fail safely sau `Close`.
+
+Protected areas: Khong `LoadBatch`, `ListBatches`, update/delete/search/paging API, migration execution, schema version moi, dependency moi, production DB path, UI/CLI wiring, Facebook behavior, retry, concurrency, generated ID hoac business-rule recomputation.
+
+Acceptance criteria: `SQLiteBatchRepository` satisfy save-only `BatchRepository`; valid one-group va five-group snapshots save; rich snapshot populates all applicable tables; raw posts, decisions, outcomes, evidence, reasons, timestamps va booleans duoc preserve; validation happens before mutation; duplicate ID va child write failure leave database unchanged; no load/list API exists.
+
+Tests: Temporary SQLite DB tests cho interface/basic save, complete table mapping, source preservation, ordering, outcome preservation, validation failures, duplicate ID no-overwrite, transaction rollback, closed repository, immutability, determinism va no deferred load/list/update/delete/search APIs.
+
 ## Phase 5 - Geographic classifier hardening
 
 Exact scope: Harden geographic classifier behavior sau Phase 3C neu can, van theo [SCAN_RULES.md](SCAN_RULES.md) va khong mo rong vocabulary khi chua co milestone rieng.

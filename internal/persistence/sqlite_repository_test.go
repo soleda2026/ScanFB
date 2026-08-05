@@ -52,13 +52,15 @@ func TestSQLiteBatchRepositoryClose(t *testing.T) {
 	}
 }
 
-func TestSQLiteBatchRepositoryDoesNotSatisfyBatchRepository(t *testing.T) {
+func TestSQLiteBatchRepositorySatisfiesBatchRepository(t *testing.T) {
+	var _ BatchRepository = (*SQLiteBatchRepository)(nil)
+
 	repo := &SQLiteBatchRepository{}
-	if _, ok := any(repo).(BatchRepository); ok {
-		t.Fatal("SQLiteBatchRepository unexpectedly satisfies BatchRepository before SaveBatch exists")
+	if _, ok := any(repo).(BatchRepository); !ok {
+		t.Fatal("SQLiteBatchRepository does not satisfy BatchRepository")
 	}
-	if _, ok := reflect.TypeOf(repo).MethodByName("SaveBatch"); ok {
-		t.Fatal("SQLiteBatchRepository exposes SaveBatch before durable batch saving is implemented")
+	if _, ok := reflect.TypeOf(repo).MethodByName("SaveBatch"); !ok {
+		t.Fatal("SQLiteBatchRepository does not expose SaveBatch")
 	}
 }
 

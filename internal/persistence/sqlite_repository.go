@@ -18,15 +18,16 @@ var (
 	ErrSQLiteSchemaVersionMissing     = errors.New("sqlite schema version missing")
 	ErrUnsupportedSQLiteSchemaVersion = errors.New("unsupported sqlite schema version")
 	ErrInvalidSQLiteSchema            = errors.New("invalid sqlite schema")
+	ErrSQLiteRepositoryClosed         = errors.New("sqlite repository closed")
 )
 
-// SQLiteBatchRepository opens and validates the local SQLite schema foundation.
-//
-// SaveBatch is intentionally absent in this milestone; the durable adapter must
-// not satisfy BatchRepository until the atomic snapshot write path exists.
+// SQLiteBatchRepository opens, validates, and writes completed local SQLite
+// batch snapshots.
 type SQLiteBatchRepository struct {
 	db *sql.DB
 }
+
+var _ BatchRepository = (*SQLiteBatchRepository)(nil)
 
 func OpenSQLiteBatchRepository(path string) (*SQLiteBatchRepository, error) {
 	path = strings.TrimSpace(path)
@@ -62,7 +63,12 @@ func (repo *SQLiteBatchRepository) Close() error {
 	if repo == nil || repo.db == nil {
 		return nil
 	}
-	return repo.db.Close()
+	db := repo.db
+	if err := db.Close(); err != nil {
+		return err
+	}
+	repo.db = nil
+	return nil
 }
 
 func closeSQLiteAfterOpenFailure(db *sql.DB) {

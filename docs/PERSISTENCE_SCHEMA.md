@@ -1,6 +1,6 @@
 # Persistence Schema Design
 
-Phase 5F defined the durable local SQLite storage model for completed ScanFB batch snapshots. Phase 5G1 implements only the SQLite foundation for schema version 1: explicit-path open/create, foreign-key enable/verify, transactional empty-schema creation, schema metadata validation, and close. Durable `SaveBatch`, load/list APIs, migrations, UI/CLI wiring, and production scan persistence remain deferred.
+Phase 5F defined the durable local SQLite storage model for completed ScanFB batch snapshots. Phase 5G1 implemented the SQLite foundation for schema version 1: explicit-path open/create, foreign-key enable/verify, transactional empty-schema creation, schema metadata validation, and close. Phase 5G2 implements transactional durable `SaveBatch` for one complete `BatchRecord` snapshot. Load/list APIs, migrations, UI/CLI wiring, and production scan persistence remain deferred.
 
 ## 1. Purpose And Non-Goals
 
@@ -8,20 +8,20 @@ Purpose:
 
 - Store one completed `persistence.BatchRecord` as the root aggregate.
 - Preserve every historical decision, reason code, source post, lead, outcome, conflict, and summary value.
-- Allow a future save/load adapter to reconstruct the same `BatchRecord` deterministically without rerunning buyer-intent classification, geography classification, deduplication, blocklist evaluation, aggregation, or summary calculation.
+- Allow a future load adapter to reconstruct the same `BatchRecord` deterministically without rerunning buyer-intent classification, geography classification, deduplication, blocklist evaluation, aggregation, or summary calculation.
 - Keep storage local-only and inside `internal/persistence`.
 
 Non-goals:
 
-- No durable `SaveBatch`, `LoadBatch`, `ListBatches`, update, delete, search, or paging API.
+- No `LoadBatch`, `ListBatches`, update, delete, search, or paging API.
 - No migration files, migration execution, production database location policy, UI/CLI wiring, or production scan persistence.
 - No JSON blobs, generic metadata maps for business data, polymorphic `entity_type/entity_id` references, ORM naming assumptions, cloud sync, cross-device sync, multi-user tenancy, soft deletion, or audit logging.
 
 ## 2. Approved Dependency Boundary
 
-- `internal/persistence` owns the SQLite schema-bootstrap implementation and remains the future home for durable SQLite save/load implementation.
-- `SQLiteBatchRepository` opens and validates schema version 1 but intentionally does not implement `SaveBatch`.
-- Future durable SQLite save adapters consume validated `persistence.BatchRecord` snapshots and implement the existing save-only `BatchRepository.SaveBatch(record)` contract.
+- `internal/persistence` owns the SQLite schema-bootstrap and durable `SaveBatch` implementation and remains the future home for durable SQLite load implementation.
+- `SQLiteBatchRepository` opens and validates schema version 1 and implements the existing save-only `BatchRepository.SaveBatch(record)` contract.
+- `SQLiteBatchRepository.SaveBatch` consumes validated `persistence.BatchRecord` snapshots, writes each snapshot in one transaction, and does not expose load/list/update/delete/search/paging behavior.
 - Storage must not own or recompute business decisions.
 - `internal/application` does not import persistence.
 - `internal/orchestration` may import application and persistence, and may pass completed snapshots to the repository.
@@ -458,13 +458,13 @@ Evaluated records, bucket records, lead sources, unaggregated records, and confl
 
 ## 12. Transaction Policy
 
-A future save transaction must:
+The SQLite save transaction must:
 
 1. validate `BatchRecord` before opening or before mutating the database;
 2. begin one transaction;
 3. insert the root batch row;
 4. insert every child collection in deterministic accessor order;
-5. verify affected rows where practical;
+5. preserve explicit positions and exact stored values;
 6. commit only after the full snapshot is inserted;
 7. roll back on any failure.
 
@@ -558,7 +558,6 @@ No network access is part of persistence. Encryption at rest and key management 
 
 Deferred:
 
-- durable SQLite `SaveBatch` implementation;
 - migrations and migration tests;
 - storage-layer error taxonomy;
 - durable load/list APIs;
