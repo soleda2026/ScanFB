@@ -1,4 +1,4 @@
-// Package rules will own deterministic buyer-intent, author, time, and geographic rules.
+// Package rules owns deterministic rule primitives that sit outside adapters and persistence.
 //
-// Phase 1 intentionally does not implement the rule engine.
+// Phase 3A implements only post-time eligibility and author exclusion rules.
 package rules

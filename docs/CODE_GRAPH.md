@@ -36,6 +36,8 @@ flowchart TD
 
 Phase 2 files trong `internal/domain` gom minimal models cho `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Domain package chi duoc import Go standard library.
 
+Phase 3A files trong `internal/rules` gom deterministic primitives cho post-time eligibility va author exclusion. Rules package chi duoc import Go standard library va `internal/domain`.
+
 ## Allowed dependencies
 
 - App/UI duoc goi Application services.
@@ -43,6 +45,7 @@ Phase 2 files trong `internal/domain` gom minimal models cho `RawPost`, `AuthorI
 - Persistence implementation duoc implement Persistence interfaces.
 - Facebook adapter duoc goi Application services bang adapter boundary.
 - Tests duoc import Domain truc tiep de chay fixture deterministic.
+- `internal/rules` duoc import `internal/domain`.
 
 ## Forbidden dependencies
 

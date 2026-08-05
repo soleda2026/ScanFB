@@ -11,6 +11,7 @@ Testing cua ScanFB uu tien deterministic fixtures cho domain, rule engine, geogr
 - Dry Run phai giu raw record bi loai de review.
 - Test phai xac nhan ScanFB buyer-only va khong co product behavior cho seller mode.
 - Rule thoi gian, dia ly, author, blocklist va dedup la rule chung, khong phu thuoc MacBook.
+- Author/time rule tests phai kiem tra exact reason codes va deterministic ordering.
 
 ## Test matrix toi thieu
 
@@ -54,6 +55,7 @@ Testing cua ScanFB uu tien deterministic fixtures cho domain, rule engine, geogr
 
 - Phase 1: test harness co the chay fixture rong va bao fail ro.
 - Phase 2: model invariants va serialization fixtures.
+- Phase 3A: time eligibility, anonymous author va no-space author rule fixtures.
 - Phase 3: normalization fixtures.
 - Phase 4: BuyerIntentClassifier, target keyword, author va blocklist rules.
 - Phase 5: geographic classifier fixtures.

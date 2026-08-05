@@ -40,6 +40,18 @@ Tests: Unit tests cho valid/invalid value cases va invariant.
 
 Stop conditions: Field identity khong ro.
 
+## Phase 3A - Deterministic author and time eligibility rules
+
+Exact scope: Implement deterministic rule primitives cho `RawPost.CreatedAt` voi `ScanWindow` va author anonymous/no-space display-name exclusion.
+
+Protected areas: Khong buyer intent, khong seller/noise matching, khong geographic classification, khong dedup, khong persistence, khong Facebook adapter, khong UI.
+
+Acceptance criteria: Stable `Decision`, `ReasonCode`, deterministic reason ordering, rules dung `CreatedAt` va supplied `ScanWindow`, khong dung current clock.
+
+Tests: Unit tests cho time boundaries, anonymous labels, no-space author policy va composition ordering.
+
+Stop conditions: Can mo rong sang buyer intent, geographic classification, blocklist hoac dedup.
+
 ## Phase 3 - Deterministic normalization
 
 Exact scope: Normalize text, URL, timestamp, author va keywords.
