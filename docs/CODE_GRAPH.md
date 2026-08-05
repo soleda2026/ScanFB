@@ -50,17 +50,19 @@ Phase 4C them `internal/blocklist` cho local deterministic blocklist identity pr
 
 Phase 4D them `internal/application/lead_filter.go` cho in-memory filtering cua aggregated buyer leads bang local blocklist. Ket qua tach explicit allowed, blocked va unresolved leads; blocked/unresolved leads van giu nguyen source posts. Chua co persistence, scan orchestration, raw-post rule evaluation, UI hoac CLI wiring.
 
+Phase 5A them `internal/application/evaluation_pipeline.go` cho deterministic in-memory pipeline tu already-collected `RawPost` values qua rules, eligible selection, dedup aggregation va blocklist filtering. Pipeline preserve evaluated, eligible, review, excluded, unaggregated, conflicts, allowed, blocked va unresolved outputs. Chua co Facebook adapter, persistence, UI, CLI behavior, scheduling, concurrency hoac network behavior.
+
 ## Allowed dependencies
 
 - App/UI duoc goi Application services.
-- Application services duoc goi Domain va Persistence interfaces.
+- Application services duoc goi Domain, Rules, Dedup, Blocklist va Persistence interfaces.
 - Persistence implementation duoc implement Persistence interfaces.
 - Facebook adapter duoc goi Application services bang adapter boundary.
 - Tests duoc import Domain truc tiep de chay fixture deterministic.
 - `internal/rules` duoc import `internal/domain`.
 - `internal/dedup` duoc import `internal/domain`.
 - `internal/blocklist` duoc import `internal/domain`.
-- `internal/application` duoc import `internal/domain`, `internal/dedup` va `internal/blocklist`.
+- `internal/application` duoc import `internal/domain`, `internal/rules`, `internal/dedup` va `internal/blocklist`.
 
 ## Forbidden dependencies
 
@@ -100,16 +102,11 @@ User Scan
 
 ```text
 RawPost
--> Normalization
--> Author rules
--> Blocklist rules
--> SearchProfile target keyword matching
--> BuyerIntentClassifier
--> Geographic classification
--> FilterDecision + FilterReason
--> PostDeduplicator fingerprint
+-> Rule evaluation: time, author, SearchProfile target keyword, BuyerIntentClassifier va geographic classification
+-> Eligible/review/excluded separation
 -> In-memory buyer lead aggregation
--> LeadSource append hoac Lead moi
+-> Local blocklist lead filtering
+-> Explicit allowed, blocked, unresolved, unaggregated va conflict outputs
 ```
 
 ## SearchProfile va buyer-only boundary

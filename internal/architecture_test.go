@@ -203,6 +203,7 @@ func TestApplicationImportsOnlyAllowedPackages(t *testing.T) {
 		"github.com/soleda2026/ScanFB/internal/blocklist": {},
 		"github.com/soleda2026/ScanFB/internal/dedup":     {},
 		"github.com/soleda2026/ScanFB/internal/domain":    {},
+		"github.com/soleda2026/ScanFB/internal/rules":     {},
 	}
 
 	fset := token.NewFileSet()

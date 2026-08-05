@@ -148,6 +148,18 @@ Tests: Synthetic unit tests cho basic filtering, identity-kind matching, stronge
 
 Stop conditions: Can persistence, repository, scan orchestration, UI/CLI, raw post classification, fuzzy matching, network lookup hoac thay doi dedup/blocklist semantics.
 
+## Phase 5A - Deterministic in-memory evaluation pipeline
+
+Exact scope: Implement application-layer deterministic pipeline cho already-collected `RawPost` values: rule evaluation, eligible selection, in-memory lead aggregation va local blocklist lead filtering.
+
+Protected areas: Khong Facebook/browser integration, khong persistence, khong UI, khong CLI behavior, khong scheduling, khong network, khong concurrency va khong thay doi rules/dedup/blocklist semantics.
+
+Acceptance criteria: Pipeline order ro rang; evaluated, eligible, review, excluded, unaggregated, conflicts, allowed, blocked va unresolved outputs explicit; invalid scan window, inactive/invalid SearchProfile va invalid geographic mode fail closed.
+
+Tests: Synthetic in-memory unit tests cho end-to-end flow, mixed rule results, aggregation, blocklist filtering, ordering, source preservation, defensive copies va invalid configuration.
+
+Stop conditions: Can raw Facebook collection, database/repository, UI/CLI wiring, scheduler, parallel scan hoac heuristic moi.
+
 ## Phase 5 - Geographic classifier hardening
 
 Exact scope: Harden geographic classifier behavior sau Phase 3C neu can, van theo [SCAN_RULES.md](SCAN_RULES.md) va khong mo rong vocabulary khi chua co milestone rieng.
