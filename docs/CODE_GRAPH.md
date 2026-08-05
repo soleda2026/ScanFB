@@ -1,6 +1,6 @@
 # Code Graph
 
-Tai lieu nay mo ta graph kien truc muc tieu, module boundaries va dependency direction. Phase 0 chua gia dinh codebase-memory-mcp/codegraph da duoc cau hinh va khong tu cai tool.
+Tai lieu nay mo ta graph kien truc muc tieu, module boundaries va dependency direction. Phase 1 da co Go skeleton toi thieu nhung chua gia dinh codebase-memory-mcp/codegraph da duoc cau hinh va khong tu cai tool.
 
 ## Mermaid dependency graph
 
@@ -19,6 +19,14 @@ flowchart TD
 
 ## Module ownership
 
+- `cmd/scanfb`: binary entry point toi thieu.
+- `internal/domain`: Go package cho domain ownership.
+- `internal/application`: Go package cho application service ownership.
+- `internal/rules`: Go package cho deterministic buyer rules ownership.
+- `internal/dedup`: Go package cho deduplication ownership.
+- `internal/persistence`: Go package cho persistence boundary ownership.
+- `internal/facebook`: Go package cho Facebook/browser adapter boundary ownership.
+- `internal/ui`: Go package cho presentation boundary ownership.
 - App/UI: owner cua views, tabs, lead cards, settings va user actions.
 - Application services: owner cua scan orchestration, batch state, time window va transaction flow.
 - Domain: owner cua normalization contracts, SearchProfile, BuyerIntentClassifier, rule engine, geographic classifier, deduplication, lead aggregation va reason codes.

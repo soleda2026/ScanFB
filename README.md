@@ -2,7 +2,7 @@
 
 ScanFB la ung dung local tren macOS ho tro nguoi dung tim cac bai Facebook the hien nhu cau **can mua**. MVP trien khai duy nhat built-in MacBook Search Profile de tim nguoi can mua MacBook hoac MacBook Pro.
 
-Trang thai hien tai: **Phase 0 - Foundation docs only**. Project nay chua co production code, chua co browser extension, chua chon ngon ngu lap trinh cuoi cung va chua co dependency runtime.
+Trang thai hien tai: **Phase 1 - Go project skeleton va test harness**. Project da chon Go lam ngon ngu chinh va moi co skeleton/package boundaries toi thieu. Chua co production scan workflow, browser extension, Facebook integration, database, UI framework hoac dependency ben thu ba.
 
 ## ScanFB khong lam gi
 
@@ -31,6 +31,10 @@ Trang thai hien tai: **Phase 0 - Foundation docs only**. Project nay chua co pro
 Moi milestone chi co mot muc tieu chinh, scope nho va acceptance criteria ro rang. Truoc khi sua, agent phai doc README, PRD, SCAN_RULES, ARCHITECTURE, AI_ENGINEERING_KIT va TESTING, sau do xac dinh milestone hien tai.
 
 Nguoi dung tu quan ly Git. Agent khong duoc commit, merge, tag, push, reset, clean hoac xoa ngoai scope.
+
+## Go skeleton
+
+Phase 1 tao module `github.com/soleda2026/ScanFB`, CLI toi thieu tai `cmd/scanfb` va package boundaries trong `internal/`. Cac package hien chi co package comments va architecture test; domain model, SearchProfile implementation, rule engine, deduplication, SQLite, Facebook adapter va UI that se lam o cac phase sau.
 
 ## Luu y ve Facebook integration
 

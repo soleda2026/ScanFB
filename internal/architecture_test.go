@@ -1,0 +1,83 @@
+package internal_test
+
+import (
+	"go/parser"
+	"go/token"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"testing"
+)
+
+var skeletonPackages = []string{
+	"./cmd/scanfb",
+	"./internal/application",
+	"./internal/dedup",
+	"./internal/domain",
+	"./internal/facebook",
+	"./internal/persistence",
+	"./internal/rules",
+	"./internal/ui",
+}
+
+func TestSkeletonPackagesList(t *testing.T) {
+	args := append([]string{"list"}, skeletonPackages...)
+	cmd := exec.Command("go", args...)
+	cmd.Dir = repoRoot()
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("go list skeleton packages failed: %v\n%s", err, out)
+	}
+}
+
+func TestScanFBBinaryBuilds(t *testing.T) {
+	outputPath := filepath.Join(t.TempDir(), "scanfb")
+	cmd := exec.Command("go", "build", "-o", outputPath, "./cmd/scanfb")
+	cmd.Dir = repoRoot()
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("go build ./cmd/scanfb failed: %v\n%s", err, out)
+	}
+}
+
+func TestDomainDoesNotImportAdapters(t *testing.T) {
+	forbidden := []string{
+		"github.com/soleda2026/ScanFB/internal/facebook",
+		"github.com/soleda2026/ScanFB/internal/persistence",
+		"github.com/soleda2026/ScanFB/internal/ui",
+	}
+
+	files, err := filepath.Glob(filepath.Join(repoRoot(), "internal", "domain", "*.go"))
+	if err != nil {
+		t.Fatalf("glob domain files: %v", err)
+	}
+	if len(files) == 0 {
+		t.Fatal("expected domain package skeleton files")
+	}
+
+	fset := token.NewFileSet()
+	for _, path := range files {
+		src, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatalf("read %s: %v", path, err)
+		}
+		parsed, err := parser.ParseFile(fset, path, src, parser.ImportsOnly)
+		if err != nil {
+			t.Fatalf("parse imports for %s: %v", path, err)
+		}
+
+		for _, imp := range parsed.Imports {
+			importPath := strings.Trim(imp.Path.Value, `"`)
+			for _, forbiddenPath := range forbidden {
+				if importPath == forbiddenPath {
+					t.Fatalf("domain imports forbidden adapter package %q in %s", importPath, path)
+				}
+			}
+		}
+	}
+}
+
+func repoRoot() string {
+	return filepath.Clean("..")
+}

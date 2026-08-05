@@ -2,6 +2,8 @@
 
 Tai lieu nay la nguon chuan tac cho dependency boundaries cua ScanFB.
 
+Phase 1 da chon Go lam ngon ngu chinh va tao skeleton package toi thieu. Tai lieu nay van la nguon chuan tac cho boundary; skeleton hien tai chua trien khai domain model, rule engine, persistence, Facebook adapter hoac UI framework.
+
 ## Nguyen tac
 
 - Tach Facebook adapter khoi domain.
@@ -28,6 +30,17 @@ Facebook page reader
 ```
 
 ## Layers
+
+Trong Go skeleton, cac layer duoc anh xa toi package:
+
+- `cmd/scanfb`: CLI entry point toi thieu.
+- `internal/domain`: entity, value object va invariant thuan.
+- `internal/application`: orchestration/use cases; phu thuoc domain.
+- `internal/rules`: deterministic buyer-intent, author, time va geographic rules.
+- `internal/dedup`: duplicate detection va lead aggregation.
+- `internal/persistence`: persistence interfaces/adapters; chua co SQLite trong Phase 1.
+- `internal/facebook`: adapter bien ngoai cho Facebook/browser; domain khong duoc import.
+- `internal/ui`: presentation layer; chua chon UI framework.
 
 ### App/UI
 

@@ -18,15 +18,15 @@ Future note sau MVP: co the them buyer Search Profile khac nhu iPhone, may anh h
 
 ## Phase 1 - Project skeleton va test harness
 
-Exact scope: Tao skeleton toi thieu va test harness rong.
+Exact scope: Tao Go module `github.com/soleda2026/ScanFB`, CLI toi thieu, package boundaries trong `internal/`, `testdata/README.md` va architecture test bang standard library.
 
-Protected areas: Khong Facebook integration, khong UI day du, khong persistence that.
+Protected areas: Khong Facebook integration, khong UI day du, khong persistence that, khong SearchProfile implementation, khong rule engine, khong dependency ben thu ba.
 
-Acceptance criteria: Co cau truc project va mot lenh test deterministic.
+Acceptance criteria: `go test ./...`, `go vet ./...`, `go build ./cmd/scanfb` pass; CLI in `ScanFB foundation ready`; architecture test kiem tra package skeleton va domain khong import adapter.
 
-Tests: Harness chay duoc va bao fail ro khi fixture sai.
+Tests: Architecture test va Go tooling checks trong milestone.
 
-Stop conditions: Can cai dependency ngoai scope hoac chon stack khi chua duoc quyet.
+Stop conditions: Can cai dependency ngoai scope, can browser/DB/UI implementation that hoac can mo rong sang rule/domain implementation.
 
 ## Phase 2 - Domain models
 
