@@ -2,7 +2,7 @@
 
 Tai lieu nay dinh nghia entity toi thieu va quan he muc domain. Kieu du lieu cu the se duoc khoa trong milestone sau. ScanFB hien tai la buyer-only: khong co `LeadIntent` buyer/seller, `SellerLead` hoac seller mode.
 
-Phase 2 Go implementation chi trien khai subset domain toi thieu cho normalized post input va cau hinh mot scan: `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Phase 4C Go implementation chi them in-memory blocklist identity primitives trong `internal/blocklist`; cac entity lien quan rule decision, persistence va workflow blocklist van la model muc tai lieu cho phase sau.
+Phase 2 Go implementation chi trien khai subset domain toi thieu cho normalized post input va cau hinh mot scan: `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Phase 4C Go implementation chi them in-memory blocklist identity primitives trong `internal/blocklist`. Phase 4D Go implementation chi them application-layer in-memory filtering cua aggregated leads qua blocklist; cac entity lien quan rule decision, persistence va workflow blocklist van la model muc tai lieu cho phase sau.
 
 ## WatchedGroup
 
@@ -197,6 +197,8 @@ Invariants:
 Purpose: Dai dien mot buyer lead sau dedup va aggregation.
 
 Phase 4B Go implementation chi cung cap in-memory aggregation primitive trong `internal/dedup`: logical lead identity, stable author identity, deterministic need identity, full preserved source posts, explicit unaggregated posts va source conflicts. Chua co persistence schema, repository, database ID hoac workflow status implementation.
+
+Phase 4D Go implementation them in-memory application filtering cho aggregated leads: allowed, blocked va unresolved collections explicit. Filtering dung stable author identity san co tren lead va local blocklist primitives; blocked leads khong bi xoa va sources van duoc preserve. Chua co persistence, scan orchestration, raw-post rule evaluation, UI hoac CLI behavior.
 
 Required fields: `id`, `searchProfileId`, `authorIdentityKey`, `status`, `createdAt`, `updatedAt`, `firstPostCreatedAt`, `sources`.
 

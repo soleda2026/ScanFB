@@ -48,6 +48,8 @@ Phase 4B them `internal/dedup/aggregate.go` va `internal/dedup/aggregate_test.go
 
 Phase 4C them `internal/blocklist` cho local deterministic blocklist identity primitives. Supported stable identity kinds la Facebook user ID, canonical profile URL va username. Matching dung strongest available stable author identity, exact same-kind normalized key va fail closed khi thieu stable identity. Display name chi la metadata, khong duoc dung de block. Chua co persistence, scan orchestration, application integration, UI hoac CLI.
 
+Phase 4D them `internal/application/lead_filter.go` cho in-memory filtering cua aggregated buyer leads bang local blocklist. Ket qua tach explicit allowed, blocked va unresolved leads; blocked/unresolved leads van giu nguyen source posts. Chua co persistence, scan orchestration, raw-post rule evaluation, UI hoac CLI wiring.
+
 ## Allowed dependencies
 
 - App/UI duoc goi Application services.
@@ -58,6 +60,7 @@ Phase 4C them `internal/blocklist` cho local deterministic blocklist identity pr
 - `internal/rules` duoc import `internal/domain`.
 - `internal/dedup` duoc import `internal/domain`.
 - `internal/blocklist` duoc import `internal/domain`.
+- `internal/application` duoc import `internal/domain`, `internal/dedup` va `internal/blocklist`.
 
 ## Forbidden dependencies
 

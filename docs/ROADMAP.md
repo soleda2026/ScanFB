@@ -136,6 +136,18 @@ Tests: Synthetic unit tests cho identity normalization, author key priority, lis
 
 Stop conditions: Can storage, import/export, profile lookup, fuzzy matching, network identity resolution, scan filtering integration hoac UI/CLI behavior.
 
+## Phase 4D - Apply local blocklist filtering to eligible leads in memory
+
+Exact scope: Implement application-layer in-memory filtering cua already-aggregated leads qua local blocklist primitives.
+
+Protected areas: Khong persistence, SQLite, Facebook integration, browser automation, raw-post scan orchestration, buyer/geographic rule evaluation, UI, CLI, import/export hoac concurrency.
+
+Acceptance criteria: Allowed, blocked va unresolved lead collections explicit; blocked leads khong bi xoa; source posts duoc preserve; strongest-identity blocklist policy duoc reuse; ordering deterministic; input va blocklist khong bi mutate.
+
+Tests: Synthetic unit tests cho basic filtering, identity-kind matching, strongest-identity no-fallback, unresolved leads, empty input/list, ordering, source preservation, defensive copies va architecture boundary.
+
+Stop conditions: Can persistence, repository, scan orchestration, UI/CLI, raw post classification, fuzzy matching, network lookup hoac thay doi dedup/blocklist semantics.
+
 ## Phase 5 - Geographic classifier hardening
 
 Exact scope: Harden geographic classifier behavior sau Phase 3C neu can, van theo [SCAN_RULES.md](SCAN_RULES.md) va khong mo rong vocabulary khi chua co milestone rieng.
