@@ -38,6 +38,8 @@ Phase 2 files trong `internal/domain` gom minimal models cho `RawPost`, `AuthorI
 
 Phase 3A files trong `internal/rules` gom deterministic primitives cho post-time eligibility va author exclusion. Phase 3B them deterministic buyer-intent va seller/noise text matching dua tren active `SearchProfile`. Rules package chi duoc import Go standard library va `internal/domain`.
 
+Phase 3C them `internal/rules/geography.go` va `internal/rules/geography_test.go` cho finite MVP geographic classification, `GeographicMode` evaluation va composed buyer-search-with-geography evaluation. Khong co geocoder, location database, foreign classifier hoac foreign exclusion.
+
 ## Allowed dependencies
 
 - App/UI duoc goi Application services.

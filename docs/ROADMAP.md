@@ -64,6 +64,18 @@ Tests: Unit tests cho product matching, buyer intent, seller/noise precedence, e
 
 Stop conditions: Can fuzzy matching, scoring, LLM, marketplace classifier, geography, blocklist hoac dedup.
 
+## Phase 3C - Deterministic geographic classification
+
+Exact scope: Implement finite MVP geographic classification va `GeographicMode` evaluation bang approved vocabulary trong [SCAN_RULES.md](SCAN_RULES.md): HCM, Vietnam outside HCM, unknown va conflict/review.
+
+Protected areas: Khong foreign classification, khong foreign exclusion, khong geocoder, khong location database, khong district/ward/county recognition, khong dedup, khong persistence, khong Facebook adapter, khong UI.
+
+Acceptance criteria: Domestic vocabulary match deterministic, unknown va conflict vao review, mode HCM/non-HCM/all-Vietnam duoc enforce, composition voi Phase 3A/3B giu stable reason ordering.
+
+Tests: Unit tests synthetic cho approved vocabulary, boundary matching, unknown, conflict, mode evaluation va composition.
+
+Stop conditions: Can vocabulary ngoai approved MVP terms hoac can infer dia ly tu external/location metadata.
+
 ## Phase 3 - Deterministic normalization
 
 Exact scope: Normalize text, URL, timestamp, author va keywords.
@@ -88,9 +100,9 @@ Tests: T01-T07, T23-T24 va SearchProfile checks trong [TESTING.md](TESTING.md).
 
 Stop conditions: Intent ambiguity khong co rule deterministic.
 
-## Phase 5 - Geographic classifier
+## Phase 5 - Geographic classifier hardening
 
-Exact scope: HCM, non-HCM Vietnam, all Vietnam va unknown location.
+Exact scope: Harden geographic classifier behavior sau Phase 3C neu can, van theo [SCAN_RULES.md](SCAN_RULES.md) va khong mo rong vocabulary khi chua co milestone rieng.
 
 Protected areas: Khong browser, khong dedup.
 

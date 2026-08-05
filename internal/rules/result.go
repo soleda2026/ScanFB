@@ -6,6 +6,7 @@ type Decision string
 const (
 	DecisionInclude Decision = "include"
 	DecisionExclude Decision = "exclude"
+	DecisionReview  Decision = "review"
 )
 
 // ReasonCode is a stable machine-readable reason identifier.
@@ -32,6 +33,16 @@ const (
 	ReasonBuyerIntentMissing ReasonCode = "excluded.buyer_intent_missing"
 	// ReasonSellerIntent means a SearchProfile seller/noise term matched RawPost.Body.
 	ReasonSellerIntent ReasonCode = "excluded.seller_intent"
+	// ReasonLocationUnknown means RawPost.Body does not match approved MVP geographic vocabulary.
+	ReasonLocationUnknown ReasonCode = "review.unknown_location"
+	// ReasonLocationConflict means RawPost.Body matches incompatible domestic geographic terms.
+	ReasonLocationConflict ReasonCode = "review.location_conflict"
+	// ReasonOutsideSelectedGeographicMode means location is outside the selected geographic mode.
+	ReasonOutsideSelectedGeographicMode ReasonCode = "excluded.outside_scope"
+	// ReasonHoChiMinhCityRequired means HCM mode was selected but no HCM geography matched.
+	ReasonHoChiMinhCityRequired ReasonCode = "excluded.hcm_required_not_matched"
+	// ReasonOutsideHoChiMinhCityVNRequired means outside-HCM Vietnam mode was selected but no outside-HCM geography matched.
+	ReasonOutsideHoChiMinhCityVNRequired ReasonCode = "excluded.outside_hcm_vietnam_required_not_matched"
 )
 
 // Result contains the decision and stable reason codes for a limited rule evaluation.
@@ -48,24 +59,42 @@ func excludeResult(reasons ...ReasonCode) Result {
 	return Result{Decision: DecisionExclude, Reasons: copyReasons(reasons)}
 }
 
+func reviewResult(reasons ...ReasonCode) Result {
+	return Result{Decision: DecisionReview, Reasons: copyReasons(reasons)}
+}
+
 func combineResults(results ...Result) Result {
-	var reasons []ReasonCode
-	seen := make(map[ReasonCode]struct{})
+	var excludeReasons []ReasonCode
+	var reviewReasons []ReasonCode
+	seenExclude := make(map[ReasonCode]struct{})
+	seenReview := make(map[ReasonCode]struct{})
 	for _, result := range results {
-		if result.Decision == DecisionExclude {
+		switch result.Decision {
+		case DecisionExclude:
 			for _, reason := range result.Reasons {
-				if _, ok := seen[reason]; ok {
+				if _, ok := seenExclude[reason]; ok {
 					continue
 				}
-				seen[reason] = struct{}{}
-				reasons = append(reasons, reason)
+				seenExclude[reason] = struct{}{}
+				excludeReasons = append(excludeReasons, reason)
+			}
+		case DecisionReview:
+			for _, reason := range result.Reasons {
+				if _, ok := seenReview[reason]; ok {
+					continue
+				}
+				seenReview[reason] = struct{}{}
+				reviewReasons = append(reviewReasons, reason)
 			}
 		}
 	}
-	if len(reasons) == 0 {
-		return includeResult()
+	if len(excludeReasons) > 0 {
+		return excludeResult(excludeReasons...)
 	}
-	return excludeResult(reasons...)
+	if len(reviewReasons) > 0 {
+		return reviewResult(reviewReasons...)
+	}
+	return includeResult()
 }
 
 func copyReasons(reasons []ReasonCode) []ReasonCode {

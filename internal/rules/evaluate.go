@@ -18,3 +18,13 @@ func EvaluatePostForBuyerSearch(post domain.RawPost, window domain.ScanWindow, p
 		EvaluateBuyerIntent(post, profile),
 	)
 }
+
+// EvaluatePostForBuyerSearchAndGeography applies time, author, buyer-intent, and geography rules in deterministic order.
+func EvaluatePostForBuyerSearchAndGeography(post domain.RawPost, window domain.ScanWindow, profile domain.SearchProfile, mode domain.GeographicMode) Result {
+	return combineResults(
+		EvaluatePostTime(post, window),
+		EvaluateAuthor(post.Author),
+		EvaluateBuyerIntent(post, profile),
+		EvaluateGeographicMode(post, mode),
+	)
+}
