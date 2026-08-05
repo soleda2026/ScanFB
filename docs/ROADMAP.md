@@ -100,6 +100,18 @@ Tests: T01-T07, T23-T24 va SearchProfile checks trong [TESTING.md](TESTING.md).
 
 Stop conditions: Intent ambiguity khong co rule deterministic.
 
+## Phase 4A - Deterministic dedup identity primitives
+
+Exact scope: Implement stable author identity keys, buyer need keys va deterministic duplicate comparison cho same-author same-need posts under active `SearchProfile`.
+
+Protected areas: Khong lead aggregation, khong persistence, khong source-post merging, khong blocklist, khong Facebook adapter, khong UI.
+
+Acceptance criteria: Display name alone khong authorize auto-merge, insufficient stable identity fail closed, different stable authors khong merge chi vi text giong nhau, outcome va reason codes deterministic.
+
+Tests: Synthetic unit tests cho author key priority, need key normalization/evidence, duplicate comparison outcomes, edge cases va dependency boundary.
+
+Stop conditions: Can fuzzy matching, semantic similarity, profile lookup qua network, lead aggregation hoac persistence.
+
 ## Phase 5 - Geographic classifier hardening
 
 Exact scope: Harden geographic classifier behavior sau Phase 3C neu can, van theo [SCAN_RULES.md](SCAN_RULES.md) va khong mo rong vocabulary khi chua co milestone rieng.

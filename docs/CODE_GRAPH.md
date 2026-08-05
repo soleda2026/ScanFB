@@ -40,6 +40,8 @@ Phase 3A files trong `internal/rules` gom deterministic primitives cho post-time
 
 Phase 3C them `internal/rules/geography.go` va `internal/rules/geography_test.go` cho finite MVP geographic classification, `GeographicMode` evaluation va composed buyer-search-with-geography evaluation. Khong co geocoder, location database, foreign classifier hoac foreign exclusion.
 
+Phase 4A them `internal/dedup/identity.go`, `internal/dedup/compare.go` va `internal/dedup/identity_test.go` cho stable author key, buyer need key, candidate key va deterministic duplicate comparison primitives. Chua co lead aggregation, persistence hoac source-post merging.
+
 ## Allowed dependencies
 
 - App/UI duoc goi Application services.
@@ -48,6 +50,7 @@ Phase 3C them `internal/rules/geography.go` va `internal/rules/geography_test.go
 - Facebook adapter duoc goi Application services bang adapter boundary.
 - Tests duoc import Domain truc tiep de chay fixture deterministic.
 - `internal/rules` duoc import `internal/domain`.
+- `internal/dedup` duoc import `internal/domain`.
 
 ## Forbidden dependencies
 

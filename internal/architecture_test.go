@@ -117,6 +117,42 @@ func TestRulesImportsOnlyDomainAndStandardLibrary(t *testing.T) {
 	}
 }
 
+func TestDedupImportsOnlyDomainAndStandardLibrary(t *testing.T) {
+	files, err := filepath.Glob(filepath.Join(repoRoot(), "internal", "dedup", "*.go"))
+	if err != nil {
+		t.Fatalf("glob dedup files: %v", err)
+	}
+	if len(files) == 0 {
+		t.Fatal("expected dedup package files")
+	}
+
+	fset := token.NewFileSet()
+	for _, path := range files {
+		src, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatalf("read %s: %v", path, err)
+		}
+		parsed, err := parser.ParseFile(fset, path, src, parser.ImportsOnly)
+		if err != nil {
+			t.Fatalf("parse imports for %s: %v", path, err)
+		}
+
+		for _, imp := range parsed.Imports {
+			importPath := strings.Trim(imp.Path.Value, `"`)
+			if importPath == "github.com/soleda2026/ScanFB/internal/domain" {
+				continue
+			}
+			if strings.HasPrefix(importPath, "github.com/soleda2026/ScanFB/internal/") {
+				t.Fatalf("dedup imports forbidden internal package %q in %s", importPath, path)
+			}
+			firstPart := strings.Split(importPath, "/")[0]
+			if strings.Contains(firstPart, ".") {
+				t.Fatalf("dedup imports non-standard package %q in %s", importPath, path)
+			}
+		}
+	}
+}
+
 func repoRoot() string {
 	return filepath.Clean("..")
 }

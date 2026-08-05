@@ -1,4 +1,5 @@
-// Package dedup will own duplicate detection and buyer lead aggregation.
+// Package dedup owns deterministic duplicate identity primitives.
 //
-// Phase 1 intentionally does not implement deduplication.
+// Phase 4A intentionally does not implement lead aggregation, persistence, or
+// source-post merging.
 package dedup

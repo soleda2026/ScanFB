@@ -61,6 +61,7 @@ Testing cua ScanFB uu tien deterministic fixtures cho domain, rule engine, geogr
 - Phase 3C: finite MVP geographic vocabulary, unknown, conflict, `GeographicMode` va composition fixtures.
 - Phase 3: normalization fixtures.
 - Phase 4: BuyerIntentClassifier, target keyword, author va blocklist rules.
+- Phase 4A: dedup author key, need key, duplicate comparison va fail-closed identity fixtures.
 - Phase 5: geographic classifier hardening/regression fixtures neu can.
 - Phase 6: deduplication va lead aggregation fixtures.
 - Phase 7: persistence repository tests voi database local tam.
