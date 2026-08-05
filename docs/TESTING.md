@@ -15,6 +15,20 @@ Testing cua ScanFB uu tien deterministic fixtures cho domain, rule engine, geogr
 - Buyer-intent rule tests phai dung synthetic posts, active `SearchProfile`, exact reason codes, seller/noise precedence va boundary-aware matching.
 - Future native macOS UI milestones phai build app moi, kill stale app process, relaunch rebuilt app bundle va xac minh dung bundle moi dang duoc test truoc khi manual verification.
 
+## Native macOS app-shell checks
+
+Phase 8B verifies the empty native SwiftUI app shell with these checks:
+
+- Build: `xcodebuild -project macos/ScanFBApp/ScanFBApp.xcodeproj -scheme ScanFBApp -configuration Debug -derivedDataPath /tmp/scanfb-phase8b-derived-data CODE_SIGNING_ALLOWED=NO build`
+- Test: `xcodebuild -project macos/ScanFBApp/ScanFBApp.xcodeproj -scheme ScanFBApp -configuration Debug -derivedDataPath /tmp/scanfb-phase8b-derived-data -destination 'platform=macOS,arch=arm64' CODE_SIGNING_ALLOWED=NO test`
+- App bundle exists at `/tmp/scanfb-phase8b-derived-data/Build/Products/Debug/ScanFB.app`.
+- Stale `ScanFB` app processes are terminated before relaunch.
+- The rebuilt app bundle is launched and the running executable path resolves inside that rebuilt bundle.
+- There must not be multiple `ScanFB` processes after launch verification.
+- Automated verification covers build, tests, bundle existence, process start, executable path and cleanup.
+- Manual verification covers visible native window, app identity, sidebar navigation and placeholder detail screens.
+- Go regressions remain required: `go test ./...`, `go vet ./...`, temporary CLI build, and CLI output `ScanFB foundation ready`.
+
 ## Test matrix toi thieu
 
 | ID | Fixture | Expected |
@@ -79,7 +93,7 @@ Testing cua ScanFB uu tien deterministic fixtures cho domain, rule engine, geogr
 - Phase 6: deduplication va lead aggregation fixtures.
 - Phase 7: persistence repository tests voi database local tam.
 - Phase 8A: documentation-only native macOS UI architecture decision; checks cover SwiftUI-as-presentation-shell wording, future `macos/ScanFBApp/` location, no existing app code/project, no bridge selected, no business logic in Swift, fixture/privacy policy, stale-process manual validation policy, and Go regression verification.
-- Phase 8B: empty native SwiftUI app shell tests must include Xcode build, manual app launch, stale process termination before relaunch, verification that the rebuilt app bundle is running, and Go `go test ./...`, `go vet ./...`, CLI build/run output unchanged.
+- Phase 8B: empty native SwiftUI app shell tests must include Swift unit tests for six-section navigation order/labels/icons/default selection, Xcode build, manual app launch, stale process termination before relaunch, verification that the rebuilt app bundle is running, and Go `go test ./...`, `go vet ./...`, CLI build/run output unchanged.
 - Phase 8C-8G: fixture UI milestones must include deterministic fixture rendering/manual validation, sample/demo labeling, Vietnamese diacritic preservation, no live Facebook data claims, no direct SQLite access, no hidden networking, no seller mode, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
 - Phase 8H: bridge evaluation tests are documentation/prototype checks only if explicitly scoped; bridge selection must not skip deterministic request/response, explicit schema, cancellation, error propagation, packaging, crash isolation and Apple Silicon considerations.
 - Phase 8I+: post-bridge integration milestones must add bridge-specific tests for each narrow slice while retaining Xcode build/manual launch, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.

@@ -41,11 +41,12 @@ Trong Go skeleton, cac layer duoc anh xa toi package:
 - `internal/dedup`: duplicate detection va lead aggregation.
 - `internal/persistence`: persistence-facing contracts, deterministic in-memory adapter cho completed batch snapshots, va SQLite schema-bootstrap/transactional `SaveBatch`/concrete `LoadBatch` implementation; chua co list/update/delete/search/paging API hoac migration execution.
 - `internal/facebook`: adapter bien ngoai cho Facebook/browser; domain khong duoc import.
-- `internal/ui`: Go-layer documentation/package placeholder. Native macOS UI implementation is planned outside `internal/` using SwiftUI.
+- `internal/ui`: Go-layer documentation/package placeholder. Native macOS UI implementation lives outside `internal/` using SwiftUI.
+- `macos/ScanFBApp`: native SwiftUI macOS app shell from Phase 8B. It is presentation-only and currently has no Go bridge, persistence wiring, Facebook integration or production scan workflow.
 
 ### App/UI
 
-SwiftUI la approved native macOS presentation direction cho Phase 8. Future app root duoc du kien la `macos/ScanFBApp/`, nam ngoai Go `internal/` package tree. SwiftUI se hien thi group, batch state, lead tabs, settings, blocklist va Dry Run review, nhung khong reimplement Go business logic. UI goi future narrow application/orchestration adapter sau khi bridge duoc quyet dinh, va khong import Facebook adapter truc tiep.
+SwiftUI la approved native macOS presentation direction cho Phase 8. Phase 8B tao app shell tai `macos/ScanFBApp/`, nam ngoai Go `internal/` package tree. Shell hien co mot `WindowGroup`, `NavigationSplitView` va placeholder sections, nhung khong co Go bridge, database, Facebook, networking, fixture business data hoac production settings. SwiftUI se hien thi group, batch state, lead tabs, settings, blocklist va Dry Run review trong cac milestone fixture sau, nhung khong reimplement Go business logic. UI goi future narrow application/orchestration adapter sau khi bridge duoc quyet dinh, va khong import Facebook adapter truc tiep.
 
 ### Application services
 
@@ -92,7 +93,7 @@ Facebook adapter khong duoc domain import nguoc lai. Domain khong duoc import ad
 
 Application, domain, rules, dedup, blocklist va persistence khong duoc import `internal/orchestration`. `internal/orchestration` chi duoc import `internal/application`, `internal/persistence` va standard library trong production code.
 
-Native SwiftUI code, khi duoc tao trong milestone sau, phai song ngoai `internal/`. Go application/domain packages khong duoc phu thuoc Swift hoac macOS UI code. Bridge SwiftUI-Go chua duoc chon; candidate bridge phai duoc danh gia trong milestone rieng va khong duoc ngam dinh HTTP, cloud API, direct SQLite access tu Swift hoac arbitrary JSON maps.
+Native SwiftUI code phai song ngoai `internal/`. Go application/domain packages khong duoc phu thuoc Swift hoac macOS UI code. Phase 8B Swift app khong co production dependency vao Go packages. Bridge SwiftUI-Go chua duoc chon; candidate bridge phai duoc danh gia trong milestone rieng va khong duoc ngam dinh HTTP, cloud API, direct SQLite access tu Swift hoac arbitrary JSON maps.
 
 Chi tiet Phase 8 nam trong [MACOS_UI_ARCHITECTURE.md](MACOS_UI_ARCHITECTURE.md).
 
@@ -108,4 +109,4 @@ Khi adapter gap CAPTCHA, checkpoint, login required, verification page, DOM unkn
 
 ## UI technology
 
-SwiftUI is the approved native macOS presentation technology for Phase 8. The Go core remains authoritative for rules, deduplication, blocklist behavior, batch evaluation, persistence snapshots, reason codes and deterministic decisions.
+SwiftUI is the approved native macOS presentation technology for Phase 8. Phase 8B implements only the empty app shell at `macos/ScanFBApp`. The Go core remains authoritative for rules, deduplication, blocklist behavior, batch evaluation, persistence snapshots, reason codes and deterministic decisions.

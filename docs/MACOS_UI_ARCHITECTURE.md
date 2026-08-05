@@ -3,24 +3,27 @@
 ## Purpose
 
 This document records the native macOS presentation architecture for Phase 8.
-It is an architecture decision and app-shell plan only. It does not implement
-UI code, app packaging, a bridge, persistence wiring, or Facebook integration.
+It records the Phase 8A architecture decision and the Phase 8B app-shell state.
+Phase 8B implements only an empty app shell; it does not implement a bridge,
+persistence wiring, Facebook integration, fixture screens, or production UI
+features.
 
 ## Presentation Technology
 
-SwiftUI is the approved presentation technology for the future native macOS app.
-The app is Apple Silicon first. The minimum macOS deployment target remains
-intentionally undecided until the app-shell milestone.
+SwiftUI is the approved presentation technology for the native macOS app.
+The Phase 8B app shell is Apple Silicon first and uses macOS 14.0 as the
+minimum deployment target.
 
 ## Repository Layout
 
-- Future native app root: `macos/ScanFBApp/`
+- Native app root: `macos/ScanFBApp/`
 - The Go core remains under the current Go module.
 - SwiftUI code must not be placed in `internal/ui`.
-- This milestone creates no new repository folder.
+- Phase 8B creates `macos/ScanFBApp/ScanFBApp.xcodeproj` with one app target
+  and one unit test target.
 
-`internal/ui` remains only a Go-layer documentation/package placeholder until a
-future narrow integration milestone decides whether it is still needed.
+`internal/ui` remains only a Go-layer documentation/package placeholder. The
+SwiftUI app shell lives outside the Go package tree.
 
 ## Layer Ownership
 
@@ -57,7 +60,7 @@ Go owns:
 ## Future Bridge Decision Boundary
 
 A later milestone must evaluate and select exactly one narrow integration model.
-No bridge mechanism is selected or implemented in Phase 8A.
+No bridge mechanism is selected or implemented in Phase 8A or Phase 8B.
 
 Candidate categories that may be evaluated later:
 
@@ -92,7 +95,9 @@ Explicitly rejected:
 ## Phase 8 UI Slices
 
 - Phase 8A: architecture decision and plan.
-- Phase 8B: empty native SwiftUI app shell only.
+- Phase 8B: empty native SwiftUI app shell only. Implemented with one
+  `WindowGroup`, one `NavigationSplitView`, six placeholder sections and no
+  bridge, database, Facebook, fixtures, settings persistence or networking.
 - Phase 8C: static fixture dashboard and batch summary.
 - Phase 8D: fixture lead tabs and lead cards.
 - Phase 8E: fixture Dry Run review.
@@ -105,12 +110,13 @@ Each milestone must be independently buildable and manually testable.
 
 ## Phase 8B Initial App-Shell Requirements
 
-Future Phase 8B documents and implements only:
+Phase 8B implements only:
 
 - native SwiftUI macOS app;
 - one main window;
 - app name ScanFB;
 - placeholder navigation;
+- deployment target macOS 14.0;
 - no Go bridge;
 - no database;
 - no Facebook;
@@ -119,6 +125,10 @@ Future Phase 8B documents and implements only:
 - no production settings;
 - no persistence;
 - no generated fixture business data beyond minimal visual placeholders.
+
+The implemented shell uses local view state only. It has no AppKit bridge,
+menu-bar-only mode, secondary windows, settings scene, persistence, networking,
+browser APIs, subprocesses, IPC, Go FFI or third-party dependency.
 
 ## Product UI Structure
 
@@ -181,7 +191,7 @@ Future SwiftUI milestones must include:
 ## Deferred Decisions
 
 - Bridge mechanism.
-- Deployment target.
+- Deployment target beyond the Phase 8B minimum.
 - Signing.
 - Notarization.
 - Packaging.
@@ -197,8 +207,7 @@ Future SwiftUI milestones must include:
 
 ## Explicit Non-Goals
 
-- No UI code.
-- No Xcode project.
+- No production UI features.
 - No Swift package.
 - No Go code.
 - No dependency.

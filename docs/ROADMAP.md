@@ -318,11 +318,13 @@ Stop conditions: Can tao app project, Swift code, bridge, database path, UI fixt
 
 ## Phase 8B - Empty native SwiftUI app shell only
 
+Status: complete after Phase 8B acceptance checks pass. Phase 8C is next.
+
 Exact scope: Create minimal native SwiftUI macOS app shell at `macos/ScanFBApp/` with app name ScanFB, one main window and placeholder navigation.
 
 Protected areas: Khong Go bridge, database, Facebook, networking, third-party dependency, production settings, persistence, generated fixture business data, seller mode hoac business-rule logic in Swift.
 
-Acceptance criteria: App builds and launches locally; window title/app identity are ScanFB; placeholder navigation is visible; no Go code or bridge is touched.
+Acceptance criteria: App builds and launches locally; window title/app identity are ScanFB; placeholder navigation is visible; six expected sections exist in stable order; no Go code or bridge is touched.
 
 Tests: Xcode build, manual app launch after killing stale process, verify rebuilt app bundle is running, plus Go `go test ./...`, `go vet ./...` and CLI output unchanged.
 

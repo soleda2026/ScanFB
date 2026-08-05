@@ -15,7 +15,7 @@ flowchart TD
     PERSIST_CONTRACT --> DOMAIN
     PERSIST_IMPL["Persistence implementation"] --> PERSIST_CONTRACT
     SQLITE["SQLite schema bootstrap, SaveBatch, and concrete LoadBatch"] --> PERSIST_CONTRACT
-    MACOS_APP["Planned macos/ScanFBApp SwiftUI shell"] -.future bridge.-> ORCH
+    MACOS_APP["macos/ScanFBApp SwiftUI shell"] -.future bridge.-> ORCH
     MACOS_APP -.future bridge.-> APP
     FB["Facebook adapter"] --> APP
     FB --> RAW["RawPost mapping contract"]
@@ -37,7 +37,7 @@ flowchart TD
 - `internal/orchestration`: Go package cho thin synchronous use-case orchestration ownership.
 - `internal/facebook`: Go package cho Facebook/browser adapter boundary ownership.
 - `internal/ui`: Go-layer documentation/package placeholder; not the SwiftUI app root.
-- `macos/ScanFBApp`: planned future SwiftUI native macOS app root, not implemented in Phase 8A.
+- `macos/ScanFBApp`: SwiftUI native macOS app shell implemented in Phase 8B.
 - App/UI: owner cua views, tabs, lead cards, settings va user actions.
 - Application services: owner cua deterministic in-memory scan batch model, batch state va time window.
 - Use-case orchestration: owner cua glue logic giua completed application result, `BatchRecord` conversion va repository save boundary.
@@ -45,7 +45,7 @@ flowchart TD
 - Persistence-facing contracts: owner cua completed batch snapshot contracts.
 - Persistence implementation: owner cua local storage implementation.
 - Facebook adapter: owner cua page reading, DOM parsing va fail-closed adapter errors.
-- Planned SwiftUI shell: future owner cua native windows, navigation, tabs, presentation state, accessibility va fixture-driven screens.
+- SwiftUI shell: owner cua native windows, navigation, presentation state va accessibility. Fixture-driven screens start in later Phase 8 milestones.
 
 Phase 2 files trong `internal/domain` gom minimal models cho `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Domain package chi duoc import Go standard library.
 
@@ -75,6 +75,8 @@ Phase 5F them documentation-only SQLite schema design tai `docs/PERSISTENCE_SCHE
 
 Phase 8A documents native macOS UI direction only. SwiftUI is approved as the presentation shell for a future app at `macos/ScanFBApp/`. No `macos/` directory, Xcode project, Swift package, Swift source, bridge, fixture UI, database path or app bundle is implemented in Phase 8A.
 
+Phase 8B implements the empty native SwiftUI macOS app shell at `macos/ScanFBApp/`. The shell has one app target, one unit test target, one `WindowGroup`, a `NavigationSplitView`, six placeholder sections and no Go bridge, Facebook behavior, SQLite/direct persistence access, networking, fixture business data or production dependency on Go packages.
+
 ## Allowed dependencies
 
 - App/UI duoc goi Application services.
@@ -91,7 +93,7 @@ Phase 8A documents native macOS UI direction only. SwiftUI is approved as the pr
 - `internal/persistence` duoc import `internal/application` va `internal/domain`.
 - `modernc.org/sqlite` chi duoc import trong `internal/persistence`.
 - `internal/orchestration` duoc import `internal/application` va `internal/persistence`.
-- Planned `macos/ScanFBApp` may depend only through a future narrow bridge to application/orchestration boundaries after a separate bridge decision milestone.
+- `macos/ScanFBApp` currently has no production dependency on Go packages. It may depend on Go application/orchestration boundaries only through a future narrow bridge after a separate bridge decision milestone.
 
 ## Forbidden dependencies
 
@@ -107,7 +109,7 @@ Phase 8A documents native macOS UI direction only. SwiftUI is approved as the pr
 - `internal/persistence` khong duoc import Facebook adapter, UI, CLI package hoac persistence implementation package.
 - Khong package nao ngoai `internal/persistence` duoc import `modernc.org/sqlite`.
 - Khong module nao trong ScanFB duoc them seller mode, `SellerLead`, `SellerIntentClassifier`, `LeadIntent` buyer/seller hoac `SELLER_SCAN`.
-- SwiftUI code, when created later, must not import or mirror Facebook adapter internals, directly access SQLite, expose database-local IDs, or reimplement Go business logic.
+- SwiftUI code must not import or mirror Facebook adapter internals, directly access SQLite, expose database-local IDs, or reimplement Go business logic.
 - Go application/domain packages must not depend on Swift or macOS UI code.
 
 ## Entry points
@@ -150,7 +152,7 @@ RawPost
 -> Optional in-memory BatchRepository adapter cho deterministic inspection/testing
 -> Optional thin RunAndSaveScanBatch orchestration cho explicit caller-supplied record ID
 -> Optional SQLite schema-bootstrap, SaveBatch and concrete LoadBatch adapter neu caller mo explicit local DB path
--> Future SwiftUI presentation shell qua bridge duoc chon trong milestone rieng
+-> Phase 8B SwiftUI presentation shell, currently standalone until bridge duoc chon trong milestone rieng
 ```
 
 ## SearchProfile va buyer-only boundary

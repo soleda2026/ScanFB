@@ -1,0 +1,4 @@
+# Xcode user-local state
+xcuserdata/
+*.xcuserstate
+DerivedData/
