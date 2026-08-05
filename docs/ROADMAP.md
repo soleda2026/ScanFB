@@ -242,6 +242,18 @@ Acceptance criteria: `SQLiteBatchRepository` satisfy save-only `BatchRepository`
 
 Tests: Temporary SQLite DB tests cho interface/basic save, complete table mapping, source preservation, ordering, outcome preservation, validation failures, duplicate ID no-overwrite, transaction rollback, closed repository, immutability, determinism va no deferred load/list/update/delete/search APIs.
 
+## Phase 5G3 - Fail-closed SQLite LoadBatch reconstruction
+
+Exact scope: Implement concrete-only `SQLiteBatchRepository.LoadBatch(id BatchRecordID) (BatchRecord, error)` trong `internal/persistence` de reconstruct mot complete `BatchRecord` tu existing SQLite schema version 1 bang explicit positions, read transaction, schema validation, strict timestamp/boolean decoding, enum validation, final `BatchRecord.Validate` va zero-record failure behavior.
+
+Protected areas: Khong them `LoadBatch` vao `BatchRepository`, khong `ListBatches`, update/delete/search/paging API, migration execution, schema version moi, dependency moi, production DB path, UI/CLI wiring, Facebook behavior, retry, concurrency, generated ID hoac business-rule recomputation.
+
+Acceptance criteria: Saved rich one-group va five-group snapshots load deeply equal; raw posts, decisions, outcomes, evidence, reasons, timestamps, booleans, summaries, unaggregated va conflicts preserve exact order/value; missing ID returns `ErrBatchRecordNotFound`; closed/nil repository fails safely; malformed schema/data fails closed with zero `BatchRecord`; repeated loads deterministic; `BatchRepository` van save-only.
+
+Tests: Temporary SQLite DB tests cho complete round trip, accessor equality, no-write row-count stability, not-found/lifecycle errors, defensive reload determinism, concrete-only API boundary, schema corruption, malformed timestamp/boolean/enum-like values, missing references, duplicate/gapped positions, summary inconsistency, metadata loss va missing required table/index.
+
+Stop conditions: Can list/search/update/delete, interface expansion, migrations, production storage path policy, UI/CLI/Facebook wiring, generated IDs, concurrency, retries hoac schema version 2.
+
 ## Phase 5 - Geographic classifier hardening
 
 Exact scope: Harden geographic classifier behavior sau Phase 3C neu can, van theo [SCAN_RULES.md](SCAN_RULES.md) va khong mo rong vocabulary khi chua co milestone rieng.

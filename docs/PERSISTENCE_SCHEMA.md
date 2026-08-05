@@ -1,6 +1,6 @@
 # Persistence Schema Design
 
-Phase 5F defined the durable local SQLite storage model for completed ScanFB batch snapshots. Phase 5G1 implemented the SQLite foundation for schema version 1: explicit-path open/create, foreign-key enable/verify, transactional empty-schema creation, schema metadata validation, and close. Phase 5G2 implements transactional durable `SaveBatch` for one complete `BatchRecord` snapshot. Load/list APIs, migrations, UI/CLI wiring, and production scan persistence remain deferred.
+Phase 5F defined the durable local SQLite storage model for completed ScanFB batch snapshots. Phase 5G1 implemented the SQLite foundation for schema version 1: explicit-path open/create, foreign-key enable/verify, transactional empty-schema creation, schema metadata validation, and close. Phase 5G2 implemented transactional durable `SaveBatch` for one complete `BatchRecord` snapshot. Phase 5G3 implements concrete-only fail-closed `SQLiteBatchRepository.LoadBatch` reconstruction for one complete `BatchRecord` snapshot. List APIs, migrations, UI/CLI wiring, and production scan persistence remain deferred.
 
 ## 1. Purpose And Non-Goals
 
@@ -8,20 +8,22 @@ Purpose:
 
 - Store one completed `persistence.BatchRecord` as the root aggregate.
 - Preserve every historical decision, reason code, source post, lead, outcome, conflict, and summary value.
-- Allow a future load adapter to reconstruct the same `BatchRecord` deterministically without rerunning buyer-intent classification, geography classification, deduplication, blocklist evaluation, aggregation, or summary calculation.
+- Allow the concrete SQLite load adapter to reconstruct the same `BatchRecord` deterministically without rerunning buyer-intent classification, geography classification, deduplication, blocklist evaluation, aggregation, or summary calculation.
 - Keep storage local-only and inside `internal/persistence`.
 
 Non-goals:
 
-- No `LoadBatch`, `ListBatches`, update, delete, search, or paging API.
+- No `LoadBatch` on `BatchRepository`; no `ListBatches`, update, delete, search, or paging API.
 - No migration files, migration execution, production database location policy, UI/CLI wiring, or production scan persistence.
 - No JSON blobs, generic metadata maps for business data, polymorphic `entity_type/entity_id` references, ORM naming assumptions, cloud sync, cross-device sync, multi-user tenancy, soft deletion, or audit logging.
 
 ## 2. Approved Dependency Boundary
 
-- `internal/persistence` owns the SQLite schema-bootstrap and durable `SaveBatch` implementation and remains the future home for durable SQLite load implementation.
+- `internal/persistence` owns the SQLite schema-bootstrap, durable `SaveBatch`, and concrete durable SQLite `LoadBatch` implementation.
 - `SQLiteBatchRepository` opens and validates schema version 1 and implements the existing save-only `BatchRepository.SaveBatch(record)` contract.
-- `SQLiteBatchRepository.SaveBatch` consumes validated `persistence.BatchRecord` snapshots, writes each snapshot in one transaction, and does not expose load/list/update/delete/search/paging behavior.
+- `SQLiteBatchRepository.SaveBatch` consumes validated `persistence.BatchRecord` snapshots and writes each snapshot in one transaction.
+- `SQLiteBatchRepository.LoadBatch` reconstructs one snapshot by `BatchRecordID` in one read transaction and does not broaden `BatchRepository`.
+- SQLite persistence does not expose list/update/delete/search/paging behavior.
 - Storage must not own or recompute business decisions.
 - `internal/application` does not import persistence.
 - `internal/orchestration` may import application and persistence, and may pass completed snapshots to the repository.
@@ -426,7 +428,7 @@ Every ordered collection has an explicit zero-based position:
 - Reasons and evidence: `reason_position` or `evidence_position`
 - Group summaries: `group_position`
 
-Future loads must reject duplicate positions and gaps in required ordered positions.
+`SQLiteBatchRepository.LoadBatch` must reject duplicate positions and gaps in required ordered positions.
 
 ## 10. Enum And Reason Storage Policy
 
@@ -436,7 +438,7 @@ Future loads must reject duplicate positions and gaps in required ordered positi
 - Blocklist outcomes remain exact strings such as `blocked`, `not_blocked`, and `insufficient_identity`.
 - Reason codes remain exact strings in narrow ordered child tables.
 - No comma-separated reason text, JSON arrays, global mutable reason-code registry, or prose conversion.
-- Unknown enum-like values or unsupported reason categories fail closed during future load where current validation can detect them.
+- Unknown enum-like values or unsupported reason categories fail closed during `SQLiteBatchRepository.LoadBatch` where current validation can detect them.
 
 ## Data Types And Time Policy
 
@@ -476,16 +478,16 @@ Required behavior:
 - no cross-batch mutation;
 - transactions are internal to the adapter and are not exposed through `BatchRepository`.
 
-## 13. Future Load And Reconstruction Policy
+## 13. Load And Reconstruction Policy
 
-`BatchRepository` remains save-only. If a future milestone adds loading, it must fail closed:
+`BatchRepository` remains save-only. Concrete `SQLiteBatchRepository.LoadBatch(id BatchRecordID) (BatchRecord, error)` fails closed:
 
 - fetch one root by `BatchRecordID`;
 - reject missing or unsupported database/schema version;
 - load every child collection ordered only by explicit position columns;
 - rebuild `persistence.BatchRecord` without rerunning rules, geography, dedup, blocklist, aggregation, or summary calculation;
 - reject missing required child rows;
-- reject duplicate positions;
+- reject duplicate positions or invalid missing indexes that would allow duplicates;
 - reject gaps in required ordered positions;
 - reject unknown decisions, outcomes, and reason categories where current validation can detect them;
 - reject inconsistent group/post relationships;
@@ -498,7 +500,7 @@ Validation is layered:
 
 1. `BatchRecord.Validate` before save.
 2. Database foreign-key, uniqueness, and non-null constraints during insertion.
-3. `BatchRecord.Validate` after future load reconstruction.
+3. `BatchRecord.Validate` after concrete SQLite load reconstruction.
 
 Database constraints do not replace application validation. Application validation does not replace ownership, foreign-key, and uniqueness constraints. Persistence validation never reruns business rules.
 
@@ -560,7 +562,7 @@ Deferred:
 
 - migrations and migration tests;
 - storage-layer error taxonomy;
-- durable load/list APIs;
+- list APIs and any load method on `BatchRepository`;
 - temporary-database integration tests;
 - backup policy;
 - encryption-at-rest policy;
@@ -603,7 +605,7 @@ Deferred:
 
 ## 21. Snapshot Reconstruction Checklist
 
-Before a future implementation is accepted:
+For concrete SQLite load reconstruction:
 
 - every `BatchRecord` accessor must have a storage source;
 - every nested collection must have a parent/child table;

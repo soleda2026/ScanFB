@@ -14,7 +14,7 @@ flowchart TD
     PERSIST_CONTRACT["Persistence-facing contracts"] --> APP
     PERSIST_CONTRACT --> DOMAIN
     PERSIST_IMPL["Persistence implementation"] --> PERSIST_CONTRACT
-    SQLITE["SQLite schema bootstrap and SaveBatch"] --> PERSIST_CONTRACT
+    SQLITE["SQLite schema bootstrap, SaveBatch, and concrete LoadBatch"] --> PERSIST_CONTRACT
     FB["Facebook adapter"] --> APP
     FB --> RAW["RawPost mapping contract"]
     RAW --> APP
@@ -31,7 +31,7 @@ flowchart TD
 - `internal/blocklist`: Go package cho deterministic local blocklist identity primitives.
 - `internal/rules`: Go package cho deterministic buyer rules ownership.
 - `internal/dedup`: Go package cho deduplication ownership.
-- `internal/persistence`: Go package cho persistence-facing completed-batch contract, in-memory adapter va SQLite schema-bootstrap/SaveBatch ownership.
+- `internal/persistence`: Go package cho persistence-facing completed-batch contract, in-memory adapter va SQLite schema-bootstrap/SaveBatch/concrete LoadBatch ownership.
 - `internal/orchestration`: Go package cho thin synchronous use-case orchestration ownership.
 - `internal/facebook`: Go package cho Facebook/browser adapter boundary ownership.
 - `internal/ui`: Go package cho presentation boundary ownership.
@@ -67,7 +67,7 @@ Phase 5D them `internal/persistence/in_memory_batch_repository.go` cho determini
 
 Phase 5E them `internal/orchestration/run_and_save_scan_batch.go` cho synchronous use case `RunAndSaveScanBatch`. Use case validate repository boundary, chap nhan caller-supplied `BatchRecordID`, chay `application.RunScanBatch`, convert successful result bang `persistence.NewBatchRecord`, save dung mot lan qua `persistence.BatchRepository`, va chi tra result/record sau khi save thanh cong. Chua co UI/CLI wiring, Facebook collection, durable storage, concurrency, retry, generated ID hoac rule moi.
 
-Phase 5F them documentation-only SQLite schema design tai `docs/PERSISTENCE_SCHEMA.md`. Phase 5G1 them `internal/persistence/sqlite_repository.go` va `internal/persistence/sqlite_schema.go` cho SQLite foundation: `modernc.org/sqlite` driver import chi trong persistence, explicit-path open/create, foreign-key enable/verify, transactional empty schema v1 creation, schema metadata validation va `Close`. Phase 5G2 them `SQLiteBatchRepository.SaveBatch(record BatchRecord) error`, nen SQLite adapter satisfy save-only `BatchRepository` va ghi mot completed snapshot vao schema version 1 trong mot transaction. Chua co load/list/update/delete/search/paging/migration execution, production DB path, UI/CLI wiring hoac Facebook behavior.
+Phase 5F them documentation-only SQLite schema design tai `docs/PERSISTENCE_SCHEMA.md`. Phase 5G1 them `internal/persistence/sqlite_repository.go` va `internal/persistence/sqlite_schema.go` cho SQLite foundation: `modernc.org/sqlite` driver import chi trong persistence, explicit-path open/create, foreign-key enable/verify, transactional empty schema v1 creation, schema metadata validation va `Close`. Phase 5G2 them `SQLiteBatchRepository.SaveBatch(record BatchRecord) error`, nen SQLite adapter satisfy save-only `BatchRepository` va ghi mot completed snapshot vao schema version 1 trong mot transaction. Phase 5G3 them concrete-only `SQLiteBatchRepository.LoadBatch(id BatchRecordID) (BatchRecord, error)` de reconstruct mot snapshot trong read transaction, fail closed voi malformed schema/data va khong mo rong `BatchRepository`. Chua co list/update/delete/search/paging/migration execution, production DB path, UI/CLI wiring hoac Facebook behavior.
 
 ## Allowed dependencies
 
@@ -75,7 +75,7 @@ Phase 5F them documentation-only SQLite schema design tai `docs/PERSISTENCE_SCHE
 - Application services duoc goi Domain, Rules, Dedup va Blocklist.
 - Persistence-facing contracts duoc goi Application services va Domain de copy completed batch snapshots.
 - Persistence implementation duoc implement Persistence-facing contracts.
-- SQLite schema bootstrap va durable `SaveBatch` duoc implement trong `internal/persistence`; orchestration van chi nhan interface `BatchRepository`, khong import concrete SQLite adapter.
+- SQLite schema bootstrap, durable `SaveBatch` va concrete SQLite `LoadBatch` duoc implement trong `internal/persistence`; orchestration van chi nhan interface `BatchRepository`, khong import concrete SQLite adapter.
 - Facebook adapter duoc goi Application services bang adapter boundary.
 - Tests duoc import Domain truc tiep de chay fixture deterministic.
 - `internal/rules` duoc import `internal/domain`.
@@ -140,7 +140,7 @@ RawPost
 -> Persistence-facing completed BatchRecord snapshot contract
 -> Optional in-memory BatchRepository adapter cho deterministic inspection/testing
 -> Optional thin RunAndSaveScanBatch orchestration cho explicit caller-supplied record ID
--> Optional SQLite schema-bootstrap and SaveBatch adapter neu caller mo explicit local DB path
+-> Optional SQLite schema-bootstrap, SaveBatch and concrete LoadBatch adapter neu caller mo explicit local DB path
 ```
 
 ## SearchProfile va buyer-only boundary

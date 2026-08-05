@@ -281,7 +281,7 @@ func TestSQLiteBatchRepositorySaveBatchDoesNotMutateRecord(t *testing.T) {
 	}
 }
 
-func TestSQLiteBatchRepositorySaveBatchDeterminismAndNoLoadAPI(t *testing.T) {
+func TestSQLiteBatchRepositorySaveBatchDeterminismAndNoBroadDeferredAPI(t *testing.T) {
 	first := savedSQLiteLogicalSnapshot(t, buildRichSQLiteBatchRecord(t, "batch-first"))
 	second := savedSQLiteLogicalSnapshot(t, buildRichSQLiteBatchRecord(t, "batch-second"))
 	if !reflect.DeepEqual(first, second) {
@@ -289,7 +289,7 @@ func TestSQLiteBatchRepositorySaveBatchDeterminismAndNoLoadAPI(t *testing.T) {
 	}
 
 	repoType := reflect.TypeOf(&SQLiteBatchRepository{})
-	for _, method := range []string{"LoadBatch", "ListBatches", "UpdateBatch", "DeleteBatch", "SearchBatches"} {
+	for _, method := range []string{"ListBatches", "UpdateBatch", "DeleteBatch", "SearchBatches"} {
 		if _, ok := repoType.MethodByName(method); ok {
 			t.Fatalf("SQLiteBatchRepository exposes deferred API %s", method)
 		}

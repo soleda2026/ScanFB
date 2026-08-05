@@ -39,7 +39,7 @@ Trong Go skeleton, cac layer duoc anh xa toi package:
 - `internal/orchestration`: thin synchronous use cases ket noi completed application result voi persistence-facing contract.
 - `internal/rules`: deterministic buyer-intent, author, time va geographic rules.
 - `internal/dedup`: duplicate detection va lead aggregation.
-- `internal/persistence`: persistence-facing contracts, deterministic in-memory adapter cho completed batch snapshots, va SQLite schema-bootstrap/transactional `SaveBatch` implementation; chua co load/list/update/delete/search/paging API hoac migration execution.
+- `internal/persistence`: persistence-facing contracts, deterministic in-memory adapter cho completed batch snapshots, va SQLite schema-bootstrap/transactional `SaveBatch`/concrete `LoadBatch` implementation; chua co list/update/delete/search/paging API hoac migration execution.
 - `internal/facebook`: adapter bien ngoai cho Facebook/browser; domain khong duoc import.
 - `internal/ui`: presentation layer; chua chon UI framework.
 
@@ -63,13 +63,13 @@ Domain duoc giu trung lap o phan tai su dung nhu `ScanSession`, `ScanBatch`, `Ra
 
 ### Persistence interfaces
 
-Dinh nghia persistence-facing contract cho completed scan batch snapshot. Phase 5C chi co opaque `BatchRecordID`, completed `BatchRecord`, structural validation va save-only `BatchRepository.SaveBatch`; khong co load/list/update/delete/search/paging/schema/migration/transaction API. Phase 5D them `InMemoryBatchRepository` lam concrete adapter chi trong memory; inspection methods nam tren adapter, khong mo rong `BatchRepository`. `internal/persistence` duoc phu thuoc `internal/application` va `internal/domain` de copy completed batch result; application, domain, rules, dedup va blocklist khong phu thuoc persistence.
+Dinh nghia persistence-facing contract cho completed scan batch snapshot. Phase 5C chi co opaque `BatchRecordID`, completed `BatchRecord`, structural validation va save-only `BatchRepository.SaveBatch`; khong co list/update/delete/search/paging/schema/migration/transaction API. Phase 5D them `InMemoryBatchRepository` lam concrete adapter chi trong memory; inspection methods nam tren adapter, khong mo rong `BatchRepository`. Phase 5G3 them concrete-only `SQLiteBatchRepository.LoadBatch`, khong them method vao `BatchRepository`. `internal/persistence` duoc phu thuoc `internal/application` va `internal/domain` de copy completed batch result; application, domain, rules, dedup va blocklist khong phu thuoc persistence.
 
 ### Persistence implementation
 
-Phase 5G2 them durable SQLite `SaveBatch` cho mot completed `BatchRecord` snapshot. In-memory adapter van chi validate/save completed snapshot trong process de test va future wiring. Phase 5F chon SQLite la local durable storage technology va ghi schema design tai [PERSISTENCE_SCHEMA.md](PERSISTENCE_SCHEMA.md). Phase 5G1 them `SQLiteBatchRepository` bootstrap trong `internal/persistence`: open/create explicit local SQLite path, enable va verify foreign keys, create empty schema version 1 transactionally, validate schema metadata, va `Close`.
+Phase 5G2 them durable SQLite `SaveBatch` cho mot completed `BatchRecord` snapshot. Phase 5G3 them fail-closed `SQLiteBatchRepository.LoadBatch(id BatchRecordID) (BatchRecord, error)` de reconstruct mot complete snapshot tu schema version 1 trong read transaction. In-memory adapter van chi validate/save completed snapshot trong process de test va future wiring. Phase 5F chon SQLite la local durable storage technology va ghi schema design tai [PERSISTENCE_SCHEMA.md](PERSISTENCE_SCHEMA.md). Phase 5G1 them `SQLiteBatchRepository` bootstrap trong `internal/persistence`: open/create explicit local SQLite path, enable va verify foreign keys, create empty schema version 1 transactionally, validate schema metadata, va `Close`.
 
-`SQLiteBatchRepository` satisfy `BatchRepository` bang `SaveBatch(record BatchRecord) error`. Method nay validate `BatchRecord` truoc khi mutate database, ghi root va toan bo child collections trong mot transaction, translate duplicate `BatchRecordID` thanh `ErrBatchRecordAlreadyExists`, rollback moi write failure, va khong retry hay partial write. Khong co load/list/update/delete/search/paging/schema/migration/transaction API tren public contract.
+`SQLiteBatchRepository` satisfy `BatchRepository` bang `SaveBatch(record BatchRecord) error`. Method nay validate `BatchRecord` truoc khi mutate database, ghi root va toan bo child collections trong mot transaction, translate duplicate `BatchRecordID` thanh `ErrBatchRecordAlreadyExists`, rollback moi write failure, va khong retry hay partial write. Concrete `LoadBatch` verify schema version 1, load child rows bang explicit positions, decode canonical timestamps/booleans, reject malformed stored enum-like values, run `BatchRecord.Validate`, va return zero record on failure. Khong co list/update/delete/search/paging/schema/migration/transaction API tren public contract.
 
 ### Facebook adapter
 
