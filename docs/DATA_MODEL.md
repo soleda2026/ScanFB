@@ -2,7 +2,7 @@
 
 Tai lieu nay dinh nghia entity toi thieu va quan he muc domain. Kieu du lieu cu the se duoc khoa trong milestone sau. ScanFB hien tai la buyer-only: khong co `LeadIntent` buyer/seller, `SellerLead` hoac seller mode.
 
-Phase 2 Go implementation chi trien khai subset domain toi thieu cho normalized post input va cau hinh mot scan: `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Phase 4C Go implementation chi them in-memory blocklist identity primitives trong `internal/blocklist`. Phase 4D Go implementation chi them application-layer in-memory filtering cua aggregated leads qua blocklist. Phase 5A Go implementation them application-layer deterministic pipeline cho already-collected `RawPost` values qua rules, eligible selection, in-memory aggregation va blocklist filtering; persistence va workflow storage van la model muc tai lieu cho phase sau.
+Phase 2 Go implementation chi trien khai subset domain toi thieu cho normalized post input va cau hinh mot scan: `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Phase 4C Go implementation chi them in-memory blocklist identity primitives trong `internal/blocklist`. Phase 4D Go implementation chi them application-layer in-memory filtering cua aggregated leads qua blocklist. Phase 5A Go implementation them application-layer deterministic pipeline cho already-collected `RawPost` values qua rules, eligible selection, in-memory aggregation va blocklist filtering. Phase 5B Go implementation them application-layer in-memory batch model cho mot den nam explicit groups, deterministic flattening va count summaries; persistence va workflow storage van la model muc tai lieu cho phase sau.
 
 ## WatchedGroup
 
@@ -59,6 +59,7 @@ Invariants:
 - Neu khong con du 5 group active de tao batch tiep theo, app khong bat dau batch moi va bao ro cho nguoi dung.
 - Khong mo nhieu group dong thoi.
 - Neu qua 00:00, group chua hoan tat duoc ghi `expired_at_day_boundary`.
+- Phase 5B implementation chi la in-memory model cho already-collected posts va chap nhan mot den nam explicit groups de test/summary deterministic; chua phai production batch queue, adapter hoac persistence behavior.
 
 ## GroupScanAttempt
 

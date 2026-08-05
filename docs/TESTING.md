@@ -66,6 +66,7 @@ Testing cua ScanFB uu tien deterministic fixtures cho domain, rule engine, geogr
 - Phase 4C: blocklist identity key normalization, strongest author identity selection, in-memory list construction, duplicate entry handling, exact same-kind matching, fail-closed insufficient identity va dependency boundary fixtures.
 - Phase 4D: application-layer in-memory lead filtering qua blocklist, allowed/blocked/unresolved separation, source preservation, strongest-identity no-fallback, defensive-copy va dependency boundary fixtures.
 - Phase 5A: application-layer in-memory evaluation pipeline tu already-collected `RawPost` values qua rules, eligible selection, dedup aggregation va blocklist filtering; tests cover mixed rule outputs, aggregation/unaggregated/conflict preservation, allowed/blocked/unresolved preservation, ordering, source preservation, defensive copies va invalid configuration.
+- Phase 5B: application-layer in-memory scan batch model cho mot den nam explicit groups; tests cover group count validation, group identity, post/group consistency, deterministic flattening, single-run pipeline output preservation, batch/per-group count summaries, source preservation, defensive copies va fail-closed behavior.
 - Phase 5: geographic classifier hardening/regression fixtures neu can.
 - Phase 6: deduplication va lead aggregation fixtures.
 - Phase 7: persistence repository tests voi database local tam.

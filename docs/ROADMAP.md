@@ -160,6 +160,18 @@ Tests: Synthetic in-memory unit tests cho end-to-end flow, mixed rule results, a
 
 Stop conditions: Can raw Facebook collection, database/repository, UI/CLI wiring, scheduler, parallel scan hoac heuristic moi.
 
+## Phase 5B - Deterministic in-memory scan batch model
+
+Exact scope: Implement application-layer in-memory manual batch model cho mot den nam explicit Facebook groups, flatten posts deterministic, goi Phase 5A pipeline mot lan va tra batch/per-group count summaries.
+
+Protected areas: Khong Facebook/browser integration, khong persistence, khong UI, khong CLI behavior, khong scheduling, khong retries, khong progress reporting, khong network, khong concurrency va khong thay doi rules/dedup/blocklist semantics.
+
+Acceptance criteria: Zero/qua nam group fail explicit; group identity va post/group consistency duoc validate; post order preserve; full Phase 5A result duoc preserve; batch summary va per-group rule-stage summaries deterministic.
+
+Tests: Synthetic in-memory unit tests cho batch validation, group/post consistency, flattening order, end-to-end summary, per-group summary, source preservation, defensive copies va fail-closed behavior.
+
+Stop conditions: Can Facebook collection, database/repository, UI/CLI wiring, scheduler, retry/progress state, parallel scan hoac heuristic moi.
+
 ## Phase 5 - Geographic classifier hardening
 
 Exact scope: Harden geographic classifier behavior sau Phase 3C neu can, van theo [SCAN_RULES.md](SCAN_RULES.md) va khong mo rong vocabulary khi chua co milestone rieng.

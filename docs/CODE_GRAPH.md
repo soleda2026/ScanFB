@@ -52,6 +52,8 @@ Phase 4D them `internal/application/lead_filter.go` cho in-memory filtering cua 
 
 Phase 5A them `internal/application/evaluation_pipeline.go` cho deterministic in-memory pipeline tu already-collected `RawPost` values qua rules, eligible selection, dedup aggregation va blocklist filtering. Pipeline preserve evaluated, eligible, review, excluded, unaggregated, conflicts, allowed, blocked va unresolved outputs. Chua co Facebook adapter, persistence, UI, CLI behavior, scheduling, concurrency hoac network behavior.
 
+Phase 5B them `internal/application/scan_batch.go` cho deterministic in-memory manual batch model gom mot den nam explicit groups. Batch validate group identity va post/group consistency, flatten posts theo group order roi post order, goi Phase 5A pipeline mot lan va tao batch/per-group count summaries. Chua co Facebook collection, persistence, UI, CLI behavior, scheduling, retries, progress reporting, concurrency hoac network behavior.
+
 ## Allowed dependencies
 
 - App/UI duoc goi Application services.
@@ -102,11 +104,14 @@ User Scan
 
 ```text
 RawPost
+-> In-memory ScanBatch group validation
+-> Deterministic flattening theo group order va post order
 -> Rule evaluation: time, author, SearchProfile target keyword, BuyerIntentClassifier va geographic classification
 -> Eligible/review/excluded separation
 -> In-memory buyer lead aggregation
 -> Local blocklist lead filtering
 -> Explicit allowed, blocked, unresolved, unaggregated va conflict outputs
+-> Count-only batch summary va per-group rule-stage summaries
 ```
 
 ## SearchProfile va buyer-only boundary

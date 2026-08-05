@@ -1,4 +1,4 @@
-// Package application owns orchestration and use cases that coordinate domain behavior.
+// Package application owns in-memory orchestration and use cases that coordinate domain behavior.
 //
-// Application code may depend on domain. Phase 1 intentionally does not implement use cases yet.
+// It intentionally does not implement Facebook collection, persistence, UI, CLI behavior, or scheduling.
 package application
