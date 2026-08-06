@@ -4,9 +4,10 @@
 
 This document records the native macOS presentation architecture for Phase 8.
 It records the Phase 8A architecture decision, the Phase 8B app-shell state,
-and the Phase 8C static Overview fixture state. Phase 8C implements only a
-sample dashboard; it does not implement a bridge, persistence wiring, Facebook
-integration, production UI features, or live data behavior.
+the Phase 8C static Overview fixture state, and the Phase 8D fixture-only Leads
+presentation state. Phase 8C/8D implement only sample presentation screens; they
+do not implement a bridge, persistence wiring, Facebook integration, production
+UI features, or live data behavior.
 
 ## Presentation Technology
 
@@ -101,7 +102,10 @@ Explicitly rejected:
 - Phase 8C: static fixture dashboard and batch summary. Implemented for
   `Tổng quan` only with typed immutable fixture data, no bridge, database,
   Facebook, networking, persistence or production controls.
-- Phase 8D: fixture lead tabs and lead cards.
+- Phase 8D: fixture lead tabs and lead cards. Implemented for `Leads` only
+  with typed immutable buyer lead fixture data, local tab filtering by declared
+  fixture category, disabled placeholder actions and no bridge, database,
+  Facebook, networking, persistence, status workflow or production controls.
 - Phase 8E: fixture Dry Run review.
 - Phase 8F: fixture settings and blocklist presentation.
 - Phase 8G: UI interaction state for viewed/contacted/ignored using in-memory fixture state only.
@@ -149,6 +153,25 @@ declared in Swift source as immutable value types. It is not loaded from files,
 does not come from Facebook, does not use current time or randomness, and is
 not a future bridge schema.
 
+## Phase 8D Leads Fixture Requirements
+
+Phase 8D implements only:
+
+- `Leads` tabs `Tất cả`, `Đủ điều kiện` and `Cần xem xét`;
+- exactly four synthetic buyer lead cards declared in Swift fixture source;
+- fixed fixture identities, groups, dates, locations, source counts and reason
+  code strings;
+- tab counts and filtering derived only from each lead's declared fixture
+  category;
+- disabled placeholder actions only.
+
+The fixture uses existing repository reason-code strings as display values, but
+Swift does not infer, generate or validate business reasons. The Leads screen is
+buyer-only and must not add seller presentation, seller tabs or seller workflow.
+Dry Run, Nhóm, Blocklist and Cài đặt remain Phase 8B placeholders. Fixture data
+is not loaded from files, does not come from Facebook, does not use current time
+or randomness, and is not a future bridge schema.
+
 ## Product UI Structure
 
 The intended high-level screens are:
@@ -172,8 +195,8 @@ behavior. Seller tabs and seller mode are forbidden.
 - Vietnamese diacritics must be preserved.
 - Fixture UI must not claim to be live Facebook data.
 - Fixture data should be clearly labeled as sample/demo data in manual validation builds.
-- Phase 8C Overview fixtures must also state that they are not connected to the
-  Go core and do not come from Facebook.
+- Phase 8C Overview and Phase 8D Leads fixtures must also state that they are
+  not connected to the Go core and do not come from Facebook.
 
 ## UI Dependency Rules
 

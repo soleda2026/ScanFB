@@ -346,13 +346,15 @@ Stop conditions: Need real batch data, bridge, database, scan button behavior ho
 
 ## Phase 8D - Fixture lead tabs and lead cards
 
+Status: complete after Phase 8D acceptance checks pass. Phase 8E is next.
+
 Exact scope: Add deterministic fixture lead tabs and lead cards for buyer-only lead presentation.
 
 Protected areas: Khong seller tab, seller mode, Go bridge, SQLite direct access, Facebook data, status persistence, scoring recomputation hoac reason-code generation in Swift.
 
-Acceptance criteria: Lead tabs and cards present sample buyer leads, source counts, reason-code display and disabled/placeholder actions without claiming live data.
+Acceptance criteria: Lead tabs and cards present exactly four sample buyer leads, three fixed tabs, source counts, repository-existing reason-code display strings and disabled/placeholder actions without claiming live data. Dry Run, Nhóm, Blocklist and Cài đặt remain placeholders.
 
-Tests: Xcode build, manual fixture validation, accessibility spot checks where practical, stale-process kill before relaunch, Go regression checks.
+Tests: Swift fixture tests, Xcode build, manual fixture validation, accessibility spot checks where practical, stale-process kill before relaunch, Go regression checks.
 
 Stop conditions: Need real lead loading, bridge, status workflow, persistence hoac Facebook adapter.
 

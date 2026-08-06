@@ -10,7 +10,9 @@ struct ContentView: View {
             switch selection ?? AppSection.defaultSection {
             case .overview:
                 OverviewDashboardView()
-            case .leads, .dryRun, .groups, .blocklist, .settings:
+            case .leads:
+                LeadsFixtureView()
+            case .dryRun, .groups, .blocklist, .settings:
                 PlaceholderDetailView(section: selection ?? AppSection.defaultSection)
             }
         }

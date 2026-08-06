@@ -18,6 +18,7 @@ flowchart TD
     MACOS_APP["macos/ScanFBApp SwiftUI shell"] -.future bridge.-> ORCH
     MACOS_APP -.future bridge.-> APP
     OVERVIEW_FIXTURE["Overview fixture model and views"] --> MACOS_APP
+    LEADS_FIXTURE["Leads fixture model and views"] --> MACOS_APP
     FB["Facebook adapter"] --> APP
     FB --> RAW["RawPost mapping contract"]
     RAW --> APP
@@ -38,7 +39,7 @@ flowchart TD
 - `internal/orchestration`: Go package cho thin synchronous use-case orchestration ownership.
 - `internal/facebook`: Go package cho Facebook/browser adapter boundary ownership.
 - `internal/ui`: Go-layer documentation/package placeholder; not the SwiftUI app root.
-- `macos/ScanFBApp`: SwiftUI native macOS app shell implemented in Phase 8B, with Phase 8C static fixture Overview dashboard.
+- `macos/ScanFBApp`: SwiftUI native macOS app shell implemented in Phase 8B, with Phase 8C static fixture Overview dashboard and Phase 8D fixture-only Leads tabs/cards.
 - App/UI: owner cua views, tabs, lead cards, settings va user actions.
 - Application services: owner cua deterministic in-memory scan batch model, batch state va time window.
 - Use-case orchestration: owner cua glue logic giua completed application result, `BatchRecord` conversion va repository save boundary.
@@ -48,6 +49,7 @@ flowchart TD
 - Facebook adapter: owner cua page reading, DOM parsing va fail-closed adapter errors.
 - SwiftUI shell: owner cua native windows, navigation, presentation state va accessibility.
 - Overview fixture model/views: SwiftUI-only presentation nodes for Phase 8C sample dashboard; no edge to Go core.
+- Leads fixture model/views: SwiftUI-only presentation nodes for Phase 8D buyer lead tabs/cards; no edge to Go core.
 
 Phase 2 files trong `internal/domain` gom minimal models cho `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Domain package chi duoc import Go standard library.
 
@@ -79,7 +81,9 @@ Phase 8A documents native macOS UI direction only. SwiftUI is approved as the pr
 
 Phase 8B implements the empty native SwiftUI macOS app shell at `macos/ScanFBApp/`. The shell has one app target, one unit test target, one `WindowGroup`, a `NavigationSplitView`, six placeholder sections and no Go bridge, Facebook behavior, SQLite/direct persistence access, networking, fixture business data or production dependency on Go packages.
 
-Phase 8C replaces only the `Tổng quan` placeholder with a static fixture dashboard and batch summary. The fixture model and Overview views are SwiftUI-only presentation code with explicit stable values, no filesystem fixture loading, no current time, no randomness, no package, no bridge and no dependency on Go packages. Leads, Dry Run, Nhóm, Blocklist and Cài đặt remain placeholders.
+Phase 8C replaces only the `Tổng quan` placeholder with a static fixture dashboard and batch summary. The fixture model and Overview views are SwiftUI-only presentation code with explicit stable values, no filesystem fixture loading, no current time, no randomness, no package, no bridge and no dependency on Go packages.
+
+Phase 8D replaces only the `Leads` placeholder with fixture-only buyer lead tabs/cards. The Leads fixture model and views are SwiftUI-only presentation code with explicit stable values, local tab filtering by declared fixture category, disabled placeholder actions, no filesystem fixture loading, no current time, no randomness, no package, no bridge and no dependency on Go packages. Dry Run, Nhóm, Blocklist and Cài đặt remain placeholders.
 
 ## Allowed dependencies
 
@@ -99,6 +103,7 @@ Phase 8C replaces only the `Tổng quan` placeholder with a static fixture dashb
 - `internal/orchestration` duoc import `internal/application` va `internal/persistence`.
 - `macos/ScanFBApp` currently has no production dependency on Go packages. It may depend on Go application/orchestration boundaries only through a future narrow bridge after a separate bridge decision milestone.
 - Phase 8C Overview fixture views may depend only on local Swift value models and SwiftUI.
+- Phase 8D Leads fixture views may depend only on local Swift value models and SwiftUI.
 
 ## Forbidden dependencies
 
@@ -157,7 +162,7 @@ RawPost
 -> Optional in-memory BatchRepository adapter cho deterministic inspection/testing
 -> Optional thin RunAndSaveScanBatch orchestration cho explicit caller-supplied record ID
 -> Optional SQLite schema-bootstrap, SaveBatch and concrete LoadBatch adapter neu caller mo explicit local DB path
--> Phase 8C SwiftUI fixture Overview presentation, currently standalone until bridge duoc chon trong milestone rieng
+-> Phase 8C/8D SwiftUI fixture Overview and Leads presentation, currently standalone until bridge duoc chon trong milestone rieng
 ```
 
 ## SearchProfile va buyer-only boundary

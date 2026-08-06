@@ -38,6 +38,26 @@ Phase 8C verifies the static Overview dashboard with these checks:
 - Manual layout checks cover default window readability, Light and Dark appearance, absence of charts, absence of Scan/refresh controls, absence of Facebook links/data and unchanged placeholders for Leads, Dry Run, Nhóm, Blocklist and Cài đặt.
 - Stale-process termination, rebuilt-bundle launch verification and Go regression checks remain required.
 
+## Native macOS fixture Leads checks
+
+Phase 8D verifies the fixture-only Leads screen with these checks:
+
+- Swift unit tests cover exactly four synthetic buyer leads, stable IDs
+  `lead-sample-001` through `lead-sample-004`, three eligible leads, one review
+  lead, stable tab titles, tab counts, deterministic tab filtering, fixed dates,
+  positive source counts, non-empty visible strings, no fixture links,
+  deterministic repeated fixture access and repository-existing reason-code
+  display strings supplied by fixture data.
+- Manual Leads checks cover tabs `Tất cả`, `Đủ điều kiện` and `Cần xem xét`,
+  counts 4/3/1, initial all-tab selection, four synthetic buyer cards, sample
+  data labeling, disabled placeholder actions, unchanged card content across
+  tab changes, and absence of live Facebook links or data.
+- Manual layout checks cover default window readability, Light and Dark
+  appearance, no clipping, no overlap, full scrolling behavior, no horizontal
+  overflow and unchanged placeholders for Dry Run, Nhóm, Blocklist and Cài đặt.
+- Stale-process termination, rebuilt-bundle launch verification and Go
+  regression checks remain required.
+
 ## Test matrix toi thieu
 
 | ID | Fixture | Expected |
@@ -104,7 +124,13 @@ Phase 8C verifies the static Overview dashboard with these checks:
 - Phase 8A: documentation-only native macOS UI architecture decision; checks cover SwiftUI-as-presentation-shell wording, future `macos/ScanFBApp/` location, no existing app code/project, no bridge selected, no business logic in Swift, fixture/privacy policy, stale-process manual validation policy, and Go regression verification.
 - Phase 8B: empty native SwiftUI app shell tests must include Swift unit tests for six-section navigation order/labels/icons/default selection, Xcode build, manual app launch, stale process termination before relaunch, verification that the rebuilt app bundle is running, and Go `go test ./...`, `go vet ./...`, CLI build/run output unchanged.
 - Phase 8C: static Overview fixture tests cover typed fixture integrity, coherent counts, stable exclusion reason order, sample/demo labeling, Xcode build/test, manual Overview validation, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
-- Phase 8D-8G: fixture UI milestones must include deterministic fixture rendering/manual validation, sample/demo labeling, Vietnamese diacritic preservation, no live Facebook data claims, no direct SQLite access, no hidden networking, no seller mode, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
+- Phase 8D: fixture Leads tests cover typed fixture integrity, exact lead IDs,
+  category distribution, stable tab labels/counts, deterministic filtering,
+  fixed dates/source counts, repository-existing reason-code display strings,
+  no fixture links, Xcode build/test, manual Leads validation, disabled
+  placeholder actions, stale-process kill/relaunch, rebuilt-bundle verification
+  and Go regression checks.
+- Phase 8E-8G: fixture UI milestones must include deterministic fixture rendering/manual validation, sample/demo labeling, Vietnamese diacritic preservation, no live Facebook data claims, no direct SQLite access, no hidden networking, no seller mode, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
 - Phase 8H: bridge evaluation tests are documentation/prototype checks only if explicitly scoped; bridge selection must not skip deterministic request/response, explicit schema, cancellation, error propagation, packaging, crash isolation and Apple Silicon considerations.
 - Phase 8I+: post-bridge integration milestones must add bridge-specific tests for each narrow slice while retaining Xcode build/manual launch, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
 - Phase 9: batch state machine tests.
