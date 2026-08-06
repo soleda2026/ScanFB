@@ -12,7 +12,9 @@ struct ContentView: View {
                 OverviewDashboardView()
             case .leads:
                 LeadsFixtureView()
-            case .dryRun, .groups, .blocklist, .settings:
+            case .dryRun:
+                DryRunFixtureView()
+            case .groups, .blocklist, .settings:
                 PlaceholderDetailView(section: selection ?? AppSection.defaultSection)
             }
         }

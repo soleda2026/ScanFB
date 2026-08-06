@@ -19,6 +19,7 @@ flowchart TD
     MACOS_APP -.future bridge.-> APP
     OVERVIEW_FIXTURE["Overview fixture model and views"] --> MACOS_APP
     LEADS_FIXTURE["Leads fixture model and views"] --> MACOS_APP
+    DRYRUN_FIXTURE["Dry Run fixture model and views"] --> MACOS_APP
     FB["Facebook adapter"] --> APP
     FB --> RAW["RawPost mapping contract"]
     RAW --> APP
@@ -39,7 +40,7 @@ flowchart TD
 - `internal/orchestration`: Go package cho thin synchronous use-case orchestration ownership.
 - `internal/facebook`: Go package cho Facebook/browser adapter boundary ownership.
 - `internal/ui`: Go-layer documentation/package placeholder; not the SwiftUI app root.
-- `macos/ScanFBApp`: SwiftUI native macOS app shell implemented in Phase 8B, with Phase 8C static fixture Overview dashboard and Phase 8D fixture-only Leads tabs/cards.
+- `macos/ScanFBApp`: SwiftUI native macOS app shell implemented in Phase 8B, with Phase 8C static fixture Overview dashboard, Phase 8D fixture-only Leads tabs/cards and Phase 8E fixture-only Dry Run review tabs/cards.
 - App/UI: owner cua views, tabs, lead cards, settings va user actions.
 - Application services: owner cua deterministic in-memory scan batch model, batch state va time window.
 - Use-case orchestration: owner cua glue logic giua completed application result, `BatchRecord` conversion va repository save boundary.
@@ -50,6 +51,7 @@ flowchart TD
 - SwiftUI shell: owner cua native windows, navigation, presentation state va accessibility.
 - Overview fixture model/views: SwiftUI-only presentation nodes for Phase 8C sample dashboard; no edge to Go core.
 - Leads fixture model/views: SwiftUI-only presentation nodes for Phase 8D buyer lead tabs/cards; no edge to Go core.
+- Dry Run fixture model/views: SwiftUI-only presentation nodes for Phase 8E review tabs/cards; no edge to Go core.
 
 Phase 2 files trong `internal/domain` gom minimal models cho `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Domain package chi duoc import Go standard library.
 
@@ -85,6 +87,8 @@ Phase 8C replaces only the `Tổng quan` placeholder with a static fixture dashb
 
 Phase 8D replaces only the `Leads` placeholder with fixture-only buyer lead tabs/cards. The Leads fixture model and views are SwiftUI-only presentation code with explicit stable values, local tab filtering by declared fixture category, disabled placeholder actions, no filesystem fixture loading, no current time, no randomness, no package, no bridge and no dependency on Go packages. Dry Run, Nhóm, Blocklist and Cài đặt remain placeholders.
 
+Phase 8E replaces only the `Dry Run` placeholder with fixture-only included/review/excluded post tabs/cards. The Dry Run fixture model and views are SwiftUI-only presentation code with explicit stable values, local tab filtering by declared fixture category, disabled placeholder action, no filesystem fixture loading, no current time, no randomness, no package, no bridge and no dependency on Go packages. Nhóm, Blocklist and Cài đặt remain placeholders.
+
 ## Allowed dependencies
 
 - App/UI duoc goi Application services.
@@ -104,6 +108,7 @@ Phase 8D replaces only the `Leads` placeholder with fixture-only buyer lead tabs
 - `macos/ScanFBApp` currently has no production dependency on Go packages. It may depend on Go application/orchestration boundaries only through a future narrow bridge after a separate bridge decision milestone.
 - Phase 8C Overview fixture views may depend only on local Swift value models and SwiftUI.
 - Phase 8D Leads fixture views may depend only on local Swift value models and SwiftUI.
+- Phase 8E Dry Run fixture views may depend only on local Swift value models and SwiftUI.
 
 ## Forbidden dependencies
 
@@ -162,7 +167,7 @@ RawPost
 -> Optional in-memory BatchRepository adapter cho deterministic inspection/testing
 -> Optional thin RunAndSaveScanBatch orchestration cho explicit caller-supplied record ID
 -> Optional SQLite schema-bootstrap, SaveBatch and concrete LoadBatch adapter neu caller mo explicit local DB path
--> Phase 8C/8D SwiftUI fixture Overview and Leads presentation, currently standalone until bridge duoc chon trong milestone rieng
+-> Phase 8C/8D/8E SwiftUI fixture Overview, Leads and Dry Run presentation, currently standalone until bridge duoc chon trong milestone rieng
 ```
 
 ## SearchProfile va buyer-only boundary

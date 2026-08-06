@@ -360,13 +360,15 @@ Stop conditions: Need real lead loading, bridge, status workflow, persistence ho
 
 ## Phase 8E - Fixture Dry Run review
 
+Status: complete after Phase 8E acceptance checks pass. Phase 8F is next.
+
 Exact scope: Add deterministic fixture Dry Run review screen for included/review/excluded sample posts.
 
 Protected areas: Khong rule recomputation, reason-code inference, restore behavior backed by persistence, Facebook data, bridge, network hoac seller review mode.
 
-Acceptance criteria: Dry Run is presented as default-on product behavior; sample/demo labels are clear; rejected/review sample reasons preserve exact codes and diacritics.
+Acceptance criteria: Dry Run is presented with exactly ten sample posts, three fixed tabs, repository-existing reason-code display strings, clear sample/demo labels and disabled/placeholder action without claiming live data. Nhóm, Blocklist and Cài đặt remain placeholders.
 
-Tests: Xcode build, manual fixture validation, stale-process kill before relaunch, Go regression checks.
+Tests: Swift fixture tests, Xcode build, manual fixture validation, stale-process kill before relaunch, Go regression checks.
 
 Stop conditions: Need real filter decisions, persistence, bridge, user edits hoac production review workflow.
 

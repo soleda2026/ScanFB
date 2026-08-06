@@ -29,6 +29,13 @@
 		A10000000000000000000120 /* LeadReasonListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000220 /* LeadReasonListView.swift */; };
 		A10000000000000000000121 /* LeadsFixtureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000221 /* LeadsFixtureTests.swift */; };
 		A10000000000000000000122 /* LeadsFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000216 /* LeadsFixture.swift */; };
+		A10000000000000000000123 /* DryRunFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000222 /* DryRunFixture.swift */; };
+		A10000000000000000000124 /* DryRunFixtureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000223 /* DryRunFixtureView.swift */; };
+		A10000000000000000000125 /* DryRunTabsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000224 /* DryRunTabsView.swift */; };
+		A10000000000000000000126 /* DryRunPostCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000225 /* DryRunPostCardView.swift */; };
+		A10000000000000000000127 /* DryRunReasonListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000226 /* DryRunReasonListView.swift */; };
+		A10000000000000000000128 /* DryRunFixtureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000227 /* DryRunFixtureTests.swift */; };
+		A10000000000000000000129 /* DryRunFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000222 /* DryRunFixture.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +70,12 @@
 		A10000000000000000000219 /* LeadCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadCardView.swift; sourceTree = "<group>"; };
 		A10000000000000000000220 /* LeadReasonListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadReasonListView.swift; sourceTree = "<group>"; };
 		A10000000000000000000221 /* LeadsFixtureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadsFixtureTests.swift; sourceTree = "<group>"; };
+		A10000000000000000000222 /* DryRunFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DryRunFixture.swift; sourceTree = "<group>"; };
+		A10000000000000000000223 /* DryRunFixtureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DryRunFixtureView.swift; sourceTree = "<group>"; };
+		A10000000000000000000224 /* DryRunTabsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DryRunTabsView.swift; sourceTree = "<group>"; };
+		A10000000000000000000225 /* DryRunPostCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DryRunPostCardView.swift; sourceTree = "<group>"; };
+		A10000000000000000000226 /* DryRunReasonListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DryRunReasonListView.swift; sourceTree = "<group>"; };
+		A10000000000000000000227 /* DryRunFixtureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DryRunFixtureTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -119,6 +132,7 @@
 				A10000000000000000000204 /* PlaceholderDetailView.swift */,
 				A10000000000000000000507 /* Overview */,
 				A10000000000000000000508 /* Leads */,
+				A10000000000000000000509 /* DryRun */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -129,6 +143,7 @@
 				A10000000000000000000205 /* AppSection.swift */,
 				A10000000000000000000210 /* DashboardFixture.swift */,
 				A10000000000000000000216 /* LeadsFixture.swift */,
+				A10000000000000000000222 /* DryRunFixture.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -139,6 +154,7 @@
 				A10000000000000000000207 /* AppSectionTests.swift */,
 				A10000000000000000000215 /* DashboardFixtureTests.swift */,
 				A10000000000000000000221 /* LeadsFixtureTests.swift */,
+				A10000000000000000000227 /* DryRunFixtureTests.swift */,
 			);
 			path = ScanFBAppTests;
 			sourceTree = "<group>";
@@ -172,6 +188,17 @@
 				A10000000000000000000220 /* LeadReasonListView.swift */,
 			);
 			path = Leads;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000509 /* DryRun */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000223 /* DryRunFixtureView.swift */,
+				A10000000000000000000224 /* DryRunTabsView.swift */,
+				A10000000000000000000225 /* DryRunPostCardView.swift */,
+				A10000000000000000000226 /* DryRunReasonListView.swift */,
+			);
+			path = DryRun;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -290,6 +317,11 @@
 				A10000000000000000000118 /* LeadTabsView.swift in Sources */,
 				A10000000000000000000119 /* LeadCardView.swift in Sources */,
 				A10000000000000000000120 /* LeadReasonListView.swift in Sources */,
+				A10000000000000000000123 /* DryRunFixture.swift in Sources */,
+				A10000000000000000000124 /* DryRunFixtureView.swift in Sources */,
+				A10000000000000000000125 /* DryRunTabsView.swift in Sources */,
+				A10000000000000000000126 /* DryRunPostCardView.swift in Sources */,
+				A10000000000000000000127 /* DryRunReasonListView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -303,6 +335,8 @@
 				A10000000000000000000115 /* DashboardFixture.swift in Sources */,
 				A10000000000000000000121 /* LeadsFixtureTests.swift in Sources */,
 				A10000000000000000000122 /* LeadsFixture.swift in Sources */,
+				A10000000000000000000128 /* DryRunFixtureTests.swift in Sources */,
+				A10000000000000000000129 /* DryRunFixture.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

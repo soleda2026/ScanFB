@@ -58,6 +58,26 @@ Phase 8D verifies the fixture-only Leads screen with these checks:
 - Stale-process termination, rebuilt-bundle launch verification and Go
   regression checks remain required.
 
+## Native macOS fixture Dry Run checks
+
+Phase 8E verifies the fixture-only Dry Run screen with these checks:
+
+- Swift unit tests cover exactly ten synthetic posts, stable IDs
+  `post-sample-001` through `post-sample-010`, three included posts, two review
+  posts, five excluded posts, stable tab titles, tab counts, deterministic tab
+  filtering, fixed dates, non-empty visible strings, no fixture links,
+  deterministic repeated fixture access and repository-existing reason-code
+  display strings supplied by fixture data.
+- Manual Dry Run checks cover tabs `Được chọn`, `Cần xem xét` and `Đã loại`,
+  counts 3/2/5, initial included-tab selection, ten synthetic post cards,
+  sample data labeling, disabled placeholder action, unchanged card content
+  across tab changes, and absence of live Facebook links or data.
+- Manual layout checks cover default window readability, Light and Dark
+  appearance, no clipping, no overlap, full scrolling behavior, no horizontal
+  overflow and unchanged placeholders for Nhóm, Blocklist and Cài đặt.
+- Stale-process termination, rebuilt-bundle launch verification and Go
+  regression checks remain required.
+
 ## Test matrix toi thieu
 
 | ID | Fixture | Expected |
@@ -130,7 +150,13 @@ Phase 8D verifies the fixture-only Leads screen with these checks:
   no fixture links, Xcode build/test, manual Leads validation, disabled
   placeholder actions, stale-process kill/relaunch, rebuilt-bundle verification
   and Go regression checks.
-- Phase 8E-8G: fixture UI milestones must include deterministic fixture rendering/manual validation, sample/demo labeling, Vietnamese diacritic preservation, no live Facebook data claims, no direct SQLite access, no hidden networking, no seller mode, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
+- Phase 8E: fixture Dry Run tests cover typed fixture integrity, exact post IDs,
+  category distribution, stable tab labels/counts, deterministic filtering,
+  fixed dates, repository-existing reason-code display strings, no fixture
+  links, Xcode build/test, manual Dry Run validation, disabled placeholder
+  action, stale-process kill/relaunch, rebuilt-bundle verification and Go
+  regression checks.
+- Phase 8F-8G: fixture UI milestones must include deterministic fixture rendering/manual validation, sample/demo labeling, Vietnamese diacritic preservation, no live Facebook data claims, no direct SQLite access, no hidden networking, no seller mode, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
 - Phase 8H: bridge evaluation tests are documentation/prototype checks only if explicitly scoped; bridge selection must not skip deterministic request/response, explicit schema, cancellation, error propagation, packaging, crash isolation and Apple Silicon considerations.
 - Phase 8I+: post-bridge integration milestones must add bridge-specific tests for each narrow slice while retaining Xcode build/manual launch, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
 - Phase 9: batch state machine tests.
