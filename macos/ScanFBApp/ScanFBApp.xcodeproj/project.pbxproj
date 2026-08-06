@@ -14,6 +14,14 @@
 		A10000000000000000000105 /* AppSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000205 /* AppSection.swift */; };
 		A10000000000000000000106 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000206 /* Assets.xcassets */; };
 		A10000000000000000000107 /* AppSectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000207 /* AppSectionTests.swift */; };
+		A10000000000000000000108 /* DashboardFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000210 /* DashboardFixture.swift */; };
+		A10000000000000000000109 /* OverviewDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000211 /* OverviewDashboardView.swift */; };
+		A10000000000000000000110 /* SummaryMetricCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000212 /* SummaryMetricCard.swift */; };
+		A10000000000000000000111 /* DecisionSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000213 /* DecisionSummaryView.swift */; };
+		A10000000000000000000112 /* ReasonBreakdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000214 /* ReasonBreakdownView.swift */; };
+		A10000000000000000000113 /* DashboardFixtureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000215 /* DashboardFixtureTests.swift */; };
+		A10000000000000000000114 /* AppSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000205 /* AppSection.swift */; };
+		A10000000000000000000115 /* DashboardFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000210 /* DashboardFixture.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,6 +44,12 @@
 		A10000000000000000000207 /* AppSectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSectionTests.swift; sourceTree = "<group>"; };
 		A10000000000000000000208 /* ScanFB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScanFB.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000209 /* ScanFBAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScanFBAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000210 /* DashboardFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardFixture.swift; sourceTree = "<group>"; };
+		A10000000000000000000211 /* OverviewDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverviewDashboardView.swift; sourceTree = "<group>"; };
+		A10000000000000000000212 /* SummaryMetricCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryMetricCard.swift; sourceTree = "<group>"; };
+		A10000000000000000000213 /* DecisionSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecisionSummaryView.swift; sourceTree = "<group>"; };
+		A10000000000000000000214 /* ReasonBreakdownView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReasonBreakdownView.swift; sourceTree = "<group>"; };
+		A10000000000000000000215 /* DashboardFixtureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardFixtureTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,6 +104,7 @@
 				A10000000000000000000202 /* ContentView.swift */,
 				A10000000000000000000203 /* SidebarView.swift */,
 				A10000000000000000000204 /* PlaceholderDetailView.swift */,
+				A10000000000000000000507 /* Overview */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -98,6 +113,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000205 /* AppSection.swift */,
+				A10000000000000000000210 /* DashboardFixture.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -106,6 +122,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000207 /* AppSectionTests.swift */,
+				A10000000000000000000215 /* DashboardFixtureTests.swift */,
 			);
 			path = ScanFBAppTests;
 			sourceTree = "<group>";
@@ -117,6 +134,17 @@
 				A10000000000000000000209 /* ScanFBAppTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000507 /* Overview */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000211 /* OverviewDashboardView.swift */,
+				A10000000000000000000212 /* SummaryMetricCard.swift */,
+				A10000000000000000000213 /* DecisionSummaryView.swift */,
+				A10000000000000000000214 /* ReasonBreakdownView.swift */,
+			);
+			path = Overview;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -225,6 +253,11 @@
 				A10000000000000000000103 /* SidebarView.swift in Sources */,
 				A10000000000000000000104 /* PlaceholderDetailView.swift in Sources */,
 				A10000000000000000000105 /* AppSection.swift in Sources */,
+				A10000000000000000000108 /* DashboardFixture.swift in Sources */,
+				A10000000000000000000109 /* OverviewDashboardView.swift in Sources */,
+				A10000000000000000000110 /* SummaryMetricCard.swift in Sources */,
+				A10000000000000000000111 /* DecisionSummaryView.swift in Sources */,
+				A10000000000000000000112 /* ReasonBreakdownView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -233,6 +266,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000000000000000000107 /* AppSectionTests.swift in Sources */,
+				A10000000000000000000113 /* DashboardFixtureTests.swift in Sources */,
+				A10000000000000000000114 /* AppSection.swift in Sources */,
+				A10000000000000000000115 /* DashboardFixture.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -406,7 +442,6 @@
 		A10000000000000000000720 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGNING_ALLOWED = NO;
 				CODE_SIGNING_REQUIRED = NO;
 				CODE_SIGN_STYLE = Manual;
@@ -420,14 +455,12 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.soleda.ScanFBTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 6.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ScanFB.app/Contents/MacOS/ScanFB";
 			};
 			name = Debug;
 		};
 		A10000000000000000000721 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGNING_ALLOWED = NO;
 				CODE_SIGNING_REQUIRED = NO;
 				CODE_SIGN_STYLE = Manual;
@@ -441,7 +474,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.soleda.ScanFBTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 6.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ScanFB.app/Contents/MacOS/ScanFB";
 			};
 			name = Release;
 		};

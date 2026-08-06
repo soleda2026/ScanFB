@@ -29,6 +29,15 @@ Phase 8B verifies the empty native SwiftUI app shell with these checks:
 - Manual verification covers visible native window, app identity, sidebar navigation and placeholder detail screens.
 - Go regressions remain required: `go test ./...`, `go vet ./...`, temporary CLI build, and CLI output `ScanFB foundation ready`.
 
+## Native macOS static Overview fixture checks
+
+Phase 8C verifies the static Overview dashboard with these checks:
+
+- Swift unit tests cover exactly five groups, coherent group totals, fixed date/profile/mode/Dry Run values, non-negative metrics, decision totals equaling reviewed posts, exclusion-reason order, exclusion totals equaling excluded count, unique metric/reason IDs, sample/demo labeling, deterministic repeated fixture access and non-empty user-facing labels.
+- Manual Overview checks cover visible sample-data label, disclaimer that data is not connected to Go core and does not come from Facebook, fixed date, geographic mode, Search Profile, Dry Run state, group-run counts, four primary metrics, included/review/excluded counts and five exclusion reasons in required order.
+- Manual layout checks cover default window readability, Light and Dark appearance, absence of charts, absence of Scan/refresh controls, absence of Facebook links/data and unchanged placeholders for Leads, Dry Run, Nhóm, Blocklist and Cài đặt.
+- Stale-process termination, rebuilt-bundle launch verification and Go regression checks remain required.
+
 ## Test matrix toi thieu
 
 | ID | Fixture | Expected |
@@ -94,7 +103,8 @@ Phase 8B verifies the empty native SwiftUI app shell with these checks:
 - Phase 7: persistence repository tests voi database local tam.
 - Phase 8A: documentation-only native macOS UI architecture decision; checks cover SwiftUI-as-presentation-shell wording, future `macos/ScanFBApp/` location, no existing app code/project, no bridge selected, no business logic in Swift, fixture/privacy policy, stale-process manual validation policy, and Go regression verification.
 - Phase 8B: empty native SwiftUI app shell tests must include Swift unit tests for six-section navigation order/labels/icons/default selection, Xcode build, manual app launch, stale process termination before relaunch, verification that the rebuilt app bundle is running, and Go `go test ./...`, `go vet ./...`, CLI build/run output unchanged.
-- Phase 8C-8G: fixture UI milestones must include deterministic fixture rendering/manual validation, sample/demo labeling, Vietnamese diacritic preservation, no live Facebook data claims, no direct SQLite access, no hidden networking, no seller mode, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
+- Phase 8C: static Overview fixture tests cover typed fixture integrity, coherent counts, stable exclusion reason order, sample/demo labeling, Xcode build/test, manual Overview validation, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
+- Phase 8D-8G: fixture UI milestones must include deterministic fixture rendering/manual validation, sample/demo labeling, Vietnamese diacritic preservation, no live Facebook data claims, no direct SQLite access, no hidden networking, no seller mode, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
 - Phase 8H: bridge evaluation tests are documentation/prototype checks only if explicitly scoped; bridge selection must not skip deterministic request/response, explicit schema, cancellation, error propagation, packaging, crash isolation and Apple Silicon considerations.
 - Phase 8I+: post-bridge integration milestones must add bridge-specific tests for each narrow slice while retaining Xcode build/manual launch, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
 - Phase 9: batch state machine tests.

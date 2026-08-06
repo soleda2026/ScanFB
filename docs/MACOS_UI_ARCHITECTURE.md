@@ -3,10 +3,10 @@
 ## Purpose
 
 This document records the native macOS presentation architecture for Phase 8.
-It records the Phase 8A architecture decision and the Phase 8B app-shell state.
-Phase 8B implements only an empty app shell; it does not implement a bridge,
-persistence wiring, Facebook integration, fixture screens, or production UI
-features.
+It records the Phase 8A architecture decision, the Phase 8B app-shell state,
+and the Phase 8C static Overview fixture state. Phase 8C implements only a
+sample dashboard; it does not implement a bridge, persistence wiring, Facebook
+integration, production UI features, or live data behavior.
 
 ## Presentation Technology
 
@@ -98,7 +98,9 @@ Explicitly rejected:
 - Phase 8B: empty native SwiftUI app shell only. Implemented with one
   `WindowGroup`, one `NavigationSplitView`, six placeholder sections and no
   bridge, database, Facebook, fixtures, settings persistence or networking.
-- Phase 8C: static fixture dashboard and batch summary.
+- Phase 8C: static fixture dashboard and batch summary. Implemented for
+  `Tổng quan` only with typed immutable fixture data, no bridge, database,
+  Facebook, networking, persistence or production controls.
 - Phase 8D: fixture lead tabs and lead cards.
 - Phase 8E: fixture Dry Run review.
 - Phase 8F: fixture settings and blocklist presentation.
@@ -130,6 +132,23 @@ The implemented shell uses local view state only. It has no AppKit bridge,
 menu-bar-only mode, secondary windows, settings scene, persistence, networking,
 browser APIs, subprocesses, IPC, Go FFI or third-party dependency.
 
+## Phase 8C Overview Fixture Requirements
+
+Phase 8C implements only:
+
+- `Tổng quan` dashboard and completed batch summary;
+- one deterministic sample batch for the MacBook profile;
+- exactly five synthetic groups represented by summary counts;
+- sample/demo labeling visible in the dashboard;
+- display-only fixture labels that are not Go reason codes;
+- no lead cards, Dry Run records, group management, blocklist behavior,
+  settings behavior or mutable workflow state.
+
+The other sidebar sections remain Phase 8B placeholders. Fixture data is
+declared in Swift source as immutable value types. It is not loaded from files,
+does not come from Facebook, does not use current time or randomness, and is
+not a future bridge schema.
+
 ## Product UI Structure
 
 The intended high-level screens are:
@@ -153,6 +172,8 @@ behavior. Seller tabs and seller mode are forbidden.
 - Vietnamese diacritics must be preserved.
 - Fixture UI must not claim to be live Facebook data.
 - Fixture data should be clearly labeled as sample/demo data in manual validation builds.
+- Phase 8C Overview fixtures must also state that they are not connected to the
+  Go core and do not come from Facebook.
 
 ## UI Dependency Rules
 

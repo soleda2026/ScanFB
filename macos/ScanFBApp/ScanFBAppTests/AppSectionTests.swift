@@ -1,5 +1,4 @@
 import XCTest
-@testable import ScanFB
 
 final class AppSectionTests: XCTestCase {
     func testAllCasesContainsExactlySixSectionsInStableOrder() {

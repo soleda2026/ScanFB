@@ -2,7 +2,7 @@
 
 ScanFB la ung dung local tren macOS ho tro nguoi dung tim cac bai Facebook the hien nhu cau **can mua**. MVP trien khai duy nhat built-in MacBook Search Profile de tim nguoi can mua MacBook hoac MacBook Pro.
 
-Trang thai hien tai: Go core da co deterministic domain/rules/dedup/blocklist/application/orchestration foundations va SQLite save/load foundations cho completed batch snapshots. Phase 8B da tao native SwiftUI macOS app shell buildable tai `macos/ScanFBApp/`. Chua co production scan workflow, browser extension, Facebook integration, Go bridge, UI fixtures, persistence wiring hoac production database path.
+Trang thai hien tai: Go core da co deterministic domain/rules/dedup/blocklist/application/orchestration foundations va SQLite save/load foundations cho completed batch snapshots. Phase 8B da tao native SwiftUI macOS app shell buildable tai `macos/ScanFBApp/`. Phase 8C them static sample Overview dashboard cho mot completed batch minh hoa bang du lieu synthetic. Chua co production scan workflow, browser extension, Facebook integration, Go bridge, persistence wiring hoac production database path.
 
 ## ScanFB khong lam gi
 
@@ -37,7 +37,7 @@ Nguoi dung tu quan ly Git. Agent khong duoc commit, merge, tag, push, reset, cle
 
 Module Go `github.com/soleda2026/ScanFB` hien giu core authoritative cho domain invariant, SearchProfile MacBook MVP, deterministic rules, geographic classification, deduplication, blocklist behavior, application batch evaluation, orchestration va SQLite snapshot persistence.
 
-Native macOS UI direction cho Phase 8 la SwiftUI app shell trong `macos/ScanFBApp/`. Phase 8B app shell co mot main window va placeholder navigation, chua ket noi Go core va khong co Facebook/production behavior. Mo Xcode project bang:
+Native macOS UI direction cho Phase 8 la SwiftUI app shell trong `macos/ScanFBApp/`. Phase 8B app shell co mot main window va placeholder navigation. Phase 8C chi thay placeholder `Tổng quan` bang dashboard sample/demonstration data, khong ket noi Go core, khong lay tu Facebook va khong co production behavior. Mo Xcode project bang:
 
 ```bash
 open macos/ScanFBApp/ScanFBApp.xcodeproj

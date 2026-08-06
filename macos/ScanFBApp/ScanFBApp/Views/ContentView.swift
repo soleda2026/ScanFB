@@ -7,7 +7,12 @@ struct ContentView: View {
         NavigationSplitView {
             SidebarView(selection: $selection)
         } detail: {
-            PlaceholderDetailView(section: selection ?? AppSection.defaultSection)
+            switch selection ?? AppSection.defaultSection {
+            case .overview:
+                OverviewDashboardView()
+            case .leads, .dryRun, .groups, .blocklist, .settings:
+                PlaceholderDetailView(section: selection ?? AppSection.defaultSection)
+            }
         }
         .navigationTitle("ScanFB")
     }

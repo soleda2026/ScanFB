@@ -332,11 +332,13 @@ Stop conditions: Need bridge, fixture dashboard, real data, persistence, signing
 
 ## Phase 8C - Static fixture dashboard and batch summary
 
+Status: complete after Phase 8C acceptance checks pass. Phase 8D is next.
+
 Exact scope: Add deterministic sample/demo overview screen and batch summary using static fixture values only.
 
 Protected areas: Khong Go bridge, SQLite access, Facebook data, generated business data, networking, persistence, status mutation hoac business-rule recomputation in Swift.
 
-Acceptance criteria: Overview clearly labeled sample/demo, Vietnamese text and diacritics preserved, summary values are fixture-only and do not claim live Facebook data.
+Acceptance criteria: Overview clearly labeled sample/demo, Vietnamese text and diacritics preserved, summary values are fixture-only and do not claim live Facebook data; other five sections remain placeholders.
 
 Tests: Xcode build, fixture rendering/manual launch, stale-process kill before relaunch, Go regression checks.
 
