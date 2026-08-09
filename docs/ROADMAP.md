@@ -388,13 +388,15 @@ Stop conditions: Need real settings storage, blocklist mutation, database path, 
 
 ## Phase 8G - Fixture UI interaction state
 
+Status: complete after Phase 8G acceptance checks pass. Phase 8H is next and remains incomplete.
+
 Exact scope: Add in-memory fixture-only UI state for viewed/contacted/ignored interactions.
 
 Protected areas: Khong persistence, database, bridge, production lead status, Facebook action, network, business logic recomputation hoac seller workflow.
 
-Acceptance criteria: Interactions affect only the current in-memory fixture session and reset on relaunch; UI does not imply production persistence.
+Acceptance criteria: Interactions affect only the current in-memory fixture session and reset on relaunch; UI does not imply production persistence; existing Leads eligibility tabs, categories, reason codes and fixture order remain unchanged.
 
-Tests: Xcode build, Swift tests if state reducers/helpers exist, manual interaction validation after stale-process kill/relaunch, Go regression checks.
+Tests: Swift interaction-state tests, Xcode build/test, manual interaction validation after stale-process kill/relaunch when launch is in scope, Go regression checks when requested.
 
 Stop conditions: Need status persistence, Go integration, SQLite, import/export hoac real lead workflow.
 

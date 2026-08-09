@@ -2,6 +2,10 @@ import SwiftUI
 
 struct LeadCardView: View {
     let lead: LeadFixture
+    let interactionState: LeadInteractionState
+    let onMarkViewed: () -> Void
+    let onMarkContacted: () -> Void
+    let onMarkIgnored: () -> Void
 
     private let metadataColumns = [
         GridItem(.adaptive(minimum: 230), spacing: 12, alignment: .leading)
@@ -21,6 +25,8 @@ struct LeadCardView: View {
                     .padding(.vertical, 3)
                     .background(.quaternary, in: Capsule())
             }
+
+            statusLabel
 
             Text(lead.excerpt)
                 .font(.body)
@@ -45,39 +51,51 @@ struct LeadCardView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("\(lead.displayIdentity), \(lead.category.title), \(lead.sourcePostCount) source post mẫu")
+        .accessibilityLabel(
+            "\(lead.displayIdentity), \(lead.category.title), trạng thái \(interactionState.title), \(lead.sourcePostCount) source post mẫu"
+        )
+    }
+
+    private var statusLabel: some View {
+        Label("Trạng thái: \(interactionState.title)", systemImage: interactionState.symbolName)
+            .font(.callout)
+            .fontWeight(.medium)
+            .foregroundStyle(.secondary)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Trạng thái tương tác: \(interactionState.title)")
     }
 
     private var actions: some View {
         ViewThatFits(in: .horizontal) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 actionButtons
-                unavailableText
             }
 
             VStack(alignment: .leading, spacing: 5) {
                 actionButtons
-                unavailableText
             }
         }
     }
 
     private var actionButtons: some View {
         HStack(spacing: 8) {
-            Button("Xem nguồn") {}
-                .disabled(true)
-                .accessibilityHint("Chưa khả dụng trong dữ liệu minh họa")
-            Button("Đánh dấu đã xem") {}
-                .disabled(true)
-                .accessibilityHint("Chưa khả dụng trong dữ liệu minh họa")
+            Button("Đánh dấu đã xem", action: onMarkViewed)
+                .disabled(interactionState != .new)
+                .accessibilityHint(viewedActionHint)
+            Button("Đã liên hệ", action: onMarkContacted)
+                .disabled(interactionState == .contacted)
+                .accessibilityHint("Đặt trạng thái tương tác của lead mẫu thành Đã liên hệ")
+            Button("Bỏ qua", action: onMarkIgnored)
+                .disabled(interactionState == .ignored)
+                .accessibilityHint("Đặt trạng thái tương tác của lead mẫu thành Bỏ qua")
         }
     }
 
-    private var unavailableText: some View {
-        Text("Chưa khả dụng trong dữ liệu minh họa")
-            .font(.callout)
-            .foregroundStyle(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
+    private var viewedActionHint: String {
+        if interactionState == .new {
+            return "Đặt trạng thái tương tác của lead mẫu thành Đã xem"
+        }
+        return "Chỉ khả dụng khi lead mẫu còn ở trạng thái Mới"
     }
 
     private func metadataLabel(_ title: String, _ value: String, systemImage: String) -> some View {

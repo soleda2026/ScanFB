@@ -1,0 +1,59 @@
+enum LeadInteractionState: String, CaseIterable, Equatable {
+    case new
+    case viewed
+    case contacted
+    case ignored
+
+    var title: String {
+        switch self {
+        case .new:
+            "Mới"
+        case .viewed:
+            "Đã xem"
+        case .contacted:
+            "Đã liên hệ"
+        case .ignored:
+            "Bỏ qua"
+        }
+    }
+
+    var symbolName: String {
+        switch self {
+        case .new:
+            "sparkle"
+        case .viewed:
+            "eye"
+        case .contacted:
+            "message"
+        case .ignored:
+            "hand.raised"
+        }
+    }
+}
+
+struct LeadInteractionStateModel: Equatable {
+    private(set) var statesByLeadID: [String: LeadInteractionState]
+
+    init(leadIDs: [String]) {
+        statesByLeadID = Dictionary(uniqueKeysWithValues: leadIDs.map { ($0, LeadInteractionState.new) })
+    }
+
+    func state(for leadID: String) -> LeadInteractionState {
+        statesByLeadID[leadID] ?? .new
+    }
+
+    mutating func markViewed(_ leadID: String) {
+        guard state(for: leadID) == .new else {
+            return
+        }
+        statesByLeadID[leadID] = .viewed
+    }
+
+    mutating func markContacted(_ leadID: String) {
+        statesByLeadID[leadID] = .contacted
+    }
+
+    mutating func markIgnored(_ leadID: String) {
+        statesByLeadID[leadID] = .ignored
+    }
+}

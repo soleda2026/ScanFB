@@ -46,6 +46,9 @@
 		A10000000000000000000137 /* SettingsFixtureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000235 /* SettingsFixtureTests.swift */; };
 		A10000000000000000000138 /* BlocklistFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000228 /* BlocklistFixture.swift */; };
 		A10000000000000000000139 /* SettingsFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000229 /* SettingsFixture.swift */; };
+		A10000000000000000000140 /* LeadInteractionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000236 /* LeadInteractionState.swift */; };
+		A10000000000000000000141 /* LeadInteractionStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000237 /* LeadInteractionStateTests.swift */; };
+		A10000000000000000000142 /* LeadInteractionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000236 /* LeadInteractionState.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -94,6 +97,8 @@
 		A10000000000000000000233 /* SettingsSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSectionView.swift; sourceTree = "<group>"; };
 		A10000000000000000000234 /* BlocklistFixtureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlocklistFixtureTests.swift; sourceTree = "<group>"; };
 		A10000000000000000000235 /* SettingsFixtureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFixtureTests.swift; sourceTree = "<group>"; };
+		A10000000000000000000236 /* LeadInteractionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadInteractionState.swift; sourceTree = "<group>"; };
+		A10000000000000000000237 /* LeadInteractionStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadInteractionStateTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -163,6 +168,7 @@
 				A10000000000000000000205 /* AppSection.swift */,
 				A10000000000000000000210 /* DashboardFixture.swift */,
 				A10000000000000000000216 /* LeadsFixture.swift */,
+				A10000000000000000000236 /* LeadInteractionState.swift */,
 				A10000000000000000000222 /* DryRunFixture.swift */,
 				A10000000000000000000228 /* BlocklistFixture.swift */,
 				A10000000000000000000229 /* SettingsFixture.swift */,
@@ -179,6 +185,7 @@
 				A10000000000000000000227 /* DryRunFixtureTests.swift */,
 				A10000000000000000000234 /* BlocklistFixtureTests.swift */,
 				A10000000000000000000235 /* SettingsFixtureTests.swift */,
+				A10000000000000000000237 /* LeadInteractionStateTests.swift */,
 			);
 			path = ScanFBAppTests;
 			sourceTree = "<group>";
@@ -359,6 +366,7 @@
 				A10000000000000000000118 /* LeadTabsView.swift in Sources */,
 				A10000000000000000000119 /* LeadCardView.swift in Sources */,
 				A10000000000000000000120 /* LeadReasonListView.swift in Sources */,
+				A10000000000000000000140 /* LeadInteractionState.swift in Sources */,
 				A10000000000000000000123 /* DryRunFixture.swift in Sources */,
 				A10000000000000000000124 /* DryRunFixtureView.swift in Sources */,
 				A10000000000000000000125 /* DryRunTabsView.swift in Sources */,
@@ -389,6 +397,8 @@
 				A10000000000000000000137 /* SettingsFixtureTests.swift in Sources */,
 				A10000000000000000000138 /* BlocklistFixture.swift in Sources */,
 				A10000000000000000000139 /* SettingsFixture.swift in Sources */,
+				A10000000000000000000141 /* LeadInteractionStateTests.swift in Sources */,
+				A10000000000000000000142 /* LeadInteractionState.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -5,8 +5,9 @@
 This document records the native macOS presentation architecture for Phase 8.
 It records the Phase 8A architecture decision, the Phase 8B app-shell state,
 the Phase 8C static Overview fixture state, the Phase 8D fixture-only Leads
-presentation state, the Phase 8E fixture-only Dry Run review state, and the
-Phase 8F fixture-only Blocklist/Settings state. Phase 8C/8D/8E/8F implement only sample presentation screens; they do not implement a
+presentation state, the Phase 8E fixture-only Dry Run review state, the
+Phase 8F fixture-only Blocklist/Settings state, and the Phase 8G session-only
+Leads interaction state. Phase 8C/8D/8E/8F/8G implement only sample presentation screens; they do not implement a
 bridge, persistence wiring, Facebook integration, production UI features, or
 live data behavior.
 
@@ -118,6 +119,10 @@ Explicitly rejected:
   identity, no bridge, database, Facebook, networking, persistence,
   credentials, cookies, import/export, blocklist writes or settings writes.
 - Phase 8G: UI interaction state for viewed/contacted/ignored using in-memory fixture state only.
+  Implemented for `Leads` only with `new/viewed/contacted/ignored` presentation
+  state scoped to the current SwiftUI session. It resets on app restart and
+  does not persist, bridge, contact Facebook, recompute eligibility or recompute
+  reason codes.
 - Phase 8H: bridge evaluation and architecture decision.
 - Phase 8I+: only after bridge decision, narrow Go integration milestones.
 
@@ -219,6 +224,24 @@ AppStorage, UserDefaults, persistence writes, direct SQLite access, bridge,
 Facebook integration, credentials or cookies. Nhóm remains placeholder.
 Fixture data is not loaded from files, does not come from Facebook, does not
 use current time or randomness, and is not a future bridge schema.
+
+## Phase 8G Leads Interaction State Requirements
+
+Phase 8G implements only:
+
+- session-memory interaction state for existing fixture Leads;
+- supported states `new`, `viewed`, `contacted` and `ignored`;
+- visible Vietnamese labels `Mới`, `Đã xem`, `Đã liên hệ` and `Bỏ qua`;
+- compact card actions for `Đánh dấu đã xem`, `Đã liên hệ` and `Bỏ qua`.
+
+All fixture leads start as `new`. `viewed/contacted/ignored` are SwiftUI
+presentation states only, not persisted domain statuses and not a future bridge
+schema. The state resets when the app process restarts. Contacted and ignored
+are mutually exclusive current states. Interaction state must not change the
+existing `Tất cả`, `Đủ điều kiện` or `Cần xem xét` tab filtering, eligibility
+category, reason codes or fixture order. Phase 8G must not add persistence,
+AppStorage, UserDefaults, direct SQLite access, bridge, Facebook integration,
+browser opening, networking, timestamps, history or production contact workflow.
 
 ## Product UI Structure
 

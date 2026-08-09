@@ -98,6 +98,22 @@ checks:
   links/data and unchanged `Nhóm` placeholder.
 - Build/test verification uses Xcode DerivedData outside the repository.
 
+## Native macOS fixture Leads interaction-state checks
+
+Phase 8G verifies the fixture-only Leads interaction state with these checks:
+
+- Swift unit tests cover all four fixture leads starting as `new`, stable lead
+  IDs, deterministic transitions to `viewed`, `contacted` and `ignored`,
+  viewed-to-contacted/ignored transitions, mutual exclusivity of contacted and
+  ignored, selected-lead-only mutation, fresh construction reset, and non-empty
+  deterministic status labels.
+- Swift unit tests verify interaction state does not change existing eligibility
+  categories, reason codes or fixture order.
+- Manual checks cover visible labels `Mới`, `Đã xem`, `Đã liên hệ` and `Bỏ qua`,
+  compact card actions, accessibility labels with current state, no new status
+  tab/filter, and unchanged Overview, Dry Run, Nhóm, Blocklist and Cài đặt.
+- Build/test verification uses Xcode DerivedData outside the repository.
+
 ## Test matrix toi thieu
 
 | ID | Fixture | Expected |
@@ -182,7 +198,12 @@ checks:
   Facebook domain, four read-only settings sections, required settings rows,
   no writable setting state, Xcode build/test and no direct SQLite/networking
   or package additions.
-- Phase 8G: fixture UI interaction milestones must include deterministic fixture rendering/manual validation, sample/demo labeling, Vietnamese diacritic preservation, no live Facebook data claims, no direct SQLite access, no hidden networking, no seller mode, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
+- Phase 8G: fixture Leads interaction-state tests cover typed state integrity,
+  exact states `new/viewed/contacted/ignored`, fresh-session reset, selected
+  lead mutation only, contacted/ignored exclusivity, unchanged eligibility tabs,
+  categories, reason codes and fixture order, Xcode build/test and no
+  persistence, direct SQLite, AppStorage/UserDefaults, bridge, networking,
+  WebKit, Facebook integration, timestamps or package additions.
 - Phase 8H: bridge evaluation tests are documentation/prototype checks only if explicitly scoped; bridge selection must not skip deterministic request/response, explicit schema, cancellation, error propagation, packaging, crash isolation and Apple Silicon considerations.
 - Phase 8I+: post-bridge integration milestones must add bridge-specific tests for each narrow slice while retaining Xcode build/manual launch, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
 - Phase 9: batch state machine tests.

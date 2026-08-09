@@ -3,9 +3,11 @@ import SwiftUI
 struct LeadsFixtureView: View {
     let fixture: LeadsScreenFixture
     @State private var selectedTab: LeadPresentationTab = .all
+    @State private var interactionState: LeadInteractionStateModel
 
     init(fixture: LeadsScreenFixture = .sample) {
         self.fixture = fixture
+        _interactionState = State(initialValue: LeadInteractionStateModel(leadIDs: fixture.leads.map(\.id)))
     }
 
     var body: some View {
@@ -21,7 +23,19 @@ struct LeadsFixtureView: View {
 
                 VStack(alignment: .leading, spacing: 6) {
                     ForEach(fixture.leads(for: selectedTab)) { lead in
-                        LeadCardView(lead: lead)
+                        LeadCardView(
+                            lead: lead,
+                            interactionState: interactionState.state(for: lead.id),
+                            onMarkViewed: {
+                                interactionState.markViewed(lead.id)
+                            },
+                            onMarkContacted: {
+                                interactionState.markContacted(lead.id)
+                            },
+                            onMarkIgnored: {
+                                interactionState.markIgnored(lead.id)
+                            }
+                        )
                     }
                 }
             }
