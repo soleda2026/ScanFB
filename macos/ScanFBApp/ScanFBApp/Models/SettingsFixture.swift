@@ -44,7 +44,7 @@ struct SettingsScreenFixture: Equatable {
                 id: "integration-status",
                 title: "Integration status",
                 rows: [
-                    SettingsRowFixture(id: "go-bridge", label: "Go bridge", value: "Chưa kết nối", style: .badge),
+                    SettingsRowFixture(id: "go-bridge", label: "Go bridge", value: "Chưa kiểm tra", style: .badge),
                     SettingsRowFixture(id: "facebook-integration", label: "Facebook integration", value: "Chưa triển khai", style: .badge),
                     SettingsRowFixture(id: "swiftui-persistence-writes", label: "Persistence writes from SwiftUI", value: "Không", style: .badge),
                 ]

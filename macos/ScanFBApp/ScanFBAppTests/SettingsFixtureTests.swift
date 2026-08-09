@@ -52,8 +52,8 @@ final class SettingsFixtureTests: XCTestCase {
         XCTAssertEqual(rowValue("maximum-groups-per-batch"), "5")
     }
 
-    func testBridgeStatusDisplaysNotConnected() {
-        XCTAssertEqual(rowValue("go-bridge"), "Chưa kết nối")
+    func testBridgeStatusDisplaysNotChecked() {
+        XCTAssertEqual(rowValue("go-bridge"), "Chưa kiểm tra")
     }
 
     func testFacebookStatusDisplaysNotImplemented() {

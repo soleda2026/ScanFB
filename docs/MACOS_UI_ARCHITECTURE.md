@@ -7,10 +7,12 @@ It records the Phase 8A architecture decision, the Phase 8B app-shell state,
 the Phase 8C static Overview fixture state, the Phase 8D fixture-only Leads
 presentation state, the Phase 8E fixture-only Dry Run review state, the
 Phase 8F fixture-only Blocklist/Settings state, the Phase 8G session-only
-Leads interaction state, and the Phase 8H fixture source URL browser handoff.
-Phase 8C/8D/8E/8F/8G/8H implement only sample presentation screens; they do not implement a
-bridge, persistence wiring, Facebook integration, production UI features, or
-live data behavior.
+Leads interaction state, the Phase 8H fixture source URL browser handoff, the
+Phase 8I.2 readiness-only bridge status row and Phase 8I.2a Debug helper
+packaging. Phase 8C/8D/8E/8F/8G/8H implement only sample presentation screens;
+Phase 8I.2 implements only a transport readiness check, and Phase 8I.2a only
+packages that helper for Debug builds. Neither adds persistence wiring, Facebook
+integration, production UI features or live lead data behavior.
 
 ## Presentation Technology
 
@@ -64,10 +66,12 @@ Go owns:
 ## Bridge Decision Boundary
 
 Phase 8I.1 selects exactly one narrow integration model: local subprocess
-request/response between SwiftUI and a bundled Go helper. The decision is
-documented in [BRIDGE_DECISION.md](BRIDGE_DECISION.md). No bridge runtime,
-helper, build phase, package, socket, generated binding or schema
-implementation is added by the decision milestone.
+request/response between SwiftUI and a bundled Go helper. Phase 8I.2 implements
+only the first read-only `core_readiness` slice, and Phase 8I.2a packages that
+helper into Debug app bundles. The decision is documented in
+[BRIDGE_DECISION.md](BRIDGE_DECISION.md). Phase 8I.2a does not add a socket,
+generated binding, broad schema, lead/search API, Release packaging or
+production signing/notarization policy.
 
 Candidate categories evaluated:
 
@@ -130,9 +134,14 @@ Explicitly rejected:
   deterministic synthetic HTTPS source URLs, validation and SwiftUI `openURL`;
   `Tương tác` is an action, not a state, and does not mutate interaction state.
 - Phase 8I.1: bridge evaluation and decision only. Selects local subprocess
-  request/response for future typed SwiftUI-Go slices; no bridge runtime.
-- Phase 8I.2+: first read-only bridge slice and later narrow Go integration
-  milestones, each separately scoped.
+  request/response for typed SwiftUI-Go slices.
+- Phase 8I.2: first read-only bridge slice. Implements only explicit
+  user-triggered Go core readiness in `Cài đặt` -> Integration status, with no
+  auto-run, polling, product data, Facebook, persistence or mutation.
+- Phase 8I.2a: Debug helper packaging only. Builds the existing Go helper during
+  Debug app builds and copies exactly `scanfb-bridge-helper` into
+  `Contents/Helpers`.
+- Phase 8I.3+: later narrow Go integration milestones, each separately scoped.
 
 Each milestone must be independently buildable and manually testable.
 
@@ -233,6 +242,43 @@ Facebook integration, credentials or cookies. Nhóm remains placeholder.
 Fixture data is not loaded from files, does not come from Facebook, does not
 use current time or randomness, and is not a future bridge schema.
 
+## Phase 8I.2 Readiness Bridge Requirements
+
+Phase 8I.2 implements only:
+
+- `Cài đặt` -> Integration status -> Go bridge readiness check;
+- one button labeled `Kiểm tra kết nối`;
+- display states `Chưa kiểm tra`, `Đang kiểm tra`, `Sẵn sàng` and `Lỗi`;
+- one local subprocess helper invocation per user-triggered check;
+- one request schema with `schema_version` and `operation`;
+- one response schema with `schema_version`, `readiness_status` and
+  `core_identity`.
+
+The helper operation is exactly `core_readiness`. The response values are
+`readiness_status` `ready` or `error`, and `core_identity` `scanfb-core`.
+Swift resolves the bundled helper explicitly at
+`Contents/Helpers/scanfb-bridge-helper` and fails closed if it is absent; no
+developer-machine absolute path, `/tmp` fallback or PATH search is used. Phase
+8I.2a packages this helper for Debug app builds only. The readiness call has a
+2.0 second timeout and terminates the owned helper on timeout/cancellation, with
+a 0.5 second force-kill grace. stdout is reserved for the bounded
+machine-readable response; stderr is diagnostics-only, bounded and not shown raw
+in UI.
+
+Phase 8I.2 must not add auto-run, polling, networking, sockets, shell
+invocation, direct Swift SQLite, Facebook SDK/API, WebKit, browser/session
+access, credentials, cookies, persistence writes, settings writes, lead/search
+data, SearchProfile data, capability inventory, business-rule summaries or a
+generic bridge command bus.
+
+Phase 8I.2a uses one target-local Xcode Debug shell build phase because Xcode has
+no native Go command build rule. The phase builds into DerivedData under
+`DERIVED_FILE_DIR`, copies only the helper executable into
+`TARGET_BUILD_DIR/CONTENTS_FOLDER_PATH/Helpers`, preserves executable
+permission, and does not create repo-local binaries. It may use an explicit
+`GO_EXECUTABLE` build setting or checked conventional Go install paths; it must
+not search arbitrary paths or use PATH fallback.
+
 ## Phase 8G/8H Leads Interaction State And Browser Handoff Requirements
 
 Phase 8G/8H implements only:
@@ -330,7 +376,7 @@ Future SwiftUI milestones must include:
 - Deployment target beyond the Phase 8B minimum.
 - Signing.
 - Notarization.
-- Packaging.
+- Release helper packaging.
 - App sandbox entitlements.
 - Database production path.
 - Persistence wiring.
@@ -345,9 +391,9 @@ Future SwiftUI milestones must include:
 
 - No production UI features.
 - No Swift package.
-- No Go code.
+- No Go code beyond the Phase 8I.2 readiness-only helper/core adapter.
 - No dependency.
-- No bridge.
+- No bridge beyond Phase 8I.2 `core_readiness`.
 - No database.
 - No Facebook integration.
 - No production scan workflow.

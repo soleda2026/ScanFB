@@ -17,8 +17,9 @@ flowchart TD
     SQLITE["SQLite schema bootstrap, SaveBatch, and concrete LoadBatch"] --> PERSIST_CONTRACT
     MACOS_APP["macos/ScanFBApp SwiftUI shell"] -.future bridge.-> ORCH
     MACOS_APP -.future bridge.-> APP
-    BRIDGE_HELPER["Future local subprocess Go helper"] -.typed request/response.-> ORCH
-    MACOS_APP -.future subprocess.-> BRIDGE_HELPER
+    BRIDGE_HELPER["cmd/scanfb-bridge-helper core_readiness"] -.typed request/response.-> BRIDGE_CORE
+    BRIDGE_CORE["internal/bridge readiness only"]
+    MACOS_APP -.Phase 8I.2 subprocess.-> BRIDGE_HELPER
     OVERVIEW_FIXTURE["Overview fixture model and views"] --> MACOS_APP
     LEADS_FIXTURE["Leads fixture model and views"] --> MACOS_APP
     LEADS_INTERACTION_STATE["Leads session interaction state"] --> LEADS_FIXTURE
@@ -46,8 +47,9 @@ flowchart TD
 - `internal/orchestration`: Go package cho thin synchronous use-case orchestration ownership.
 - `internal/facebook`: Go package cho Facebook/browser adapter boundary ownership.
 - `internal/ui`: Go-layer documentation/package placeholder; not the SwiftUI app root.
-- `macos/ScanFBApp`: SwiftUI native macOS app shell implemented in Phase 8B, with Phase 8C static fixture Overview dashboard, Phase 8D fixture-only Leads tabs/cards, Phase 8E fixture-only Dry Run review tabs/cards, Phase 8F fixture-only Blocklist/Settings screens, Phase 8G session-only Leads interaction state and Phase 8H fixture source URL browser handoff.
-- Future local subprocess Go helper: selected in Phase 8I.1 as the only future SwiftUI-Go bridge model; not implemented yet.
+- `internal/bridge`: Phase 8I.2 readiness-only bridge adapter. It supports only `core_readiness` and returns only `schema_version`, `readiness_status` and `core_identity`; it does not import Facebook, persistence or SQLite.
+- `cmd/scanfb-bridge-helper`: Phase 8I.2 one-request local subprocess helper that reads stdin, writes the machine response to stdout, writes bounded diagnostics to stderr and exits. Phase 8I.2a builds it during Debug app builds and copies it to `Contents/Helpers/scanfb-bridge-helper`.
+- `macos/ScanFBApp`: SwiftUI native macOS app shell implemented in Phase 8B, with Phase 8C static fixture Overview dashboard, Phase 8D fixture-only Leads tabs/cards, Phase 8E fixture-only Dry Run review tabs/cards, Phase 8F fixture-only Blocklist/Settings screens, Phase 8G session-only Leads interaction state, Phase 8H fixture source URL browser handoff and Phase 8I.2 Settings readiness row.
 - App/UI: owner cua views, tabs, lead cards, settings va user actions.
 - Application services: owner cua deterministic in-memory scan batch model, batch state va time window.
 - Use-case orchestration: owner cua glue logic giua completed application result, `BatchRecord` conversion va repository save boundary.
@@ -62,7 +64,7 @@ flowchart TD
 - Leads fixture source URL browser handoff: SwiftUI-only Phase 8H action that validates a synthetic HTTPS source URL and hands it to the macOS default browser without mutating lead state.
 - Dry Run fixture model/views: SwiftUI-only presentation nodes for Phase 8E review tabs/cards; no edge to Go core.
 - Blocklist fixture model/views: SwiftUI-only presentation nodes for Phase 8F sample blocklist entries; no edge to Go core and no ownership of blocklist semantics.
-- Settings fixture model/views: SwiftUI-only presentation nodes for Phase 8F read-only sample settings; no edge to Go core and no persistence writes.
+- Settings fixture model/views: SwiftUI presentation nodes for Phase 8F read-only sample settings plus Phase 8I.2 readiness-only Go bridge check; no persistence writes and no lead/search/product data.
 
 Phase 2 files trong `internal/domain` gom minimal models cho `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Domain package chi duoc import Go standard library.
 
@@ -104,10 +106,11 @@ Phase 8F replaces only the `Blocklist` and `Cài đặt` placeholders with fixtu
 
 Phase 8G extends only the `Leads` fixture screen with session-memory interaction state. Phase 8H narrows that state model to `new`, `viewed` and `ignored`, and adds stateless `Tương tác` browser handoff for deterministic synthetic HTTPS fixture source URLs. The state is SwiftUI-only presentation state, starts as `new` for every fixture lead, can be changed only by viewed/ignored card actions, resets on app restart, does not change eligibility tabs/categories, does not recompute reasons, and has no persistence, database, bridge, Facebook SDK/API, WebKit, browser automation, networking client, timestamp, random value or package dependency.
 
-Phase 8I.1 documents the bridge decision only. The selected future bridge is
-local subprocess request/response between SwiftUI and a bundled Go helper using
-typed versioned schemas. No helper, subprocess runtime, socket, C binding,
-network listener, build phase, dependency or generated code exists yet.
+Phase 8I.1 documents the bridge decision only. Phase 8I.2 implements the first
+readiness-only local subprocess slice using typed versioned schemas. Phase
+8I.2a adds Debug helper packaging only. No socket, C binding, network listener,
+dependency, generated code, Release packaging policy or product data bridge
+exists yet.
 
 ## Allowed dependencies
 

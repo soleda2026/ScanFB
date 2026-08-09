@@ -42,11 +42,13 @@ Trong Go skeleton, cac layer duoc anh xa toi package:
 - `internal/persistence`: persistence-facing contracts, deterministic in-memory adapter cho completed batch snapshots, va SQLite schema-bootstrap/transactional `SaveBatch`/concrete `LoadBatch` implementation; chua co list/update/delete/search/paging API hoac migration execution.
 - `internal/facebook`: adapter bien ngoai cho Facebook/browser; domain khong duoc import.
 - `internal/ui`: Go-layer documentation/package placeholder. Native macOS UI implementation lives outside `internal/` using SwiftUI.
-- `macos/ScanFBApp`: native SwiftUI macOS app shell from Phase 8B plus Phase 8C fixture-driven Overview presentation, Phase 8D fixture-only Leads presentation, Phase 8E fixture-only Dry Run presentation, Phase 8F fixture-only Blocklist/Settings presentation, Phase 8G session-only Leads interaction state and Phase 8H fixture URL browser handoff. It is presentation-only and currently has no Go bridge, persistence wiring, Facebook integration or production scan workflow.
+- `internal/bridge`: bridge-facing Go package for Phase 8I.2 `core_readiness` only; it parses one bounded typed request, returns one bounded typed response and does not access Facebook, SQLite, persistence or mutable state.
+- `cmd/scanfb-bridge-helper`: local one-request subprocess helper for Phase 8I.2 readiness checks; Phase 8I.2a packages it into Debug app bundles at `Contents/Helpers/scanfb-bridge-helper`.
+- `macos/ScanFBApp`: native SwiftUI macOS app shell from Phase 8B plus Phase 8C fixture-driven Overview presentation, Phase 8D fixture-only Leads presentation, Phase 8E fixture-only Dry Run presentation, Phase 8F fixture-only Blocklist/Settings presentation, Phase 8G session-only Leads interaction state, Phase 8H fixture URL browser handoff and Phase 8I.2 readiness-only Go bridge status row. It still has no lead/search bridge, persistence wiring, Facebook integration or production scan workflow.
 
 ### App/UI
 
-SwiftUI la approved native macOS presentation direction cho Phase 8. Phase 8B tao app shell tai `macos/ScanFBApp/`, nam ngoai Go `internal/` package tree. Phase 8C them Overview dashboard bang immutable fixture values trong SwiftUI-only presentation layer. Phase 8D them Leads tabs/cards bang immutable fixture values cho buyer-only presentation. Phase 8E them Dry Run review tabs/cards bang immutable fixture values cho included/review/excluded post presentation. Phase 8F them Blocklist va Settings screens bang immutable fixture values; display name chi la nhan phu, khong phai authoritative block identity, va settings la read-only presentation. Phase 8G/8H giu Leads interaction state (`new/viewed/ignored`) trong SwiftUI memory cho session hien tai; state nay khong phai persisted domain status hoac bridge schema. Phase 8H them action `Tương tác` de validate HTTPS fixture source URL va handoff cho macOS default browser bang SwiftUI `openURL`; action nay khong mutate state, khong chung minh interaction tren Facebook va khong doc credential, cookie hay browser session. Fixture values chi la display sample data, khong phai business logic, khong phai reason-code authority va khong claim den tu Facebook. Lead va Dry Run tab filtering trong Swift chi loc theo category fixture da khai bao san; Swift khong infer eligibility, khong sinh reason code, khong recompute rules va khong recompute dedup/source count. Shell van khong co Go bridge, database, Facebook SDK/API, networking client, WebKit, browser automation, persistence wiring, blocklist writes, lead status writes hoac production settings writes. UI chi goi future narrow application/orchestration adapter sau khi selected local subprocess bridge duoc implement trong milestone rieng, va khong import Facebook adapter truc tiep.
+SwiftUI la approved native macOS presentation direction cho Phase 8. Phase 8B tao app shell tai `macos/ScanFBApp/`, nam ngoai Go `internal/` package tree. Phase 8C them Overview dashboard bang immutable fixture values trong SwiftUI-only presentation layer. Phase 8D them Leads tabs/cards bang immutable fixture values cho buyer-only presentation. Phase 8E them Dry Run review tabs/cards bang immutable fixture values cho included/review/excluded post presentation. Phase 8F them Blocklist va Settings screens bang immutable fixture values; display name chi la nhan phu, khong phai authoritative block identity, va settings la read-only presentation. Phase 8G/8H giu Leads interaction state (`new/viewed/ignored`) trong SwiftUI memory cho session hien tai; state nay khong phai persisted domain status hoac bridge schema. Phase 8H them action `Tương tác` de validate HTTPS fixture source URL va handoff cho macOS default browser bang SwiftUI `openURL`; action nay khong mutate state, khong chung minh interaction tren Facebook va khong doc credential, cookie hay browser session. Phase 8I.2 them only `CoreReadinessBridgeClient` cho explicit user-triggered readiness check trong Settings; request la `schema_version` va `operation`, response chi co `schema_version`, `readiness_status` va `core_identity`. Fixture values chi la display sample data, khong phai business logic, khong phai reason-code authority va khong claim den tu Facebook. Lead va Dry Run tab filtering trong Swift chi loc theo category fixture da khai bao san; Swift khong infer eligibility, khong sinh reason code, khong recompute rules va khong recompute dedup/source count. Shell van khong co lead/search bridge, database, Facebook SDK/API, networking client, WebKit, browser automation, persistence wiring, blocklist writes, lead status writes hoac production settings writes. UI khong import Facebook adapter truc tiep.
 
 ### Application services
 
@@ -93,7 +95,7 @@ Facebook adapter khong duoc domain import nguoc lai. Domain khong duoc import ad
 
 Application, domain, rules, dedup, blocklist va persistence khong duoc import `internal/orchestration`. `internal/orchestration` chi duoc import `internal/application`, `internal/persistence` va standard library trong production code.
 
-Native SwiftUI code phai song ngoai `internal/`. Go application/domain packages khong duoc phu thuoc Swift hoac macOS UI code. Phase 8B Swift app khong co production dependency vao Go packages. Phase 8I.1 selects a future local subprocess request/response bridge between SwiftUI and a bundled Go helper, documented in [BRIDGE_DECISION.md](BRIDGE_DECISION.md). Bridge implementation remains deferred; future slices must not use HTTP by default, cloud API, direct SQLite access from Swift, arbitrary JSON maps or a broad command bus.
+Native SwiftUI code phai song ngoai `internal/`. Go application/domain packages khong duoc phu thuoc Swift hoac macOS UI code. Phase 8I.1 selected local subprocess request/response between SwiftUI and a bundled Go helper, documented in [BRIDGE_DECISION.md](BRIDGE_DECISION.md). Phase 8I.2 implements only `core_readiness`; future slices must not use HTTP by default, cloud API, direct SQLite access from Swift, arbitrary JSON maps or a broad command bus.
 
 Chi tiet Phase 8 nam trong [MACOS_UI_ARCHITECTURE.md](MACOS_UI_ARCHITECTURE.md).
 
@@ -113,7 +115,15 @@ SwiftUI is the approved native macOS presentation technology for Phase 8. Phase 
 
 ## Bridge decision
 
-Phase 8I.1 selects local subprocess request/response as the future bridge model.
-Swift will launch a bundled Go helper for explicit typed requests only after a
-future implementation milestone defines schemas, packaging, cancellation and
-tests. No bridge runtime exists in Phase 8I.1.
+Phase 8I.1 selected local subprocess request/response as the bridge model.
+Phase 8I.2 implements the first read-only slice: Swift launches one explicitly
+resolved helper process for one `core_readiness` request, writes the bounded
+typed request to stdin, reads one bounded machine-readable response from stdout
+and maps transport errors explicitly. The response contains only
+`schema_version`, `readiness_status` and `core_identity`. Diagnostics are
+stderr-only, bounded and not user-visible raw output. The slice has a 2.0 second
+timeout and terminates the owned helper on timeout/cancellation, with a 0.5
+second force-kill grace. Phase 8I.2a adds Debug-only helper packaging at
+`Contents/Helpers/scanfb-bridge-helper`; Release distribution, signing,
+notarization and hardened-runtime policy remain deferred. Runtime resolution
+fails closed when the bundled helper is absent.

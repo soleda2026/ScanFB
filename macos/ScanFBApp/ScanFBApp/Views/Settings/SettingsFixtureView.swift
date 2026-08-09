@@ -2,9 +2,16 @@ import SwiftUI
 
 struct SettingsFixtureView: View {
     let fixture: SettingsScreenFixture
+    let bridgeClient: CoreReadinessBridgeClient
+    @State private var bridgeStatus: CoreReadinessDisplayStatus = .notChecked
+    @State private var isCheckingBridge = false
 
-    init(fixture: SettingsScreenFixture = .sample) {
+    init(
+        fixture: SettingsScreenFixture = .sample,
+        bridgeClient: CoreReadinessBridgeClient = CoreReadinessBridgeClient()
+    ) {
         self.fixture = fixture
+        self.bridgeClient = bridgeClient
     }
 
     var body: some View {
@@ -14,7 +21,12 @@ struct SettingsFixtureView: View {
 
                 LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
                     ForEach(fixture.sections) { section in
-                        SettingsSectionView(section: section)
+                        SettingsSectionView(
+                            section: section,
+                            bridgeStatus: bridgeStatus,
+                            isBridgeChecking: isCheckingBridge,
+                            onCheckBridge: checkBridgeReadiness
+                        )
                     }
                 }
             }
@@ -51,6 +63,29 @@ struct SettingsFixtureView: View {
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+
+    private func checkBridgeReadiness() {
+        guard !isCheckingBridge else {
+            return
+        }
+
+        bridgeStatus = .checking
+        isCheckingBridge = true
+
+        Task {
+            let result = await bridgeClient.checkReadiness()
+
+            await MainActor.run {
+                isCheckingBridge = false
+                switch result {
+                case let .success(response) where response.readinessStatus == .ready:
+                    bridgeStatus = .ready
+                default:
+                    bridgeStatus = .failed
+                }
+            }
+        }
     }
 }
 

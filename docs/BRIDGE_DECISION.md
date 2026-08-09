@@ -1,9 +1,10 @@
 # Bridge Decision
 
-Phase 8I.1 selects the bridge model for future native macOS integration slices.
-This is a documentation-only decision. No bridge code, generated binding,
+Phase 8I.1 selected the bridge model for native macOS integration slices.
+Phase 8I.2 implements the first readiness-only slice. Phase 8I.1 itself was a
+documentation-only decision and did not add bridge code, generated binding,
 runtime process, socket, build phase, package, dependency, schema implementation
-or app behavior is added in this milestone.
+or app behavior.
 
 ## 1. Context
 
@@ -234,31 +235,52 @@ Future implementation milestones must add tests in layers:
 
 Phase 8I.1 itself requires documentation verification only.
 
-## 14. First Future Integration Slice
+## 14. First Integration Slice
 
-Phase 8I.2 should implement one read-only readiness slice:
+Phase 8I.2 implements one read-only readiness slice:
 
 Swift requests a deterministic Go core readiness value. Go returns a minimal
 typed response that proves the helper can start, parse the request, serialize a
 response and propagate errors.
 
-The response concept should be no broader than:
+The request schema is:
+
+- schema_version;
+- operation.
+
+The only supported operation is `core_readiness`.
+
+The response schema is:
 
 - schema_version;
 - readiness_status;
 - core_identity.
 
-The slice must not read Facebook, open SQLite production paths, mutate settings,
+The only readiness status values are `ready` and `error`. `core_identity` is
+`scanfb-core`.
+
+Phase 8I.2 uses one helper process per bridge call, one bounded stdin request
+and one bounded stdout response. stdout is reserved for machine-readable JSON;
+stderr is diagnostics-only, bounded and redacted, and must never corrupt stdout
+parsing. Swift maps helper missing/start failure, malformed response,
+unsupported response schema, nonzero exit, timeout and cancellation explicitly.
+The Go helper rejects malformed requests, unsupported schema versions and
+unsupported operations. The readiness timeout is 2.0 seconds; timeout or
+cancellation terminates the owned helper and applies a 0.5 second force-kill
+grace if it is still running.
+
+The slice does not read Facebook, open SQLite production paths, mutate settings,
 write blocklists, write lead state, load broad lead lists, expose a search API,
 or expose SearchProfile, lead data, persistence information, business-rule
-summaries, capability inventory or other product/domain data. The exact code
-schema remains deferred to the implementing slice.
+summaries, capability inventory or other product/domain data. The macOS runtime
+resolves an explicitly bundled helper and fails closed when it is absent. Phase
+8I.2a packages the existing helper for Debug app builds at
+`Contents/Helpers/scanfb-bridge-helper`. Release distribution, signing
+mechanics, notarization policy and hardened-runtime policy remain deferred.
 
 ## 15. Explicit Deferred Work
 
-- Actual helper implementation.
-- Exact request/response structs.
-- Helper build target and Xcode packaging.
+- Release helper packaging.
 - Production database path policy.
 - Bridge observability format.
 - Error taxonomy in code.

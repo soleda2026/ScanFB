@@ -89,7 +89,7 @@ checks:
   `.invalid` URL display strings and no real Facebook domain.
 - Swift unit tests cover four settings sections in stable order, required
   read-only rows, non-empty labels and values, Dry Run default `Bật`, maximum
-  groups `5`, Go bridge `Chưa kết nối`, Facebook integration `Chưa triển khai`,
+  groups `5`, Go bridge initial state `Chưa kiểm tra`, Facebook integration `Chưa triển khai`,
   SwiftUI direct SQLite access `Không`, deterministic repeated construction and
   stable row order.
 - Manual checks cover visible `Dữ liệu minh họa` labels, sample-only
@@ -219,9 +219,25 @@ handoff action with these checks:
   alternatives, schema/error/cancellation principles, first read-only future
   slice and audits that no Go, Swift, Xcode project, dependency, generated code
   or runtime bridge changed.
-- Phase 8I.2+: bridge implementation milestones must add bridge-specific tests
-  for each narrow slice while retaining Xcode build/manual launch when UI
-  changes, stale-process kill/relaunch when launching is in scope,
-  rebuilt-bundle verification and Go regression checks.
+- Phase 8I.2: first read-only bridge slice tests cover Go readiness
+  request/response parsing, exact schema version, exact `core_readiness`
+  operation, deterministic response, exact `scanfb-core` identity, malformed
+  request rejection, unsupported schema/operation rejection, stdout-only machine
+  response, no Facebook/database/persistence access in readiness path, Swift
+  deterministic request encoding, response decoding, exact status enum mapping,
+  explicit nonzero/timeout/cancellation/helper-missing/malformed-response
+  errors, raw stderr not surfaced to UI, no mutation of other settings fixture
+  rows, no auto-run on view creation, one subprocess helper round-trip, Xcode
+  test/build and Go regression checks.
+- Phase 8I.2a: Debug helper packaging tests/checks cover deterministic helper
+  name `scanfb-bridge-helper`, bundle-relative lookup at
+  `Contents/Helpers/scanfb-bridge-helper`, fail-closed missing helper behavior,
+  no PATH or `/tmp` helper fallback, Debug Xcode build packaging, executable bit,
+  direct bundled-helper readiness invocation, stdout/stderr separation and no
+  protocol/schema changes.
+- Phase 8I.3+: later bridge implementation milestones must add
+  bridge-specific tests for each narrow slice while retaining Xcode build/manual
+  launch when UI changes, stale-process kill/relaunch when launching is in
+  scope, rebuilt-bundle verification and Go regression checks.
 - Phase 9: batch state machine tests.
 - Phase 10 tro di: manual validation co kiem soat cho Facebook adapter.

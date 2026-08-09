@@ -430,15 +430,31 @@ Stop conditions: Need implementation, broad API, live Facebook data, database pa
 
 ## Phase 8I.2 - First read-only bridge slice
 
-Exact scope: Future implementation of one local subprocess request/response slice where Swift requests a deterministic Go core readiness value and Go returns a minimal typed response.
+Status: complete after Phase 8I.2 acceptance checks pass. Phase 8I.3+ remains incomplete.
+
+Exact scope: Implement one local subprocess request/response slice where Swift requests a deterministic Go core readiness value and Go returns a minimal typed response.
 
 Protected areas: Khong broad command bus, lead list/search API, persistence mutation, direct Swift SQLite access, hidden networking, Facebook automation, seller mode, migration execution, credential/cookie/browser-session transfer hoac business-rule duplication.
 
 Acceptance criteria: One typed versioned request and minimal transport-only response concept no broader than schema version, readiness status and core identity; bounded subprocess execution; explicit error propagation; explicit cancellation/timeout policy; no database mutation; no Facebook; no SearchProfile, lead data, persistence information, business-rule summary, capability inventory or product/domain data; tests cover Go adapter/schema, Swift decoding/error mapping and one narrow subprocess integration path.
 
-Tests: Bridge-specific Go unit/schema tests, Swift decoding tests, one subprocess integration test, Xcode build/manual launch when UI exposes it, Go `go test ./...`, Go `go vet ./...`, CLI output unchanged unless separately approved.
+Tests: Bridge-specific Go unit/schema tests, Swift decoding/error-mapping tests, one subprocess integration test, Xcode test/build, Go `go test ./...`, Go `go vet ./...`, CLI output unchanged unless separately approved. Phase 8I.2 explicitly does not launch the app for visual inspection.
 
 Stop conditions: Need broad production workflow, lead list/search, Facebook adapter, production database path policy, mutating operation, package/signing/notarization expansion hoac unsupported bridge behavior.
+
+## Phase 8I.2a - Debug helper packaging only
+
+Status: complete after Phase 8I.2a acceptance checks pass. Phase 8I.3+ remains incomplete.
+
+Exact scope: Package the existing `scanfb-bridge-helper` into Debug `ScanFB.app` bundles at `Contents/Helpers/scanfb-bridge-helper` so the Phase 8I.2 readiness bridge can run from the built app.
+
+Protected areas: Khong thay bridge protocol, request/response schema, operation set, Facebook, persistence, database, networking, business data, UI behavior ngoai readiness settings, Release distribution policy, signing/notarization policy, dependency hoac repo-local build artifact.
+
+Acceptance criteria: Debug Xcode build compiles the helper for Apple Silicon/macOS into DerivedData, copies exactly one executable helper into the app bundle, preserves executable permission, Swift resolves only the deterministic bundle-relative helper path, missing helper remains fail-closed, and direct helper execution returns the exact readiness response without stderr contaminating stdout.
+
+Tests: Go `go test ./...`, Go `go vet ./...`, Xcode test/build with fresh DerivedData, bundled helper path/executable checks, direct bundled-helper readiness invocation, `git diff --check`, diff/status and audits for no protocol/schema/runtime scope expansion.
+
+Stop conditions: Need machine-specific Go path, broad Release packaging/signing/notarization, hidden network/listener, shell fallback, PATH search, production database path, Facebook integration hoac unsupported helper location.
 
 ## Phase 8I.3+ - Later narrow Go integration slices
 

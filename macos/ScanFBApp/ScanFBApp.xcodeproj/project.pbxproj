@@ -51,6 +51,11 @@
 		A10000000000000000000142 /* LeadInteractionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000236 /* LeadInteractionState.swift */; };
 		A10000000000000000000143 /* LeadSourceURLHandoff.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000238 /* LeadSourceURLHandoff.swift */; };
 		A10000000000000000000144 /* LeadSourceURLHandoff.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000238 /* LeadSourceURLHandoff.swift */; };
+		A10000000000000000000145 /* CoreReadinessBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000239 /* CoreReadinessBridge.swift */; };
+		A10000000000000000000146 /* CoreReadinessBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000239 /* CoreReadinessBridge.swift */; };
+		A10000000000000000000147 /* CoreReadinessBridgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000240 /* CoreReadinessBridgeTests.swift */; };
+		A10000000000000000000148 /* SettingsFixtureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000232 /* SettingsFixtureView.swift */; };
+		A10000000000000000000149 /* SettingsSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000233 /* SettingsSectionView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -102,6 +107,8 @@
 		A10000000000000000000236 /* LeadInteractionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadInteractionState.swift; sourceTree = "<group>"; };
 		A10000000000000000000237 /* LeadInteractionStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadInteractionStateTests.swift; sourceTree = "<group>"; };
 		A10000000000000000000238 /* LeadSourceURLHandoff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeadSourceURLHandoff.swift; sourceTree = "<group>"; };
+		A10000000000000000000239 /* CoreReadinessBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreReadinessBridge.swift; sourceTree = "<group>"; };
+		A10000000000000000000240 /* CoreReadinessBridgeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreReadinessBridgeTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -173,6 +180,7 @@
 				A10000000000000000000216 /* LeadsFixture.swift */,
 				A10000000000000000000236 /* LeadInteractionState.swift */,
 				A10000000000000000000238 /* LeadSourceURLHandoff.swift */,
+				A10000000000000000000239 /* CoreReadinessBridge.swift */,
 				A10000000000000000000222 /* DryRunFixture.swift */,
 				A10000000000000000000228 /* BlocklistFixture.swift */,
 				A10000000000000000000229 /* SettingsFixture.swift */,
@@ -190,6 +198,7 @@
 				A10000000000000000000234 /* BlocklistFixtureTests.swift */,
 				A10000000000000000000235 /* SettingsFixtureTests.swift */,
 				A10000000000000000000237 /* LeadInteractionStateTests.swift */,
+				A10000000000000000000240 /* CoreReadinessBridgeTests.swift */,
 			);
 			path = ScanFBAppTests;
 			sourceTree = "<group>";
@@ -264,6 +273,7 @@
 				A10000000000000000000601 /* Sources */,
 				A10000000000000000000401 /* Frameworks */,
 				A10000000000000000000602 /* Resources */,
+				A10000000000000000000605 /* Build Debug Go Helper */,
 			);
 			buildRules = (
 			);
@@ -350,6 +360,33 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		A10000000000000000000605 /* Build Debug Go Helper */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/../../cmd/scanfb-bridge-helper/main.go",
+				"$(SRCROOT)/../../internal/bridge/readiness.go",
+				"$(SRCROOT)/../../go.mod",
+				"$(SRCROOT)/../../go.sum",
+			);
+			name = "Build Debug Go Helper";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers/scanfb-bridge-helper",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -eu\n\nif [ \"${CONFIGURATION}\" != \"Debug\" ]; then\n    exit 0\nfi\n\nREPO_ROOT=\"${SRCROOT}/../..\"\nHELPER_OUTPUT_DIR=\"${DERIVED_FILE_DIR}/scanfb-bridge-helper\"\nHELPER_OUTPUT=\"${HELPER_OUTPUT_DIR}/scanfb-bridge-helper\"\nBUNDLE_HELPERS_DIR=\"${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/Helpers\"\nBUNDLE_HELPER=\"${BUNDLE_HELPERS_DIR}/scanfb-bridge-helper\"\n\nif [ -n \"${GO_EXECUTABLE:-}\" ]; then\n    GO_TOOL=\"${GO_EXECUTABLE}\"\nelif [ -x \"/opt/homebrew/bin/go\" ]; then\n    GO_TOOL=\"/opt/homebrew/bin/go\"\nelif [ -x \"/usr/local/go/bin/go\" ]; then\n    GO_TOOL=\"/usr/local/go/bin/go\"\nelse\n    echo \"error: Go executable not found. Set GO_EXECUTABLE to an absolute go binary path for Debug helper packaging.\" >&2\n    exit 1\nfi\n\nif [ ! -x \"${GO_TOOL}\" ]; then\n    echo \"error: GO_EXECUTABLE is not executable: ${GO_TOOL}\" >&2\n    exit 1\nfi\n\nmkdir -p \"${HELPER_OUTPUT_DIR}\" \"${BUNDLE_HELPERS_DIR}\"\ncd \"${REPO_ROOT}\"\nGOOS=darwin GOARCH=arm64 \"${GO_TOOL}\" build -trimpath -o \"${HELPER_OUTPUT}\" ./cmd/scanfb-bridge-helper\ncp \"${HELPER_OUTPUT}\" \"${BUNDLE_HELPER}\"\nchmod 755 \"${BUNDLE_HELPER}\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		A10000000000000000000601 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -372,6 +409,7 @@
 				A10000000000000000000120 /* LeadReasonListView.swift in Sources */,
 				A10000000000000000000140 /* LeadInteractionState.swift in Sources */,
 				A10000000000000000000143 /* LeadSourceURLHandoff.swift in Sources */,
+				A10000000000000000000145 /* CoreReadinessBridge.swift in Sources */,
 				A10000000000000000000123 /* DryRunFixture.swift in Sources */,
 				A10000000000000000000124 /* DryRunFixtureView.swift in Sources */,
 				A10000000000000000000125 /* DryRunTabsView.swift in Sources */,
@@ -405,6 +443,10 @@
 				A10000000000000000000141 /* LeadInteractionStateTests.swift in Sources */,
 				A10000000000000000000142 /* LeadInteractionState.swift in Sources */,
 				A10000000000000000000144 /* LeadSourceURLHandoff.swift in Sources */,
+				A10000000000000000000146 /* CoreReadinessBridge.swift in Sources */,
+				A10000000000000000000147 /* CoreReadinessBridgeTests.swift in Sources */,
+				A10000000000000000000148 /* SettingsFixtureView.swift in Sources */,
+				A10000000000000000000149 /* SettingsSectionView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
