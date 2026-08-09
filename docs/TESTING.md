@@ -100,18 +100,26 @@ checks:
 
 ## Native macOS fixture Leads interaction-state checks
 
-Phase 8G verifies the fixture-only Leads interaction state with these checks:
+Phase 8G/8H verifies the fixture-only Leads interaction state and browser
+handoff action with these checks:
 
 - Swift unit tests cover all four fixture leads starting as `new`, stable lead
-  IDs, deterministic transitions to `viewed`, `contacted` and `ignored`,
-  viewed-to-contacted/ignored transitions, mutual exclusivity of contacted and
-  ignored, selected-lead-only mutation, fresh construction reset, and non-empty
+  IDs, exact supported states `new/viewed/ignored`, deterministic transitions
+  `new -> viewed`, `new -> ignored` and `viewed -> ignored`,
+  selected-lead-only mutation, fresh construction reset, and non-empty
   deterministic status labels.
-- Swift unit tests verify interaction state does not change existing eligibility
-  categories, reason codes or fixture order.
-- Manual checks cover visible labels `Mới`, `Đã xem`, `Đã liên hệ` and `Bỏ qua`,
-  compact card actions, accessibility labels with current state, no new status
-  tab/filter, and unchanged Overview, Dry Run, Nhóm, Blocklist and Cài đặt.
+- Swift unit tests verify `Tương tác` does not change interaction state,
+  eligibility categories, reason codes or fixture order.
+- Swift unit tests verify every lead has a stable synthetic HTTPS source URL,
+  source URLs are stable across repeated construction, malformed and non-HTTPS
+  URLs are rejected, valid HTTPS URLs are accepted, validation is deterministic,
+  browser handoff receives exactly the validated URL, and invalid handoff input
+  does not invoke the injected open closure.
+- Manual checks, when a launch milestone allows them, cover visible labels
+  `Mới`, `Đã xem` and `Bỏ qua`, compact card actions `Đánh dấu đã xem`,
+  `Tương tác` and `Bỏ qua`, accessibility labels with current state, no new
+  status tab/filter, and unchanged Overview, Dry Run, Nhóm, Blocklist and
+  Cài đặt.
 - Build/test verification uses Xcode DerivedData outside the repository.
 
 ## Test matrix toi thieu
@@ -198,13 +206,16 @@ Phase 8G verifies the fixture-only Leads interaction state with these checks:
   Facebook domain, four read-only settings sections, required settings rows,
   no writable setting state, Xcode build/test and no direct SQLite/networking
   or package additions.
-- Phase 8G: fixture Leads interaction-state tests cover typed state integrity,
-  exact states `new/viewed/contacted/ignored`, fresh-session reset, selected
-  lead mutation only, contacted/ignored exclusivity, unchanged eligibility tabs,
-  categories, reason codes and fixture order, Xcode build/test and no
-  persistence, direct SQLite, AppStorage/UserDefaults, bridge, networking,
-  WebKit, Facebook integration, timestamps or package additions.
-- Phase 8H: bridge evaluation tests are documentation/prototype checks only if explicitly scoped; bridge selection must not skip deterministic request/response, explicit schema, cancellation, error propagation, packaging, crash isolation and Apple Silicon considerations.
-- Phase 8I+: post-bridge integration milestones must add bridge-specific tests for each narrow slice while retaining Xcode build/manual launch, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
+- Phase 8G/8H: fixture Leads interaction-state tests cover typed state integrity,
+  exact states `new/viewed/ignored`, fresh-session reset, selected lead mutation
+  only, unchanged eligibility tabs, categories, reason codes and fixture order,
+  stateless `Tương tác`, deterministic source URL fixtures, URL validation,
+  injected browser handoff, Xcode build/test and no persistence, direct SQLite,
+  AppStorage/UserDefaults, bridge, networking client, WebKit, Facebook
+  integration, timestamps or package additions.
+- Phase 8I+: bridge evaluation and post-decision integration milestones must
+  add bridge-specific tests for each narrow slice while retaining Xcode
+  build/manual launch, stale-process kill/relaunch, rebuilt-bundle verification
+  and Go regression checks.
 - Phase 9: batch state machine tests.
 - Phase 10 tro di: manual validation co kiem soat cho Facebook adapter.

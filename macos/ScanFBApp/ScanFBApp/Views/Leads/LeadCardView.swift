@@ -4,12 +4,16 @@ struct LeadCardView: View {
     let lead: LeadFixture
     let interactionState: LeadInteractionState
     let onMarkViewed: () -> Void
-    let onMarkContacted: () -> Void
+    let onInteract: () -> Void
     let onMarkIgnored: () -> Void
 
     private let metadataColumns = [
         GridItem(.adaptive(minimum: 230), spacing: 12, alignment: .leading)
     ]
+
+    private var sourceURLHandoff: LeadSourceURLHandoff {
+        LeadSourceURLHandoff(sourceURLString: lead.sourceURLString)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -82,9 +86,11 @@ struct LeadCardView: View {
             Button("Đánh dấu đã xem", action: onMarkViewed)
                 .disabled(interactionState != .new)
                 .accessibilityHint(viewedActionHint)
-            Button("Đã liên hệ", action: onMarkContacted)
-                .disabled(interactionState == .contacted)
-                .accessibilityHint("Đặt trạng thái tương tác của lead mẫu thành Đã liên hệ")
+            Button(action: onInteract) {
+                Label("Tương tác", systemImage: "arrow.up.right.square")
+            }
+            .disabled(!sourceURLHandoff.canOpen)
+            .accessibilityHint(interactActionHint)
             Button("Bỏ qua", action: onMarkIgnored)
                 .disabled(interactionState == .ignored)
                 .accessibilityHint("Đặt trạng thái tương tác của lead mẫu thành Bỏ qua")
@@ -96,6 +102,14 @@ struct LeadCardView: View {
             return "Đặt trạng thái tương tác của lead mẫu thành Đã xem"
         }
         return "Chỉ khả dụng khi lead mẫu còn ở trạng thái Mới"
+    }
+
+    private var interactActionHint: String {
+        if sourceURLHandoff.canOpen {
+            return "Mở URL nguồn mẫu bằng trình duyệt mặc định của macOS"
+        }
+
+        return "Không có URL HTTPS hợp lệ trong dữ liệu minh họa"
     }
 
     private func metadataLabel(_ title: String, _ value: String, systemImage: String) -> some View {

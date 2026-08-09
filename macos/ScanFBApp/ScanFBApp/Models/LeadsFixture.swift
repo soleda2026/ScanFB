@@ -19,6 +19,7 @@ struct LeadsScreenFixture: Equatable {
                 dateLabel: "05/08/2026",
                 location: "TP.HCM",
                 groupName: "Nhóm công nghệ mẫu A",
+                sourceURLString: "https://scanfb.invalid/leads/lead-sample-001/source",
                 sourcePostCount: 2,
                 reasons: [
                     LeadReasonFixture(
@@ -41,6 +42,7 @@ struct LeadsScreenFixture: Equatable {
                 dateLabel: "04/08/2026",
                 location: "TP.HCM",
                 groupName: "Cộng đồng thiết bị mẫu B",
+                sourceURLString: "https://scanfb.invalid/leads/lead-sample-002/source",
                 sourcePostCount: 1,
                 reasons: [
                     LeadReasonFixture(
@@ -63,6 +65,7 @@ struct LeadsScreenFixture: Equatable {
                 dateLabel: "03/08/2026",
                 location: "Việt Nam — ngoài TP.HCM",
                 groupName: "Nhóm trao đổi mẫu C",
+                sourceURLString: "https://scanfb.invalid/leads/lead-sample-003/source",
                 sourcePostCount: 3,
                 reasons: [
                     LeadReasonFixture(
@@ -90,6 +93,7 @@ struct LeadsScreenFixture: Equatable {
                 dateLabel: "02/08/2026",
                 location: "Chưa xác định",
                 groupName: "Cộng đồng máy tính mẫu D",
+                sourceURLString: "https://scanfb.invalid/leads/lead-sample-004/source",
                 sourcePostCount: 1,
                 reasons: [
                     LeadReasonFixture(
@@ -178,6 +182,7 @@ struct LeadFixture: Identifiable, Equatable {
     let dateLabel: String
     let location: String
     let groupName: String
+    let sourceURLString: String
     let sourcePostCount: Int
     let reasons: [LeadReasonFixture]
 }

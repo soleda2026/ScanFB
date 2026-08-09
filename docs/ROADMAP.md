@@ -388,9 +388,9 @@ Stop conditions: Need real settings storage, blocklist mutation, database path, 
 
 ## Phase 8G - Fixture UI interaction state
 
-Status: complete after Phase 8G acceptance checks pass. Phase 8H is next and remains incomplete.
+Status: complete after Phase 8G acceptance checks pass. Phase 8H is next.
 
-Exact scope: Add in-memory fixture-only UI state for viewed/contacted/ignored interactions.
+Exact scope: Add in-memory fixture-only UI state for viewed/ignored interactions.
 
 Protected areas: Khong persistence, database, bridge, production lead status, Facebook action, network, business logic recomputation hoac seller workflow.
 
@@ -400,25 +400,27 @@ Tests: Swift interaction-state tests, Xcode build/test, manual interaction valid
 
 Stop conditions: Need status persistence, Go integration, SQLite, import/export hoac real lead workflow.
 
-## Phase 8H - Bridge evaluation and architecture decision
+## Phase 8H - Lead interaction browser handoff
 
-Exact scope: Documentation/prototype-decision milestone to evaluate C-compatible exported Go library, subprocess with structured stdin/stdout, and local IPC boundary, then select exactly one narrow integration model.
+Status: complete after Phase 8H acceptance checks pass. Phase 8I+ is next and remains incomplete.
 
-Protected areas: Khong production bridge, UI wiring, direct Swift SQLite access, HTTP server by default, cloud API, arbitrary JSON maps, credential transfer, database-local ID exposure hoac business logic in Swift.
+Exact scope: Replace the old stateful Leads action with stateless `Tương tác` browser handoff using deterministic fixture source URLs and native SwiftUI `openURL`.
 
-Acceptance criteria: Decision compares deterministic request/response behavior, no hidden network, no credential transfer, explicit schemas, error propagation, cancellation, build complexity, packaging, testing, crash isolation and Apple Silicon support.
+Protected areas: Khong production bridge, persistence, database, WebKit, embedded browser, browser automation, Facebook SDK/API, networking client, credential/cookie/browser-session access, shell `open`, subprocess, third-party package, business logic recomputation hoac seller workflow.
 
-Tests: Documentation consistency and any approved tiny prototype checks only if explicitly scoped.
+Acceptance criteria: Session states are exactly `new/viewed/ignored`; `Tương tác` is an action, not a state; pressing `Tương tác` validates an absolute HTTPS fixture source URL and hands it to the macOS default browser without mutating lead state; browser owns Facebook login/session/cookies; eligibility tabs, categories, reasons and order remain unchanged.
 
-Stop conditions: Need production integration, broad API, live Facebook data, database path policy hoac bridge implementation beyond decision scope.
+Tests: Swift interaction-state and URL handoff tests, Xcode build/test, bundle existence check and audits for forbidden APIs/dependencies. No app launch or visual inspection in this milestone.
 
-## Phase 8I+ - Narrow Go integration after bridge decision
+Stop conditions: Need real lead loading, Go integration, production source URLs, browser automation, Facebook action automation, persistence, bridge, database path policy hoac live Facebook data.
 
-Exact scope: Only after Phase 8H, add tiny bridge-specific integration milestones for one request/response slice at a time.
+## Phase 8I+ - Bridge evaluation and narrow Go integration
+
+Exact scope: Evaluate and select exactly one narrow bridge model before adding bridge-specific integration milestones for one request/response slice at a time.
 
 Protected areas: Khong broad bridge API, arbitrary JSON maps, direct Swift SQLite access, hidden networking, Facebook automation, seller mode, migration execution, search/list expansion without separate milestone hoac business-rule duplication.
 
-Acceptance criteria: Each slice has explicit schema, deterministic fixture-backed behavior, error propagation, cancellation policy, tests on both sides as needed, and no regression to Go core checks.
+Acceptance criteria: Bridge decision compares deterministic request/response behavior, no hidden network, no credential transfer, explicit schemas, error propagation, cancellation, build complexity, packaging, testing, crash isolation and Apple Silicon support. Each later integration slice has explicit schema, deterministic fixture-backed behavior, error propagation, cancellation policy, tests on both sides as needed, and no regression to Go core checks.
 
 Tests: Bridge-specific unit/integration tests, Xcode build/manual launch, stale-process kill before relaunch, Go `go test ./...`, `go vet ./...`, CLI output unchanged.
 

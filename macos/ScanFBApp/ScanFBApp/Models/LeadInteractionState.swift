@@ -1,7 +1,6 @@
 enum LeadInteractionState: String, CaseIterable, Equatable {
     case new
     case viewed
-    case contacted
     case ignored
 
     var title: String {
@@ -10,8 +9,6 @@ enum LeadInteractionState: String, CaseIterable, Equatable {
             "Mới"
         case .viewed:
             "Đã xem"
-        case .contacted:
-            "Đã liên hệ"
         case .ignored:
             "Bỏ qua"
         }
@@ -23,8 +20,6 @@ enum LeadInteractionState: String, CaseIterable, Equatable {
             "sparkle"
         case .viewed:
             "eye"
-        case .contacted:
-            "message"
         case .ignored:
             "hand.raised"
         }
@@ -47,10 +42,6 @@ struct LeadInteractionStateModel: Equatable {
             return
         }
         statesByLeadID[leadID] = .viewed
-    }
-
-    mutating func markContacted(_ leadID: String) {
-        statesByLeadID[leadID] = .contacted
     }
 
     mutating func markIgnored(_ leadID: String) {

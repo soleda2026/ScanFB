@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LeadsFixtureView: View {
     let fixture: LeadsScreenFixture
+    @Environment(\.openURL) private var openURL
     @State private var selectedTab: LeadPresentationTab = .all
     @State private var interactionState: LeadInteractionStateModel
 
@@ -29,8 +30,10 @@ struct LeadsFixtureView: View {
                             onMarkViewed: {
                                 interactionState.markViewed(lead.id)
                             },
-                            onMarkContacted: {
-                                interactionState.markContacted(lead.id)
+                            onInteract: {
+                                LeadSourceURLHandoff(sourceURLString: lead.sourceURLString).handoff { url in
+                                    openURL(url)
+                                }
                             },
                             onMarkIgnored: {
                                 interactionState.markIgnored(lead.id)

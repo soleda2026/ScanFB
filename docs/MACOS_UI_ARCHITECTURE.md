@@ -6,8 +6,9 @@ This document records the native macOS presentation architecture for Phase 8.
 It records the Phase 8A architecture decision, the Phase 8B app-shell state,
 the Phase 8C static Overview fixture state, the Phase 8D fixture-only Leads
 presentation state, the Phase 8E fixture-only Dry Run review state, the
-Phase 8F fixture-only Blocklist/Settings state, and the Phase 8G session-only
-Leads interaction state. Phase 8C/8D/8E/8F/8G implement only sample presentation screens; they do not implement a
+Phase 8F fixture-only Blocklist/Settings state, the Phase 8G session-only
+Leads interaction state, and the Phase 8H fixture source URL browser handoff.
+Phase 8C/8D/8E/8F/8G/8H implement only sample presentation screens; they do not implement a
 bridge, persistence wiring, Facebook integration, production UI features, or
 live data behavior.
 
@@ -118,13 +119,15 @@ Explicitly rejected:
   blocklist actions, read-only settings rows, no display-name-only block
   identity, no bridge, database, Facebook, networking, persistence,
   credentials, cookies, import/export, blocklist writes or settings writes.
-- Phase 8G: UI interaction state for viewed/contacted/ignored using in-memory fixture state only.
-  Implemented for `Leads` only with `new/viewed/contacted/ignored` presentation
+- Phase 8G: UI interaction state for viewed/ignored using in-memory fixture state only.
+  Implemented for `Leads` only with `new/viewed/ignored` presentation
   state scoped to the current SwiftUI session. It resets on app restart and
-  does not persist, bridge, contact Facebook, recompute eligibility or recompute
-  reason codes.
-- Phase 8H: bridge evaluation and architecture decision.
-- Phase 8I+: only after bridge decision, narrow Go integration milestones.
+  does not persist, bridge, recompute eligibility or recompute reason codes.
+- Phase 8H: lead interaction browser handoff. Implemented for `Leads` only with
+  deterministic synthetic HTTPS source URLs, validation and SwiftUI `openURL`;
+  `Tương tác` is an action, not a state, and does not mutate interaction state.
+- Phase 8I+: bridge evaluation and, only after a bridge decision, narrow Go
+  integration milestones.
 
 Each milestone must be independently buildable and manually testable.
 
@@ -225,23 +228,30 @@ Facebook integration, credentials or cookies. Nhóm remains placeholder.
 Fixture data is not loaded from files, does not come from Facebook, does not
 use current time or randomness, and is not a future bridge schema.
 
-## Phase 8G Leads Interaction State Requirements
+## Phase 8G/8H Leads Interaction State And Browser Handoff Requirements
 
-Phase 8G implements only:
+Phase 8G/8H implements only:
 
 - session-memory interaction state for existing fixture Leads;
-- supported states `new`, `viewed`, `contacted` and `ignored`;
-- visible Vietnamese labels `Mới`, `Đã xem`, `Đã liên hệ` and `Bỏ qua`;
-- compact card actions for `Đánh dấu đã xem`, `Đã liên hệ` and `Bỏ qua`.
+- supported states `new`, `viewed` and `ignored`;
+- visible Vietnamese labels `Mới`, `Đã xem` and `Bỏ qua`;
+- compact card actions for `Đánh dấu đã xem`, `Tương tác` and `Bỏ qua`;
+- deterministic synthetic HTTPS source URL values for existing fixture leads;
+- browser handoff through SwiftUI `openURL` only after URL validation.
 
-All fixture leads start as `new`. `viewed/contacted/ignored` are SwiftUI
+All fixture leads start as `new`. `viewed/ignored` are SwiftUI
 presentation states only, not persisted domain statuses and not a future bridge
-schema. The state resets when the app process restarts. Contacted and ignored
-are mutually exclusive current states. Interaction state must not change the
-existing `Tất cả`, `Đủ điều kiện` or `Cần xem xét` tab filtering, eligibility
-category, reason codes or fixture order. Phase 8G must not add persistence,
-AppStorage, UserDefaults, direct SQLite access, bridge, Facebook integration,
-browser opening, networking, timestamps, history or production contact workflow.
+schema. The state resets when the app process restarts. Valid transitions are
+`new -> viewed`, `new -> ignored` and `viewed -> ignored`; marking a lead as
+viewed again leaves it unchanged. `Tương tác` is a stateless action: it hands a
+validated source URL to the macOS default browser and does not change the lead's
+state. Opening that URL does not imply the user liked, commented, messaged or
+completed any action on Facebook. Interaction state must not change the existing
+`Tất cả`, `Đủ điều kiện` or `Cần xem xét` tab filtering, eligibility category,
+reason codes or fixture order. Phase 8H must not add persistence, AppStorage,
+UserDefaults, direct SQLite access, bridge, Facebook SDK/API, WebKit, embedded
+browser, browser automation, networking client, timestamps, history, credential
+access, cookie access or production workflow.
 
 ## Product UI Structure
 
@@ -266,6 +276,8 @@ behavior. Seller tabs and seller mode are forbidden.
 - Vietnamese diacritics must be preserved.
 - Fixture UI must not claim to be live Facebook data.
 - Fixture data should be clearly labeled as sample/demo data in manual validation builds.
+- Phase 8H fixture source URLs must be synthetic and must not claim to be real
+  buyer posts. Future authoritative source URLs come from Go-backed lead data.
 - Phase 8C Overview, Phase 8D Leads, Phase 8E Dry Run and Phase 8F
   Blocklist/Settings fixtures must also
   state that they are not connected to the Go core and do not come from
@@ -284,6 +296,8 @@ behavior. Seller tabs and seller mode are forbidden.
 - No Facebook credentials.
 - No cookies or browser profile copies.
 - No automatic login.
+- The default browser owns Facebook login, session and cookies.
+- No automated Facebook like, comment, message or profile inspection.
 - No hidden networking.
 - No cloud sync.
 - No telemetry in Phase 8.

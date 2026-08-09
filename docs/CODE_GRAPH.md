@@ -20,6 +20,7 @@ flowchart TD
     OVERVIEW_FIXTURE["Overview fixture model and views"] --> MACOS_APP
     LEADS_FIXTURE["Leads fixture model and views"] --> MACOS_APP
     LEADS_INTERACTION_STATE["Leads session interaction state"] --> LEADS_FIXTURE
+    LEADS_BROWSER_HANDOFF["Leads fixture source URL browser handoff"] --> LEADS_FIXTURE
     DRYRUN_FIXTURE["Dry Run fixture model and views"] --> MACOS_APP
     BLOCKLIST_FIXTURE["Blocklist fixture model and views"] --> MACOS_APP
     SETTINGS_FIXTURE["Settings fixture model and views"] --> MACOS_APP
@@ -43,7 +44,7 @@ flowchart TD
 - `internal/orchestration`: Go package cho thin synchronous use-case orchestration ownership.
 - `internal/facebook`: Go package cho Facebook/browser adapter boundary ownership.
 - `internal/ui`: Go-layer documentation/package placeholder; not the SwiftUI app root.
-- `macos/ScanFBApp`: SwiftUI native macOS app shell implemented in Phase 8B, with Phase 8C static fixture Overview dashboard, Phase 8D fixture-only Leads tabs/cards, Phase 8E fixture-only Dry Run review tabs/cards, Phase 8F fixture-only Blocklist/Settings screens and Phase 8G session-only Leads interaction state.
+- `macos/ScanFBApp`: SwiftUI native macOS app shell implemented in Phase 8B, with Phase 8C static fixture Overview dashboard, Phase 8D fixture-only Leads tabs/cards, Phase 8E fixture-only Dry Run review tabs/cards, Phase 8F fixture-only Blocklist/Settings screens, Phase 8G session-only Leads interaction state and Phase 8H fixture source URL browser handoff.
 - App/UI: owner cua views, tabs, lead cards, settings va user actions.
 - Application services: owner cua deterministic in-memory scan batch model, batch state va time window.
 - Use-case orchestration: owner cua glue logic giua completed application result, `BatchRecord` conversion va repository save boundary.
@@ -54,7 +55,8 @@ flowchart TD
 - SwiftUI shell: owner cua native windows, navigation, presentation state va accessibility.
 - Overview fixture model/views: SwiftUI-only presentation nodes for Phase 8C sample dashboard; no edge to Go core.
 - Leads fixture model/views: SwiftUI-only presentation nodes for Phase 8D buyer lead tabs/cards; no edge to Go core.
-- Leads session interaction state: SwiftUI-only presentation state for Phase 8G `new/viewed/contacted/ignored`; reset on app restart and not a persisted domain status.
+- Leads session interaction state: SwiftUI-only presentation state for Phase 8G/8H `new/viewed/ignored`; reset on app restart and not a persisted domain status.
+- Leads fixture source URL browser handoff: SwiftUI-only Phase 8H action that validates a synthetic HTTPS source URL and hands it to the macOS default browser without mutating lead state.
 - Dry Run fixture model/views: SwiftUI-only presentation nodes for Phase 8E review tabs/cards; no edge to Go core.
 - Blocklist fixture model/views: SwiftUI-only presentation nodes for Phase 8F sample blocklist entries; no edge to Go core and no ownership of blocklist semantics.
 - Settings fixture model/views: SwiftUI-only presentation nodes for Phase 8F read-only sample settings; no edge to Go core and no persistence writes.
@@ -97,7 +99,7 @@ Phase 8E replaces only the `Dry Run` placeholder with fixture-only included/revi
 
 Phase 8F replaces only the `Blocklist` and `Cài đặt` placeholders with fixture-only presentation screens. The Blocklist and Settings fixture models and views are SwiftUI-only presentation code with explicit stable values, disabled blocklist actions, read-only settings rows, no display-name-only block identity, no filesystem fixture loading, no current time, no randomness, no package, no bridge and no dependency on Go packages. Nhóm remains placeholder.
 
-Phase 8G extends only the `Leads` fixture screen with session-memory interaction state for `new`, `viewed`, `contacted` and `ignored`. The state is SwiftUI-only presentation state, starts as `new` for every fixture lead, can be changed by card actions, resets on app restart, does not change eligibility tabs/categories, does not recompute reasons, and has no persistence, database, bridge, Facebook, networking, timestamp, random value or package dependency.
+Phase 8G extends only the `Leads` fixture screen with session-memory interaction state. Phase 8H narrows that state model to `new`, `viewed` and `ignored`, and adds stateless `Tương tác` browser handoff for deterministic synthetic HTTPS fixture source URLs. The state is SwiftUI-only presentation state, starts as `new` for every fixture lead, can be changed only by viewed/ignored card actions, resets on app restart, does not change eligibility tabs/categories, does not recompute reasons, and has no persistence, database, bridge, Facebook SDK/API, WebKit, browser automation, networking client, timestamp, random value or package dependency.
 
 ## Allowed dependencies
 
@@ -120,7 +122,7 @@ Phase 8G extends only the `Leads` fixture screen with session-memory interaction
 - Phase 8D Leads fixture views may depend only on local Swift value models and SwiftUI.
 - Phase 8E Dry Run fixture views may depend only on local Swift value models and SwiftUI.
 - Phase 8F Blocklist and Settings fixture views may depend only on local Swift value models and SwiftUI.
-- Phase 8G Leads interaction state may depend only on local Swift value models and SwiftUI state.
+- Phase 8G/8H Leads interaction state and source URL handoff may depend only on local Swift value models and SwiftUI state/openURL.
 
 ## Forbidden dependencies
 
@@ -142,8 +144,8 @@ Phase 8G extends only the `Leads` fixture screen with session-memory interaction
 ## Entry points
 
 - User bam Scan: App/UI goi Application service tao `ScanSession` va `ScanBatch`.
-- User mo lead: App/UI mo canonical post URL tu `LeadSource`.
-- User danh dau status: App/UI goi Application service cap nhat `LeadStatus`.
+- User bam `Tương tác`: App/UI validate source URL HTTPS tu fixture hien tai hoac future `LeadSource` data roi handoff cho macOS default browser; khong mutate lead state.
+- User danh dau viewed/ignored: App/UI cap nhat presentation state trong session hien tai; future production state workflow can milestone rieng.
 - User bo qua account: App/UI goi Application service tao `BlockedAuthor`.
 - Facebook adapter: application service kich hoat adapter doc group hien tai trong batch.
 
@@ -179,7 +181,7 @@ RawPost
 -> Optional in-memory BatchRepository adapter cho deterministic inspection/testing
 -> Optional thin RunAndSaveScanBatch orchestration cho explicit caller-supplied record ID
 -> Optional SQLite schema-bootstrap, SaveBatch and concrete LoadBatch adapter neu caller mo explicit local DB path
--> Phase 8C/8D/8E/8F/8G SwiftUI fixture Overview, Leads, Dry Run, Blocklist, Settings and session-only Leads interaction presentation, currently standalone until bridge duoc chon trong milestone rieng
+-> Phase 8C/8D/8E/8F/8G/8H SwiftUI fixture Overview, Leads, Dry Run, Blocklist, Settings, session-only Leads interaction presentation and stateless browser handoff, currently standalone until bridge duoc chon trong milestone rieng
 ```
 
 ## SearchProfile va buyer-only boundary
