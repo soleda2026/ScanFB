@@ -26,6 +26,7 @@ Trang thai hien tai: Go core da co deterministic domain/rules/dedup/blocklist/ap
 - [docs/SECURITY_AND_PRIVACY.md](docs/SECURITY_AND_PRIVACY.md): yeu cau bao mat va quyen rieng tu.
 - [docs/CODE_GRAPH.md](docs/CODE_GRAPH.md): graph kien truc muc tieu va cach cap nhat graph.
 - [docs/MACOS_UI_ARCHITECTURE.md](docs/MACOS_UI_ARCHITECTURE.md): quyet dinh SwiftUI native macOS shell va plan Phase 8.
+- [docs/BRIDGE_DECISION.md](docs/BRIDGE_DECISION.md): Phase 8I.1 bridge decision cho future SwiftUI-Go integration.
 
 ## Quy trinh phat trien
 
@@ -43,7 +44,7 @@ Native macOS UI direction cho Phase 8 la SwiftUI app shell trong `macos/ScanFBAp
 open macos/ScanFBApp/ScanFBApp.xcodeproj
 ```
 
-SwiftUI chi la presentation layer; khong reimplement business rules, reason codes, summaries, deduplication, blocklist outcomes hoac SQLite access. Bridge SwiftUI-Go van deferred va phai co milestone rieng.
+SwiftUI chi la presentation layer; khong reimplement business rules, reason codes, summaries, deduplication, blocklist outcomes hoac SQLite access. Phase 8I.1 chon future SwiftUI-Go bridge la local subprocess request/response voi typed versioned schemas; bridge implementation van deferred sang milestone rieng.
 
 ## Luu y ve Facebook integration
 

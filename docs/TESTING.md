@@ -213,9 +213,15 @@ handoff action with these checks:
   injected browser handoff, Xcode build/test and no persistence, direct SQLite,
   AppStorage/UserDefaults, bridge, networking client, WebKit, Facebook
   integration, timestamps or package additions.
-- Phase 8I+: bridge evaluation and post-decision integration milestones must
-  add bridge-specific tests for each narrow slice while retaining Xcode
-  build/manual launch, stale-process kill/relaunch, rebuilt-bundle verification
-  and Go regression checks.
+- Phase 8I.1: documentation-only bridge decision checks cover
+  [BRIDGE_DECISION.md](BRIDGE_DECISION.md), selected local subprocess
+  request/response model, rejected IPC/in-process/HTTP/direct-SQLite/browser
+  alternatives, schema/error/cancellation principles, first read-only future
+  slice and audits that no Go, Swift, Xcode project, dependency, generated code
+  or runtime bridge changed.
+- Phase 8I.2+: bridge implementation milestones must add bridge-specific tests
+  for each narrow slice while retaining Xcode build/manual launch when UI
+  changes, stale-process kill/relaunch when launching is in scope,
+  rebuilt-bundle verification and Go regression checks.
 - Phase 9: batch state machine tests.
 - Phase 10 tro di: manual validation co kiem soat cho Facebook adapter.

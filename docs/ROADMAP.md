@@ -402,7 +402,7 @@ Stop conditions: Need status persistence, Go integration, SQLite, import/export 
 
 ## Phase 8H - Lead interaction browser handoff
 
-Status: complete after Phase 8H acceptance checks pass. Phase 8I+ is next and remains incomplete.
+Status: complete after Phase 8H acceptance checks pass. Phase 8I.1 is next.
 
 Exact scope: Replace the old stateful Leads action with stateless `Tương tác` browser handoff using deterministic fixture source URLs and native SwiftUI `openURL`.
 
@@ -414,15 +414,41 @@ Tests: Swift interaction-state and URL handoff tests, Xcode build/test, bundle e
 
 Stop conditions: Need real lead loading, Go integration, production source URLs, browser automation, Facebook action automation, persistence, bridge, database path policy hoac live Facebook data.
 
-## Phase 8I+ - Bridge evaluation and narrow Go integration
+## Phase 8I.1 - Bridge evaluation and decision only
 
-Exact scope: Evaluate and select exactly one narrow bridge model before adding bridge-specific integration milestones for one request/response slice at a time.
+Status: complete after Phase 8I.1 acceptance checks pass. Phase 8I.2 is next and remains incomplete.
+
+Exact scope: Documentation-only evaluation of realistic SwiftUI-Go bridge options and selection of exactly one future bridge model.
+
+Protected areas: Khong implement bridge, khong Go/Swift source changes, khong Xcode project change, khong dependency, khong subprocess runtime, khong socket runtime, khong HTTP server, khong C binding, khong generated code, khong build script, khong shell build phase, khong database access, khong Facebook integration, khong arbitrary JSON command API.
+
+Acceptance criteria: [BRIDGE_DECISION.md](BRIDGE_DECISION.md) compares local subprocess, local IPC and in-process Go library binding against deterministic request/response, explicit schemas, error propagation, cancellation, crash isolation, no hidden network, no credential/browser transfer, ownership boundaries, build/Xcode complexity, packaging, Apple Silicon, testability, debugging, overhead, versioning, observability, fail-closed behavior, notarization/signing and narrow-slice fit; selects exactly one bridge.
+
+Tests: Documentation verification only: `git diff --check`, `git diff --stat`, `git status --short` and audits that no source/runtime/dependency changes were made.
+
+Stop conditions: Need implementation, broad API, live Facebook data, database path policy, packaging/signing/notarization implementation hoac bridge runtime beyond decision scope.
+
+## Phase 8I.2 - First read-only bridge slice
+
+Exact scope: Future implementation of one local subprocess request/response slice where Swift requests a deterministic Go core readiness value and Go returns a minimal typed response.
+
+Protected areas: Khong broad command bus, lead list/search API, persistence mutation, direct Swift SQLite access, hidden networking, Facebook automation, seller mode, migration execution, credential/cookie/browser-session transfer hoac business-rule duplication.
+
+Acceptance criteria: One typed versioned request and minimal transport-only response concept no broader than schema version, readiness status and core identity; bounded subprocess execution; explicit error propagation; explicit cancellation/timeout policy; no database mutation; no Facebook; no SearchProfile, lead data, persistence information, business-rule summary, capability inventory or product/domain data; tests cover Go adapter/schema, Swift decoding/error mapping and one narrow subprocess integration path.
+
+Tests: Bridge-specific Go unit/schema tests, Swift decoding tests, one subprocess integration test, Xcode build/manual launch when UI exposes it, Go `go test ./...`, Go `go vet ./...`, CLI output unchanged unless separately approved.
+
+Stop conditions: Need broad production workflow, lead list/search, Facebook adapter, production database path policy, mutating operation, package/signing/notarization expansion hoac unsupported bridge behavior.
+
+## Phase 8I.3+ - Later narrow Go integration slices
+
+Exact scope: Add later bridge slices only after Phase 8I.2 proves build integration, request serialization, response parsing, error propagation, cancellation policy, transport test parity and Go authority.
 
 Protected areas: Khong broad bridge API, arbitrary JSON maps, direct Swift SQLite access, hidden networking, Facebook automation, seller mode, migration execution, search/list expansion without separate milestone hoac business-rule duplication.
 
-Acceptance criteria: Bridge decision compares deterministic request/response behavior, no hidden network, no credential transfer, explicit schemas, error propagation, cancellation, build complexity, packaging, testing, crash isolation and Apple Silicon support. Each later integration slice has explicit schema, deterministic fixture-backed behavior, error propagation, cancellation policy, tests on both sides as needed, and no regression to Go core checks.
+Acceptance criteria: Each slice has explicit schema, deterministic fixture-backed behavior, bounded payloads, error propagation, cancellation policy, tests on both sides as needed, and no regression to Go core checks.
 
-Tests: Bridge-specific unit/integration tests, Xcode build/manual launch, stale-process kill before relaunch, Go `go test ./...`, `go vet ./...`, CLI output unchanged.
+Tests: Slice-specific bridge tests, Xcode build/manual launch when UI changes, stale-process kill before relaunch when launching is in scope, Go `go test ./...`, Go `go vet ./...`, CLI output unchanged unless separately approved.
 
 Stop conditions: Need broad production workflow, Facebook adapter, database path policy, packaging/signing/notarization hoac unsupported bridge behavior.
 

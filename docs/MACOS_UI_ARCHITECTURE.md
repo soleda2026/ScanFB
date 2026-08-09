@@ -61,16 +61,19 @@ Go owns:
 - Swift must not recompute summaries, deduplication, or blocklist outcomes.
 - Go must not own macOS visual layout or view-specific state.
 
-## Future Bridge Decision Boundary
+## Bridge Decision Boundary
 
-A later milestone must evaluate and select exactly one narrow integration model.
-No bridge mechanism is selected or implemented in Phase 8A or Phase 8B.
+Phase 8I.1 selects exactly one narrow integration model: local subprocess
+request/response between SwiftUI and a bundled Go helper. The decision is
+documented in [BRIDGE_DECISION.md](BRIDGE_DECISION.md). No bridge runtime,
+helper, build phase, package, socket, generated binding or schema
+implementation is added by the decision milestone.
 
-Candidate categories that may be evaluated later:
+Candidate categories evaluated:
 
-- C-compatible exported Go library;
-- subprocess with structured stdin/stdout;
-- local IPC boundary.
+- local subprocess with structured typed request/response;
+- local IPC boundary;
+- C-compatible exported Go library.
 
 Required evaluation criteria:
 
@@ -94,7 +97,7 @@ Explicitly rejected:
 - arbitrary JSON maps;
 - SQLite access directly from Swift;
 - exposing database-local IDs;
-- selecting a bridge without a separate milestone.
+- broad command bus APIs.
 
 ## Phase 8 UI Slices
 
@@ -126,8 +129,10 @@ Explicitly rejected:
 - Phase 8H: lead interaction browser handoff. Implemented for `Leads` only with
   deterministic synthetic HTTPS source URLs, validation and SwiftUI `openURL`;
   `Tương tác` is an action, not a state, and does not mutate interaction state.
-- Phase 8I+: bridge evaluation and, only after a bridge decision, narrow Go
-  integration milestones.
+- Phase 8I.1: bridge evaluation and decision only. Selects local subprocess
+  request/response for future typed SwiftUI-Go slices; no bridge runtime.
+- Phase 8I.2+: first read-only bridge slice and later narrow Go integration
+  milestones, each separately scoped.
 
 Each milestone must be independently buildable and manually testable.
 
@@ -321,7 +326,7 @@ Future SwiftUI milestones must include:
 
 ## Deferred Decisions
 
-- Bridge mechanism.
+- Bridge implementation.
 - Deployment target beyond the Phase 8B minimum.
 - Signing.
 - Notarization.
