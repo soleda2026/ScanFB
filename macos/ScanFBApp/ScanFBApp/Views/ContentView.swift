@@ -14,8 +14,12 @@ struct ContentView: View {
                 LeadsFixtureView()
             case .dryRun:
                 DryRunFixtureView()
-            case .groups, .blocklist, .settings:
+            case .groups:
                 PlaceholderDetailView(section: selection ?? AppSection.defaultSection)
+            case .blocklist:
+                BlocklistFixtureView()
+            case .settings:
+                SettingsFixtureView()
             }
         }
         .navigationTitle("ScanFB")

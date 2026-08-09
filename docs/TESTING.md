@@ -78,6 +78,26 @@ Phase 8E verifies the fixture-only Dry Run screen with these checks:
 - Stale-process termination, rebuilt-bundle launch verification and Go
   regression checks remain required.
 
+## Native macOS fixture Blocklist and Settings checks
+
+Phase 8F verifies the fixture-only Blocklist and Settings screens with these
+checks:
+
+- Swift unit tests cover exactly four synthetic blocklist entries, stable IDs
+  `block-sample-001` through `block-sample-004`, supported identity kinds only,
+  no display-name-only identity kind, deterministic dates, non-empty reasons,
+  `.invalid` URL display strings and no real Facebook domain.
+- Swift unit tests cover four settings sections in stable order, required
+  read-only rows, non-empty labels and values, Dry Run default `Bật`, maximum
+  groups `5`, Go bridge `Chưa kết nối`, Facebook integration `Chưa triển khai`,
+  SwiftUI direct SQLite access `Không`, deterministic repeated construction and
+  stable row order.
+- Manual checks cover visible `Dữ liệu minh họa` labels, sample-only
+  disclaimers, disabled blocklist actions, read-only settings presentation,
+  display-name-only identity not treated as authoritative, no live Facebook
+  links/data and unchanged `Nhóm` placeholder.
+- Build/test verification uses Xcode DerivedData outside the repository.
+
 ## Test matrix toi thieu
 
 | ID | Fixture | Expected |
@@ -156,7 +176,13 @@ Phase 8E verifies the fixture-only Dry Run screen with these checks:
   links, Xcode build/test, manual Dry Run validation, disabled placeholder
   action, stale-process kill/relaunch, rebuilt-bundle verification and Go
   regression checks.
-- Phase 8F-8G: fixture UI milestones must include deterministic fixture rendering/manual validation, sample/demo labeling, Vietnamese diacritic preservation, no live Facebook data claims, no direct SQLite access, no hidden networking, no seller mode, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
+- Phase 8F: fixture Blocklist and Settings tests cover typed fixture integrity,
+  exact blocklist IDs, supported stable identity kinds, no display-name-only
+  block identity, fixed dates, `.invalid` synthetic URL display, no real
+  Facebook domain, four read-only settings sections, required settings rows,
+  no writable setting state, Xcode build/test and no direct SQLite/networking
+  or package additions.
+- Phase 8G: fixture UI interaction milestones must include deterministic fixture rendering/manual validation, sample/demo labeling, Vietnamese diacritic preservation, no live Facebook data claims, no direct SQLite access, no hidden networking, no seller mode, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
 - Phase 8H: bridge evaluation tests are documentation/prototype checks only if explicitly scoped; bridge selection must not skip deterministic request/response, explicit schema, cancellation, error propagation, packaging, crash isolation and Apple Silicon considerations.
 - Phase 8I+: post-bridge integration milestones must add bridge-specific tests for each narrow slice while retaining Xcode build/manual launch, stale-process kill/relaunch, rebuilt-bundle verification and Go regression checks.
 - Phase 9: batch state machine tests.

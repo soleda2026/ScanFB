@@ -5,8 +5,8 @@
 This document records the native macOS presentation architecture for Phase 8.
 It records the Phase 8A architecture decision, the Phase 8B app-shell state,
 the Phase 8C static Overview fixture state, the Phase 8D fixture-only Leads
-presentation state, and the Phase 8E fixture-only Dry Run review state. Phase
-8C/8D/8E implement only sample presentation screens; they do not implement a
+presentation state, the Phase 8E fixture-only Dry Run review state, and the
+Phase 8F fixture-only Blocklist/Settings state. Phase 8C/8D/8E/8F implement only sample presentation screens; they do not implement a
 bridge, persistence wiring, Facebook integration, production UI features, or
 live data behavior.
 
@@ -112,7 +112,11 @@ Explicitly rejected:
   declared fixture category, one disabled placeholder action and no bridge,
   database, Facebook, networking, persistence, restore workflow or production
   controls.
-- Phase 8F: fixture settings and blocklist presentation.
+- Phase 8F: fixture settings and blocklist presentation. Implemented for
+  `Blocklist` and `Cài đặt` only with typed immutable fixture data, disabled
+  blocklist actions, read-only settings rows, no display-name-only block
+  identity, no bridge, database, Facebook, networking, persistence,
+  credentials, cookies, import/export, blocklist writes or settings writes.
 - Phase 8G: UI interaction state for viewed/contacted/ignored using in-memory fixture state only.
 - Phase 8H: bridge evaluation and architecture decision.
 - Phase 8I+: only after bridge decision, narrow Go integration milestones.
@@ -197,6 +201,25 @@ placeholders. Fixture data is not loaded from files, does not come from
 Facebook, does not use current time or randomness, and is not a future bridge
 schema.
 
+## Phase 8F Blocklist And Settings Fixture Requirements
+
+Phase 8F implements only:
+
+- `Blocklist` sample entries with exactly four synthetic identities;
+- `Cài đặt` read-only sample sections for scan defaults, privacy, data/storage
+  and integration status;
+- visible `Dữ liệu minh họa` labels and sample-only disclaimers;
+- disabled blocklist actions only.
+
+Blocklist fixture identity kinds must align with authoritative Go support:
+Facebook user ID, canonical profile URL and username. Display name is only a
+visible label and is not an authoritative block identity. The Settings fixture
+is read-only presentation and must not add toggles, forms, save/reset behavior,
+AppStorage, UserDefaults, persistence writes, direct SQLite access, bridge,
+Facebook integration, credentials or cookies. Nhóm remains placeholder.
+Fixture data is not loaded from files, does not come from Facebook, does not
+use current time or randomness, and is not a future bridge schema.
+
 ## Product UI Structure
 
 The intended high-level screens are:
@@ -220,7 +243,8 @@ behavior. Seller tabs and seller mode are forbidden.
 - Vietnamese diacritics must be preserved.
 - Fixture UI must not claim to be live Facebook data.
 - Fixture data should be clearly labeled as sample/demo data in manual validation builds.
-- Phase 8C Overview, Phase 8D Leads and Phase 8E Dry Run fixtures must also
+- Phase 8C Overview, Phase 8D Leads, Phase 8E Dry Run and Phase 8F
+  Blocklist/Settings fixtures must also
   state that they are not connected to the Go core and do not come from
   Facebook.
 

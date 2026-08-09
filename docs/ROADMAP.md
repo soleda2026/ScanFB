@@ -374,13 +374,15 @@ Stop conditions: Need real filter decisions, persistence, bridge, user edits hoa
 
 ## Phase 8F - Fixture settings and blocklist presentation
 
+Status: complete after Phase 8F acceptance checks pass. Phase 8G is next.
+
 Exact scope: Add deterministic fixture settings and blocklist screens.
 
 Protected areas: Khong persistence, SQLite direct access, real blocklist import/export, Facebook identity lookup, network, bridge, credentials, cookies hoac production settings writes.
 
-Acceptance criteria: Settings and blocklist are sample/demo only, local-first/privacy copy is visible where appropriate, display name is not represented as authoritative block identity.
+Acceptance criteria: Settings and blocklist are sample/demo only, local-first/privacy copy is visible where appropriate, display name is not represented as authoritative block identity, blocklist actions are disabled, settings are read-only, and SwiftUI does not own blocklist semantics.
 
-Tests: Xcode build, manual fixture validation, stale-process kill before relaunch, Go regression checks.
+Tests: Swift fixture tests, Xcode build/test, manual fixture validation after optional launch in a separate milestone, stale-process kill before relaunch when launching is in scope, Go regression checks when requested.
 
 Stop conditions: Need real settings storage, blocklist mutation, database path, bridge hoac identity resolution.
 

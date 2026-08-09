@@ -36,6 +36,16 @@
 		A10000000000000000000127 /* DryRunReasonListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000226 /* DryRunReasonListView.swift */; };
 		A10000000000000000000128 /* DryRunFixtureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000227 /* DryRunFixtureTests.swift */; };
 		A10000000000000000000129 /* DryRunFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000222 /* DryRunFixture.swift */; };
+		A10000000000000000000130 /* BlocklistFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000228 /* BlocklistFixture.swift */; };
+		A10000000000000000000131 /* SettingsFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000229 /* SettingsFixture.swift */; };
+		A10000000000000000000132 /* BlocklistFixtureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000230 /* BlocklistFixtureView.swift */; };
+		A10000000000000000000133 /* BlocklistEntryCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000231 /* BlocklistEntryCardView.swift */; };
+		A10000000000000000000134 /* SettingsFixtureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000232 /* SettingsFixtureView.swift */; };
+		A10000000000000000000135 /* SettingsSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000233 /* SettingsSectionView.swift */; };
+		A10000000000000000000136 /* BlocklistFixtureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000234 /* BlocklistFixtureTests.swift */; };
+		A10000000000000000000137 /* SettingsFixtureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000235 /* SettingsFixtureTests.swift */; };
+		A10000000000000000000138 /* BlocklistFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000228 /* BlocklistFixture.swift */; };
+		A10000000000000000000139 /* SettingsFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000229 /* SettingsFixture.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,6 +86,14 @@
 		A10000000000000000000225 /* DryRunPostCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DryRunPostCardView.swift; sourceTree = "<group>"; };
 		A10000000000000000000226 /* DryRunReasonListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DryRunReasonListView.swift; sourceTree = "<group>"; };
 		A10000000000000000000227 /* DryRunFixtureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DryRunFixtureTests.swift; sourceTree = "<group>"; };
+		A10000000000000000000228 /* BlocklistFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlocklistFixture.swift; sourceTree = "<group>"; };
+		A10000000000000000000229 /* SettingsFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFixture.swift; sourceTree = "<group>"; };
+		A10000000000000000000230 /* BlocklistFixtureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlocklistFixtureView.swift; sourceTree = "<group>"; };
+		A10000000000000000000231 /* BlocklistEntryCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlocklistEntryCardView.swift; sourceTree = "<group>"; };
+		A10000000000000000000232 /* SettingsFixtureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFixtureView.swift; sourceTree = "<group>"; };
+		A10000000000000000000233 /* SettingsSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSectionView.swift; sourceTree = "<group>"; };
+		A10000000000000000000234 /* BlocklistFixtureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlocklistFixtureTests.swift; sourceTree = "<group>"; };
+		A10000000000000000000235 /* SettingsFixtureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFixtureTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -133,6 +151,8 @@
 				A10000000000000000000507 /* Overview */,
 				A10000000000000000000508 /* Leads */,
 				A10000000000000000000509 /* DryRun */,
+				A10000000000000000000510 /* Blocklist */,
+				A10000000000000000000511 /* Settings */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -144,6 +164,8 @@
 				A10000000000000000000210 /* DashboardFixture.swift */,
 				A10000000000000000000216 /* LeadsFixture.swift */,
 				A10000000000000000000222 /* DryRunFixture.swift */,
+				A10000000000000000000228 /* BlocklistFixture.swift */,
+				A10000000000000000000229 /* SettingsFixture.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -155,6 +177,8 @@
 				A10000000000000000000215 /* DashboardFixtureTests.swift */,
 				A10000000000000000000221 /* LeadsFixtureTests.swift */,
 				A10000000000000000000227 /* DryRunFixtureTests.swift */,
+				A10000000000000000000234 /* BlocklistFixtureTests.swift */,
+				A10000000000000000000235 /* SettingsFixtureTests.swift */,
 			);
 			path = ScanFBAppTests;
 			sourceTree = "<group>";
@@ -199,6 +223,24 @@
 				A10000000000000000000226 /* DryRunReasonListView.swift */,
 			);
 			path = DryRun;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000510 /* Blocklist */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000230 /* BlocklistFixtureView.swift */,
+				A10000000000000000000231 /* BlocklistEntryCardView.swift */,
+			);
+			path = Blocklist;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000511 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000232 /* SettingsFixtureView.swift */,
+				A10000000000000000000233 /* SettingsSectionView.swift */,
+			);
+			path = Settings;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -322,6 +364,12 @@
 				A10000000000000000000125 /* DryRunTabsView.swift in Sources */,
 				A10000000000000000000126 /* DryRunPostCardView.swift in Sources */,
 				A10000000000000000000127 /* DryRunReasonListView.swift in Sources */,
+				A10000000000000000000130 /* BlocklistFixture.swift in Sources */,
+				A10000000000000000000131 /* SettingsFixture.swift in Sources */,
+				A10000000000000000000132 /* BlocklistFixtureView.swift in Sources */,
+				A10000000000000000000133 /* BlocklistEntryCardView.swift in Sources */,
+				A10000000000000000000134 /* SettingsFixtureView.swift in Sources */,
+				A10000000000000000000135 /* SettingsSectionView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -337,6 +385,10 @@
 				A10000000000000000000122 /* LeadsFixture.swift in Sources */,
 				A10000000000000000000128 /* DryRunFixtureTests.swift in Sources */,
 				A10000000000000000000129 /* DryRunFixture.swift in Sources */,
+				A10000000000000000000136 /* BlocklistFixtureTests.swift in Sources */,
+				A10000000000000000000137 /* SettingsFixtureTests.swift in Sources */,
+				A10000000000000000000138 /* BlocklistFixture.swift in Sources */,
+				A10000000000000000000139 /* SettingsFixture.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
