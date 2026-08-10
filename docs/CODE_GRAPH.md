@@ -31,6 +31,8 @@ flowchart TD
     FB --> RAW["RawPost mapping contract"]
     RAW --> APP
     APP --> LIFECYCLE["Phase 9A in-memory batch lifecycle"]
+    APP --> WATCHED_GROUPS["Phase 9B in-memory WatchedGroup collection"]
+    WATCHED_GROUPS --> DOMAIN
     PROFILE["SearchProfile"] --> DOMAIN
     DOMAIN --> TYPES["Domain types and reason codes"]
     BLOCKLIST["Blocklist identity primitives"] --> DOMAIN
@@ -52,7 +54,7 @@ flowchart TD
 - `cmd/scanfb-bridge-helper`: Phase 8I.2 one-request local subprocess helper that reads stdin, writes the machine response to stdout, writes bounded diagnostics to stderr and exits. Phase 8I.2a builds it during Debug app builds and copies it to `Contents/Helpers/scanfb-bridge-helper`.
 - `macos/ScanFBApp`: SwiftUI native macOS app shell implemented in Phase 8B, with Phase 8C static fixture Overview dashboard, Phase 8D fixture-only Leads tabs/cards, Phase 8E fixture-only Dry Run review tabs/cards, Phase 8F fixture-only Blocklist/Settings screens, Phase 8G session-only Leads interaction state, Phase 8H fixture source URL browser handoff and Phase 8I.2 Settings readiness row.
 - App/UI: owner cua views, tabs, lead cards, settings va user actions.
-- Application services: owner cua deterministic in-memory scan batch model, Phase 9A group-attempt lifecycle state machine, batch state va time window.
+- Application services: owner cua deterministic in-memory scan batch model, Phase 9A group-attempt lifecycle state machine, Phase 9B WatchedGroup collection, batch state va time window.
 - Use-case orchestration: owner cua glue logic giua completed application result, `BatchRecord` conversion va repository save boundary.
 - Domain: owner cua normalization contracts, SearchProfile, BuyerIntentClassifier, rule engine, geographic classifier, deduplication, lead aggregation va reason codes.
 - Persistence-facing contracts: owner cua completed batch snapshot contracts.
@@ -86,6 +88,8 @@ Phase 5A them `internal/application/evaluation_pipeline.go` cho deterministic in
 Phase 5B them `internal/application/scan_batch.go` cho deterministic in-memory manual batch model gom mot den nam explicit groups. Batch validate group identity va post/group consistency, flatten posts theo group order roi post order, goi Phase 5A pipeline mot lan va tao batch/per-group count summaries. Chua co Facebook collection, persistence, UI, CLI behavior, scheduling, retries, progress reporting, concurrency hoac network behavior.
 
 Phase 9A them `internal/application/group_lifecycle.go` cho deterministic in-memory lifecycle cua mot production-shaped scan batch dung dung 5 groups. Lifecycle preserve caller order, dung caller-supplied batch/attempt IDs, state set chi gom `pending`, `running`, `succeeded`, `failed`, `skipped` va `expired_at_day_boundary`, enforce one-running-at-a-time, khong auto retry, khong auto tao batch moi, va dung supplied time theo `Asia/Ho_Chi_Minh` cho day-boundary expiration. Chua co Facebook collection, persistence, SQLite schema/table, UI, bridge operation, scheduler, retry, goroutine/concurrency hoac call toi Phase 5B `RunScanBatch`.
+
+Phase 9B them `internal/domain/watched_group.go` va `internal/application/watched_group_collection.go` cho caller-supplied WatchedGroup identity, metadata, active/inactive lifecycle va deterministic in-memory insertion-order inspection. Collection khong gioi han tong so group, khong chon next five, khong dinh nghia queue ordering/cursor/rotation, khong goi `NewScanBatchLifecycle`, va khong co Facebook, persistence, SQLite, SwiftUI, bridge, scheduler, retry, goroutine/concurrency, networking hoac generated ID.
 
 Phase 5C them `internal/persistence/batch_record.go` cho completed scan batch snapshot contract. Contract gom opaque `BatchRecordID`, immutable-style `BatchRecord`, structural validation, deterministic converter tu `application.ScanBatchInput`/`ScanBatchResult` va save-only `BatchRepository.SaveBatch`. Chua co SQLite, schema, migration, file I/O, load/list/update/delete/search/paging API, ID generation, Facebook adapter, UI/CLI, concurrency hoac network behavior.
 

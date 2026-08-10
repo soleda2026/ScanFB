@@ -34,8 +34,8 @@ Facebook page reader
 Trong Go skeleton, cac layer duoc anh xa toi package:
 
 - `cmd/scanfb`: CLI entry point toi thieu.
-- `internal/domain`: entity, value object va invariant thuan.
-- `internal/application`: application services/use cases; phu thuoc domain, rules, dedup va blocklist. Phase 9A them Go-only in-memory lifecycle state machine cho mot batch production-shaped dung 5 group.
+- `internal/domain`: entity, value object va invariant thuan; Phase 9B them `WatchedGroup` value model.
+- `internal/application`: application services/use cases; phu thuoc domain, rules, dedup va blocklist. Phase 9A them Go-only in-memory lifecycle state machine cho mot batch production-shaped dung 5 group; Phase 9B them deterministic in-memory `WatchedGroupCollection`.
 - `internal/orchestration`: thin synchronous use cases ket noi completed application result voi persistence-facing contract.
 - `internal/rules`: deterministic buyer-intent, author, time va geographic rules.
 - `internal/dedup`: duplicate detection va lead aggregation.
@@ -55,6 +55,8 @@ SwiftUI la approved native macOS presentation direction cho Phase 8. Phase 8B ta
 Dieu phoi scan batch, time window, state machine va domain services. Day la noi noi adapter voi domain. Application khong import `internal/persistence` trong contract hien tai.
 
 Phase 9A them `ScanBatchLifecycle` trong Go application layer de model state transition cho mot production-shaped batch gom dung 5 watched groups. Lifecycle nay chi o in-memory, su dung caller-supplied batch/attempt IDs, preserve order, cho phep toi da mot `running` attempt, va khong goi `RunScanBatch`, Facebook adapter, persistence, bridge, UI, scheduler, retry hoac concurrency. Day-boundary handling dung supplied time, compare theo `Asia/Ho_Chi_Minh`, va expire unfinished attempts fail-closed.
+
+Phase 9B them `WatchedGroup` domain value va `WatchedGroupCollection` application service chi trong memory. Collection ho tro caller-supplied identity/time, metadata update, active/inactive state, lookup va stable insertion-order inspection cho so group khong gioi han. Phase nay khong chon next five groups, khong sort candidate cho scan, khong tao queue cursor, va khong goi Phase 9A lifecycle, Facebook, persistence, bridge, UI, scheduler, retry hoac concurrency.
 
 ### Use-case orchestration
 

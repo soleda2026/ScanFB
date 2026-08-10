@@ -482,15 +482,29 @@ Tests: Focused `internal/application` lifecycle tests cover exact five-group inv
 
 Stop conditions: Can Facebook adapter behavior, production group storage, persistence/schema changes, UI/bridge wiring, scheduler/retry/concurrency hoac Phase 5B integration.
 
-## Phase 9B+ - Group management, queue, UI and adapter slices
+## Phase 9B - WatchedGroup management foundation
 
-Exact scope: Future narrow milestones may add group storage/management, queue presentation, one-group collection integration and later five-group production scan orchestration after Phase 9A lifecycle remains stable.
+Status: complete after Phase 9B acceptance checks pass. Phase 9C+ remains incomplete.
 
-Protected areas: Khong gop vao Phase 9A; moi slice phai co scope, tests va boundaries rieng.
+Exact scope: Implement Go-only deterministic in-memory `WatchedGroup` value model va collection management cho caller-supplied identity/time, metadata, active/inactive lifecycle, lookup va stable insertion-order inspection voi tong so group khong gioi han.
 
-Acceptance criteria: Defined by each future milestone.
+Protected areas: Khong five-group selection, queue ordering/cursor/rotation, Phase 9A lifecycle invocation, Facebook, persistence, SQLite, SwiftUI, bridge, scheduler, retry, concurrency, networking hoac generated ID.
 
-Tests: Future group management, UI, adapter and orchestration tests by slice.
+Acceptance criteria: Invalid identity/time fail closed; duplicate local/authoritative identity khong overwrite; metadata va active state update preserve identity/createdAt; returned collection la defensive snapshot theo insertion order; `displayOrder` chi la presentation metadata.
+
+Tests: Focused domain/application tests cho identity, validation, duplicates, unlimited count, lookup, metadata, active/inactive, chronology, deterministic order, defensive copies va absence cua deferred behavior.
+
+Stop conditions: Can persistence/schema, queue policy, UI/bridge, Facebook adapter hoac production scan orchestration.
+
+## Phase 9C+ - Queue policy, UI, adapter and orchestration slices
+
+Exact scope: Future narrow milestones may define next-five selection policy, queue presentation, one-group collection integration and later five-group production scan orchestration after Phase 9A/9B remain stable.
+
+Protected areas: Khong gop queue policy, UI, Facebook adapter hoac orchestration vao Phase 9B; moi slice phai co scope, tests va boundaries rieng.
+
+Acceptance criteria: Defined by each future milestone. Phase 9C must explicitly decide candidate ordering, fairness, cursor/resume va whether presentation metadata participates in selection.
+
+Tests: Future queue, UI, adapter and orchestration tests by slice.
 
 Stop conditions: Can broad production workflow trong mot milestone.
 
