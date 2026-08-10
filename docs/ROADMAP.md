@@ -468,17 +468,31 @@ Tests: Slice-specific bridge tests, Xcode build/manual launch when UI changes, s
 
 Stop conditions: Need broad production workflow, Facebook adapter, database path policy, packaging/signing/notarization hoac unsupported bridge behavior.
 
-## Phase 9 - Group management va batch state machine
+## Phase 9A - Group attempt and batch lifecycle state machine
 
-Exact scope: Quan ly group, queue batch 5 group, attempt state.
+Status: complete after Phase 9A acceptance checks pass. Phase 9B+ remains incomplete.
 
-Protected areas: Khong doc Facebook that.
+Exact scope: Implement Go-only in-memory application-layer lifecycle state machine cho mot production-shaped batch dung 5 group, caller-supplied batch/attempt IDs, deterministic order, one-running-at-a-time va day-boundary expiration theo `Asia/Ho_Chi_Minh`.
 
-Acceptance criteria: Batch state dung khi success, failed, skipped va day boundary.
+Protected areas: Khong Facebook, SwiftUI, bridge operation, persistence, SQLite schema/table, production scan run, scheduler, retry, concurrency, networking, browser automation hoac Phase 5B merge.
 
-Tests: T19-T20 va state machine tests.
+Acceptance criteria: Batch requires exactly five distinct non-empty group IDs; attempts begin `pending`; valid transitions are `pending -> running`, `running -> succeeded`, `running -> failed`, `pending -> skipped`, `pending/running -> expired_at_day_boundary`; invalid transitions fail closed without partial mutation; T19 preserves failed group state; T20 expires unfinished attempts at local day boundary.
 
-Stop conditions: Can adapter Facebook de tiep tuc logic domain.
+Tests: Focused `internal/application` lifecycle tests cover exact five-group invariant, ordering, supplied attempt IDs, sequential execution, all valid/invalid transitions, summary reconciliation, defensive copies, deterministic supplied-time day-boundary behavior, T19 and T20.
+
+Stop conditions: Can Facebook adapter behavior, production group storage, persistence/schema changes, UI/bridge wiring, scheduler/retry/concurrency hoac Phase 5B integration.
+
+## Phase 9B+ - Group management, queue, UI and adapter slices
+
+Exact scope: Future narrow milestones may add group storage/management, queue presentation, one-group collection integration and later five-group production scan orchestration after Phase 9A lifecycle remains stable.
+
+Protected areas: Khong gop vao Phase 9A; moi slice phai co scope, tests va boundaries rieng.
+
+Acceptance criteria: Defined by each future milestone.
+
+Tests: Future group management, UI, adapter and orchestration tests by slice.
+
+Stop conditions: Can broad production workflow trong mot milestone.
 
 ## Phase 10 - Browser integration thu nghiem voi mot trang do nguoi dung mo
 

@@ -35,7 +35,7 @@ Trong Go skeleton, cac layer duoc anh xa toi package:
 
 - `cmd/scanfb`: CLI entry point toi thieu.
 - `internal/domain`: entity, value object va invariant thuan.
-- `internal/application`: application services/use cases; phu thuoc domain, rules, dedup va blocklist.
+- `internal/application`: application services/use cases; phu thuoc domain, rules, dedup va blocklist. Phase 9A them Go-only in-memory lifecycle state machine cho mot batch production-shaped dung 5 group.
 - `internal/orchestration`: thin synchronous use cases ket noi completed application result voi persistence-facing contract.
 - `internal/rules`: deterministic buyer-intent, author, time va geographic rules.
 - `internal/dedup`: duplicate detection va lead aggregation.
@@ -53,6 +53,8 @@ SwiftUI la approved native macOS presentation direction cho Phase 8. Phase 8B ta
 ### Application services
 
 Dieu phoi scan batch, time window, state machine va domain services. Day la noi noi adapter voi domain. Application khong import `internal/persistence` trong contract hien tai.
+
+Phase 9A them `ScanBatchLifecycle` trong Go application layer de model state transition cho mot production-shaped batch gom dung 5 watched groups. Lifecycle nay chi o in-memory, su dung caller-supplied batch/attempt IDs, preserve order, cho phep toi da mot `running` attempt, va khong goi `RunScanBatch`, Facebook adapter, persistence, bridge, UI, scheduler, retry hoac concurrency. Day-boundary handling dung supplied time, compare theo `Asia/Ho_Chi_Minh`, va expire unfinished attempts fail-closed.
 
 ### Use-case orchestration
 
