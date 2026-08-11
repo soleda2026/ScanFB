@@ -498,7 +498,7 @@ Stop conditions: Can persistence/schema, queue policy, UI/bridge, Facebook adapt
 
 ## Phase 9C - Deterministic five-group round-robin selection policy
 
-Status: complete after Phase 9C acceptance checks pass. Phase 9D+ remains incomplete.
+Status: complete after Phase 9C acceptance checks pass.
 
 Exact scope: Implement Go-only pure in-memory policy de chon dung 5 active WatchedGroups bang circular insertion-order traversal tu explicit caller-managed collection-position cursor va tra cursor ngay sau group thu nam.
 
@@ -510,15 +510,29 @@ Tests: Focused application tests cho initial/bounded cursor, exact-five, continu
 
 Stop conditions: Can persistence, lifecycle mapping, UI/bridge, Facebook adapter hoac production scan execution.
 
-## Phase 9D+ - UI, lifecycle wiring, adapter and orchestration slices
+## Phase 9D - Map FiveGroupSelection to ScanBatchLifecycle
 
-Exact scope: Future narrow milestones may map one selection to caller-supplied Phase 9A lifecycle identities, add queue presentation, one-group collection integration and later five-group production scan orchestration.
+Status: complete after Phase 9D acceptance checks pass.
 
-Protected areas: Khong gop UI, Facebook adapter, persistence hoac production execution vao Phase 9C; moi slice phai co scope, tests va boundaries rieng.
+Exact scope: Implement one Go-only deterministic application-layer mapper tu mot already-created exact-five `FiveGroupSelection` sang caller-supplied Phase 9A lifecycle inputs. Caller cung cap batch ID, `ScanWindow` va dung 5 attempt ID theo selection order.
+
+Protected areas: Khong re-select group, khong advance/persist cursor, khong start lifecycle transition, khong goi `RunScanBatch`, khong generated ID, Facebook, persistence, SQLite, SwiftUI, bridge, scheduler, retry, concurrency hoac networking.
+
+Acceptance criteria: Mapper preserve exact selected-group va attempt-ID order; malformed selection fail closed; Phase 9A batch/window/attempt validation errors propagate; result gom dung 5 `pending` attempts; input, selection va cursor khong mutate.
+
+Tests: Focused application tests cho valid mapping, order, pending state, exact attempt-ID count, malformed selection/identity, Phase 9A error propagation, deterministic repetition, defensive copies va absence cua execution/infrastructure behavior.
+
+Stop conditions: Can re-selection, generated ID, cursor ownership, lifecycle execution, Facebook, persistence hoac UI/bridge wiring.
+
+## Phase 9E+ - UI, bridge, adapter and orchestration slices
+
+Exact scope: Future narrow milestones may expose queue/lifecycle presentation through an approved bridge, add one-group collection integration and later five-group production scan orchestration.
+
+Protected areas: Khong gop UI, bridge, Facebook adapter, persistence hoac production execution vao Phase 9D; moi slice phai co scope, tests va boundaries rieng.
 
 Acceptance criteria: Defined by each future milestone.
 
-Tests: Future UI, lifecycle mapping, adapter and orchestration tests by slice.
+Tests: Future UI, bridge, adapter and orchestration tests by slice.
 
 Stop conditions: Can broad production workflow trong mot milestone.
 
