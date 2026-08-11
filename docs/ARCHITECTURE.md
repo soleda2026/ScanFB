@@ -84,7 +84,9 @@ Phase 5G2 them durable SQLite `SaveBatch` cho mot completed `BatchRecord` snapsh
 
 ### Facebook adapter
 
-Doc trang Facebook ma nguoi dung da dang nhap trong browser profile. Adapter chuyen DOM Facebook thanh `RawPost` va bao loi fail-closed. Adapter khong chua rule domain, khong biet MacBook-specific extraction va khong biet seller behavior.
+Future adapter se doc trang Facebook do nguoi dung da chuan bi trong browser profile. Phase 10A chua doc live DOM: `internal/facebook` chi nhan typed local `PreparedPageSnapshot`, validate fail-closed va map deterministic sang ordered `RawPost` values. Snapshot khong chua cookie, credential, session hoac browser process metadata. Live page acquisition va selector validation thuoc Phase 10B+.
+
+Facebook boundary khong chua rule domain, khong biet MacBook-specific extraction va khong biet seller behavior. Phase 10A khong goi application pipeline, lifecycle, persistence, UI hoac bridge.
 
 ## Dependency direction
 

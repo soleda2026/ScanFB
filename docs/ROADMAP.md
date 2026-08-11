@@ -536,17 +536,31 @@ Tests: Future UI, bridge, adapter and orchestration tests by slice.
 
 Stop conditions: Can broad production workflow trong mot milestone.
 
-## Phase 10 - Browser integration thu nghiem voi mot trang do nguoi dung mo
+## Phase 10A - Prepared-page extraction contract
 
-Exact scope: Adapter doc mot trang/group dang mo do nguoi dung chuan bi.
+Status: complete after Phase 10A acceptance checks pass.
 
-Protected areas: Khong auto login, khong mass profile open, khong batch automation.
+Exact scope: Implement Go-only typed local prepared-page fixture contract va deterministic fail-closed extraction sang ordered `RawPost` values cho mot caller-supplied watched group.
 
-Acceptance criteria: Adapter tao `RawPost` hoac fail-closed ro rang.
+Protected areas: Khong live browser/DOM, selector production, network, cookie, credential, session, WebKit, automation, scan/lifecycle execution, persistence, SwiftUI hoac bridge.
 
-Tests: Manual validation co log khong secret.
+Acceptance criteria: Snapshot version/group/capture va post body/time/URL/group consistency duoc validate; exact fixture order va supplied values duoc preserve; unavailable optional fields khong bi fabricate; malformed input tra zero posts va explicit error.
 
-Stop conditions: CAPTCHA, checkpoint, login required, DOM unknown.
+Tests: Focused fixture tests cho mapping, order, Vietnamese text, author identity, timestamp, URL, group consistency, determinism, immutability va absence cua deferred infrastructure.
+
+Stop conditions: Can live DOM detail, relative-time/browser-locale inference, third-party parser, browser/session access hoac Phase 11 execution.
+
+## Phase 10B+ - User-prepared browser/page acquisition and selector validation
+
+Exact scope: Future narrow milestones se acquire mot trang do nguoi dung da chuan bi va validate production selectors truoc khi map vao Phase 10A contract.
+
+Protected areas: Khong auto login, khong mass profile open, khong credential/cookie storage, khong batch automation va khong gop Phase 11 execution vao selector milestone.
+
+Acceptance criteria: Defined by each future browser acquisition/selector slice with explicit fail-closed behavior and controlled manual validation.
+
+Tests: Fixture regression plus controlled manual validation without secrets when live acquisition becomes approved.
+
+Stop conditions: CAPTCHA, checkpoint, login required, DOM unknown, credential/session ownership ambiguity hoac can broad browser automation.
 
 ## Phase 11 - Scan mot group thu cong
 

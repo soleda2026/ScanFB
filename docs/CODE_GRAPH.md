@@ -29,6 +29,8 @@ flowchart TD
     SETTINGS_FIXTURE["Settings fixture model and views"] --> MACOS_APP
     FB["Facebook adapter"] --> APP
     FB --> RAW["RawPost mapping contract"]
+    PREPARED_PAGE["Phase 10A typed local prepared snapshot"] --> PREPARED_EXTRACTOR["Fail-closed fixture extractor"]
+    PREPARED_EXTRACTOR --> RAW
     RAW --> APP
     APP --> LIFECYCLE["Phase 9A in-memory batch lifecycle"]
     APP --> WATCHED_GROUPS["Phase 9B in-memory WatchedGroup collection"]
@@ -63,7 +65,8 @@ flowchart TD
 - Domain: owner cua normalization contracts, SearchProfile, BuyerIntentClassifier, rule engine, geographic classifier, deduplication, lead aggregation va reason codes.
 - Persistence-facing contracts: owner cua completed batch snapshot contracts.
 - Persistence implementation: owner cua local storage implementation.
-- Facebook adapter: owner cua page reading, DOM parsing va fail-closed adapter errors.
+- Facebook adapter: future owner cua user-prepared page reading, DOM parsing va fail-closed adapter errors; Phase 10A chua implement live reading.
+- Prepared-page fixture extractor: Phase 10A owner cua typed local snapshot validation va deterministic ordered `RawPost` mapping; no live DOM/browser edge.
 - SwiftUI shell: owner cua native windows, navigation, presentation state va accessibility.
 - Overview fixture model/views: SwiftUI-only presentation nodes for Phase 8C sample dashboard; no edge to Go core.
 - Leads fixture model/views: SwiftUI-only presentation nodes for Phase 8D buyer lead tabs/cards; no edge to Go core.
@@ -98,6 +101,8 @@ Phase 9B them `internal/domain/watched_group.go` va `internal/application/watche
 Phase 9C them `internal/application/five_group_selection.go` cho pure deterministic selection tu WatchedGroup snapshot. Selector bat dau tai explicit caller-managed collection-position cursor, traverses toi da mot circular cycle theo insertion order, skip inactive, tra dung 5 distinct active groups va next cursor ngay sau group thu nam. Insufficient active groups fail closed; display/time metadata khong sort; cursor khong persist; khong co lifecycle construction, generated ID, scan execution, Facebook, persistence, SQLite, SwiftUI, bridge, scheduler, retry, goroutine/concurrency hoac networking.
 
 Phase 9D them `internal/application/selection_lifecycle.go` cho deterministic mapping tu mot approved `FiveGroupSelection` sang `ScanBatchLifecycle`. Mapper preserve exact selection order, ghep dung 5 caller-supplied attempt ID theo index va delegate batch ID, `ScanWindow` va attempt validation cho Phase 9A constructor. Mapper khong re-select, khong doc collection, khong dung/advance cursor, khong start attempt, khong chay scan, khong tao ID va khong co Facebook, persistence, SQLite, SwiftUI, bridge, scheduler, retry, goroutine/concurrency hoac networking.
+
+Phase 10A them `internal/facebook/prepared_page.go` cho typed local `PreparedPageSnapshot` va `ExtractPreparedPage`. Extractor validate schema version, caller-supplied group/capture metadata, body, absolute RFC3339 timestamp, optional absolute HTTPS post URL va embedded group consistency; output la ordered `[]domain.RawPost`. Phase nay khong parse live Facebook DOM, khong acquire browser page, khong co cookie/credential/session/network, khong goi scan/lifecycle va khong co persistence, SwiftUI hoac bridge behavior.
 
 Phase 5C them `internal/persistence/batch_record.go` cho completed scan batch snapshot contract. Contract gom opaque `BatchRecordID`, immutable-style `BatchRecord`, structural validation, deterministic converter tu `application.ScanBatchInput`/`ScanBatchResult` va save-only `BatchRepository.SaveBatch`. Chua co SQLite, schema, migration, file I/O, load/list/update/delete/search/paging API, ID generation, Facebook adapter, UI/CLI, concurrency hoac network behavior.
 

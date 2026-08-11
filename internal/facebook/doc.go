@@ -1,4 +1,5 @@
-// Package facebook will own the outer adapter boundary for Facebook and browser reading.
+// Package facebook owns the outer adapter boundary for prepared Facebook page data.
 //
-// Domain must not import this package. Phase 1 intentionally does not implement a browser adapter.
+// Phase 10A accepts typed local snapshots only. Live browser acquisition and DOM selector
+// validation remain deferred, and domain must not import this package.
 package facebook
