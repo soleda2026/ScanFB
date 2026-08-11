@@ -580,7 +580,7 @@ Stop condition reached: visible content is primarily client-rendered and absent 
 
 ## Phase 10B2b - Production selector implementation
 
-Status: incomplete and blocked by Phase 10B2a evidence.
+Status: incomplete and still blocked. Phase 10B2c approves only a future rendered-DOM acquisition probe; selectors require successful acquisition plus separate redacted evidence.
 
 Exact scope: Do not begin until a separate milestone approves and validates a bounded read-only acquisition representation that actually contains stable post-level DOM evidence.
 
@@ -591,6 +591,36 @@ Acceptance criteria: Not defined by Phase 10B2a; current `tab.source()` evidence
 Tests: Deferred with implementation.
 
 Stop conditions: Acquisition lacks stable post container, body, author, absolute timestamp or permalink/ID; requires forbidden browser access; DOM remains unknown.
+
+## Phase 10B2c - Rendered-DOM acquisition decision
+
+Status: complete after documentation verification.
+
+Exact scope: Compare realistic Safari rendered-DOM mechanisms against one-shot active-tab, permission, privacy, bounds, packaging, sandbox and testability requirements. Select one future acquisition mechanism without implementing it.
+
+Decision: APPROVE only fixed, read-only page-side JavaScript executed through Safari Apple Events against current tab of the front window. User-trigger, exact HTTPS URL validation, finite output, direct owned `/usr/bin/osascript`, explicit timeout/cancellation and fail-closed Safari developer-setting/TCC errors are mandatory. See [SAFARI_RENDERED_DOM_ACQUISITION_DECISION.md](SAFARI_RENDERED_DOM_ACQUISITION_DECISION.md).
+
+Rejected: WebDriver/Web Inspector automation path, Safari extension, Accessibility/System Events, embedded WebKit, Safari profile/session/cache/database scraping and hidden listener. Reasons include isolated automation windows/local server, no documented attach API, persistent browser permission surface, broad control, separate browsing context, private browser-file access or explicit no-listener conflict.
+
+Protected areas: Khong Go/Swift/Xcode/bridge/runtime code, entitlement, Safari setting change, live Safari execution, production selector, `RawPost`, Phase 10A extraction, Phase 11, persistence, cookie/session/profile access, browser mutation, extension, Accessibility, WebKit hoac network listener.
+
+Tests: Documentation/source audit, Go regression, vet, CLI output, diff/status and official-source link review.
+
+Stop conditions: Official Apple evidence khong support exact mechanism; future slice needs arbitrary JavaScript, mutation, cookie/storage, browser files, listener, extension, Accessibility, WebKit, unbounded output, multiple tabs or background polling.
+
+## Phase 10B2d - Bounded Safari rendered-DOM acquisition probe
+
+Status: incomplete.
+
+Exact scope: Future acquisition-only implementation of the Phase 10B2c-approved mechanism. Define one fixed read-only page-side script, exact finite decoded/transport bounds, current-tab URL validation, direct-process timeout/cancellation, TCC/Safari-setting errors, `NSAppleEventsUsageDescription` applicability, packaged `osascript` TCC/signing attribution, final Hardened Runtime/App Sandbox policy, any narrowly required Safari automation entitlement, test seam and one separately approved user-guided validation.
+
+Protected areas: Khong production selector/parser, `RawPost`, Phase 10A automatic extraction, Phase 11, browser mutation/navigation/scroll/click/refresh, cookie/storage/session/profile access, extension, Accessibility, WebKit, listener, polling, retry, broad bridge/UI wiring hoac persistence.
+
+Acceptance criteria: One explicit call can fail closed or return one bounded rendered-DOM snapshot from exactly the prepared current Safari tab without private-state access or mutation; automated tests need no private Facebook fixture. Successful acquisition alone does not approve selectors.
+
+Tests: Fixed-script forbidden-token audit, exact command/target tests, strict response/bounds, URL, TCC/developer-setting, packaged subprocess attribution, start/nonzero/timeout/cancellation errors, production-source boundary audit, full Go regression/vet/CLI and separately approved redacted manual validation.
+
+Stop conditions: Needs arbitrary script input, unstable target ownership, unbounded DOM, session/profile access, network, forbidden browser technology, source mutation or selector decisions.
 
 ## Phase 11 - Scan mot group thu cong
 
