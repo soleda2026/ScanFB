@@ -550,15 +550,31 @@ Tests: Focused fixture tests cho mapping, order, Vietnamese text, author identit
 
 Stop conditions: Can live DOM detail, relative-time/browser-locale inference, third-party parser, browser/session access hoac Phase 11 execution.
 
-## Phase 10B+ - User-prepared browser/page acquisition and selector validation
+## Phase 10B1 - Safari user-prepared active-tab acquisition probe
 
-Exact scope: Future narrow milestones se acquire mot trang do nguoi dung da chuan bi va validate production selectors truoc khi map vao Phase 10A contract.
+Status: complete after Phase 10B1 acceptance checks pass; manual live Safari validation remains deferred and Phase 10B2 remains incomplete.
+
+Exact scope: Implement mot Safari-only, user-triggered boundary doc URL, optional title va bounded page source cua dung current tab trong front Safari window. Nguoi dung tu mo Safari, dang nhap, dieu huong va de tab mong muon active; timestamp do caller cung cap.
+
+Protected areas: Khong production selector, `RawPost` mapping, Phase 10A automatic extraction, Phase 11 execution, auto-login/navigation/tab switching/scrolling/clicking/polling, batch automation, Accessibility/UI scripting, WebKit/extension, network/listener, cookie/credential/session/Keychain/profile/history/cache access, SwiftUI, bridge hoac persistence.
+
+Acceptance criteria: Direct `/usr/bin/osascript` JXA invocation chi doc active tab; output chi gom URL/title/bounded source/caller timestamp; absolute HTTPS URL va 4 MiB decoded-content bound fail closed; stdout/stderr tach rieng; timeout, cancellation, TCC permission, process, tab va malformed/content errors explicit.
+
+Tests: Pure parser va injected runner tests cover exact preservation, bounds, URL validation, deterministic parsing, direct executable/arguments, stdout/stderr separation, timeout/cancellation, permission/process/tab errors va deferred-boundary audit. Khong launch Safari tu dong; live validation can user-guided approval rieng.
+
+Stop conditions: Can Accessibility/UI scripting, extension, WebKit, browser profile/session storage, hidden networking, production DOM selector hoac Phase 11 execution.
+
+## Phase 10B2 - Production selector validation on one user-prepared Facebook group page
+
+Status: incomplete.
+
+Exact scope: Future narrow milestone validate production selectors tren mot page Facebook group do nguoi dung da chuan bi, sau khi Phase 10B1 acquisition duoc manual validate.
 
 Protected areas: Khong auto login, khong mass profile open, khong credential/cookie storage, khong batch automation va khong gop Phase 11 execution vao selector milestone.
 
-Acceptance criteria: Defined by each future browser acquisition/selector slice with explicit fail-closed behavior and controlled manual validation.
+Acceptance criteria: Defined by a separate selector milestone with explicit fail-closed behavior and controlled manual validation.
 
-Tests: Fixture regression plus controlled manual validation without secrets when live acquisition becomes approved.
+Tests: Fixture regression plus controlled manual validation without secrets when selector work becomes approved.
 
 Stop conditions: CAPTCHA, checkpoint, login required, DOM unknown, credential/session ownership ambiguity hoac can broad browser automation.
 

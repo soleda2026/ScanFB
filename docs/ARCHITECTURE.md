@@ -84,9 +84,9 @@ Phase 5G2 them durable SQLite `SaveBatch` cho mot completed `BatchRecord` snapsh
 
 ### Facebook adapter
 
-Future adapter se doc trang Facebook do nguoi dung da chuan bi trong browser profile. Phase 10A chua doc live DOM: `internal/facebook` chi nhan typed local `PreparedPageSnapshot`, validate fail-closed va map deterministic sang ordered `RawPost` values. Snapshot khong chua cookie, credential, session hoac browser process metadata. Live page acquisition va selector validation thuoc Phase 10B+.
+Phase 10A nhan typed local `PreparedPageSnapshot`, validate fail-closed va map deterministic sang ordered `RawPost` values. Phase 10B1 them mot Safari-only acquisition boundary: explicit caller action goi truc tiep `/usr/bin/osascript` bang JXA, doc chi `currentTab` cua front Safari window, va tra URL/title/page source gioi han cung caller-supplied `capturedAt`. Nguoi dung so huu viec mo Safari, dang nhap, dieu huong va chon active tab. Adapter khong dung shell, Accessibility/UI scripting, WebKit, extension, network/listener, khong auto-login/navigation/tab switching/scrolling/polling, va khong doc cookie, credential, session, Keychain, profile, history hoac cache. stdout machine response va bounded stderr diagnostics tach rieng; raw stderr chi dung noi bo de classify loi va khong duoc tra ve caller. Timeout/cancellation chi ket thuc process acquisition do call do so huu. Apple Events Automation permission la dependency macOS explicit va bi tu choi thi fail closed.
 
-Facebook boundary khong chua rule domain, khong biet MacBook-specific extraction va khong biet seller behavior. Phase 10A khong goi application pipeline, lifecycle, persistence, UI hoac bridge.
+Phase 10B1 chi acquire mot bounded page snapshot; no khong claim production Facebook DOM selectors, khong map sang `RawPost`, khong goi Phase 10A extraction, application pipeline, lifecycle, persistence, UI hoac bridge. Production selector validation thuoc Phase 10B2. Facebook boundary khong chua rule domain, khong biet MacBook-specific extraction va khong biet seller behavior.
 
 ## Dependency direction
 
