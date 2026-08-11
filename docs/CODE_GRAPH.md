@@ -34,6 +34,7 @@ flowchart TD
     RENDERED_DOM_DECISION["Phase 10B2c rendered-DOM decision"] -.approves future bounded Apple Events probe.-> SAFARI_ACTIVE_TAB
     RENDERED_DOM["Phase 10B2d bounded rendered-DOM snapshot"] --> FB
     RENDERED_DOM_DECISION -.implemented by.-> RENDERED_DOM
+    RENDERED_DOM_RECON["Phase 10B2e rendered-DOM reconnaissance: inconclusive"] -.retained no post-level evidence.-> RENDERED_DOM
     PREPARED_PAGE["Phase 10A typed local prepared snapshot"] --> PREPARED_EXTRACTOR["Fail-closed fixture extractor"]
     PREPARED_EXTRACTOR --> RAW
     RAW --> APP
@@ -117,7 +118,9 @@ Phase 10B2a them docs-only [FACEBOOK_SAFARI_DOM_RECONNAISSANCE.md](FACEBOOK_SAFA
 
 Phase 10B2c them docs-only [SAFARI_RENDERED_DOM_ACQUISITION_DECISION.md](SAFARI_RENDERED_DOM_ACQUISITION_DECISION.md). Decision approve mot future acquisition-only node dung fixed read-only page-side JavaScript qua Safari Apple Events tren exactly one current tab, bounded va fail closed. Dotted decision edge khong phai runtime edge: chua co implementation, entitlement, Xcode change, selector, `RawPost`, pipeline, persistence, SwiftUI/bridge behavior, extension, Accessibility, WebKit hoac network listener.
 
-Phase 10B2d them `internal/facebook/safari_rendered_dom.go` cho separate acquisition-only runtime node. `AcquireSafariActiveTabRenderedDOM` executes one fixed outerHTML expression tren front-window current tab, preserves exact HTTPS URL/title/rendered document/caller timestamp, caps decoded DOM tai 8 MiB va stdout transport tai 50,397,184 bytes, va reuse owned-process timeout/cancellation plus bounded stderr. Node khong parse Facebook structure, khong tao selector/`RawPost`, khong goi Phase 10A/11 va khong co browser mutation, private browser state, network/listener, Accessibility/System Events, extension/WebKit, persistence, SwiftUI hoac bridge edge. Automated tests pass; live validation va separate redacted reconnaissance van pending.
+Phase 10B2d them `internal/facebook/safari_rendered_dom.go` cho separate acquisition-only runtime node. `AcquireSafariActiveTabRenderedDOM` executes one fixed outerHTML expression tren front-window current tab, preserves exact HTTPS URL/title/rendered document/caller timestamp, caps decoded DOM tai 8 MiB va stdout transport tai 50,397,184 bytes, va reuse owned-process timeout/cancellation plus bounded stderr. Node khong parse Facebook structure, khong tao selector/`RawPost`, khong goi Phase 10A/11 va khong co browser mutation, private browser state, network/listener, Accessibility/System Events, extension/WebKit, persistence, SwiftUI hoac bridge edge. Automated tests va user-guided live validation pass; Phase 10B2e separate redacted reconnaissance stops inconclusive.
+
+Phase 10B2e them docs-only [FACEBOOK_SAFARI_RENDERED_DOM_RECONNAISSANCE.md](FACEBOOK_SAFARI_RENDERED_DOM_RECONNAISSANCE.md) sau exactly one successful production acquisition tren user-confirmed Facebook group tab. Temporary in-memory analyzer output was filtered to a pass summary, nen no post-container/permalink/body/author/machine-time/traversal counts survived. Reconnaissance stops inconclusive, adds no selector/`RawPost` edge and keeps Phase 10B2b blocked.
 
 Phase 5C them `internal/persistence/batch_record.go` cho completed scan batch snapshot contract. Contract gom opaque `BatchRecordID`, immutable-style `BatchRecord`, structural validation, deterministic converter tu `application.ScanBatchInput`/`ScanBatchResult` va save-only `BatchRepository.SaveBatch`. Chua co SQLite, schema, migration, file I/O, load/list/update/delete/search/paging API, ID generation, Facebook adapter, UI/CLI, concurrency hoac network behavior.
 

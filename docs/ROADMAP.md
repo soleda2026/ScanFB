@@ -610,7 +610,7 @@ Stop conditions: Official Apple evidence khong support exact mechanism; future s
 
 ## Phase 10B2d - Bounded Safari rendered-DOM acquisition probe
 
-Status: implementation complete after automated acceptance; user-guided live Safari validation remains pending.
+Status: complete after automated acceptance and successful user-guided live Safari validation. The validated rendered document was approximately 2.9 MiB.
 
 Exact scope: Acquisition-only implementation of the Phase 10B2c-approved mechanism. `AcquireSafariActiveTabRenderedDOM` executes fixed read-only `document.documentElement ? document.documentElement.outerHTML : ""` through Safari Apple Events on exactly the current tab of the front window. It returns exact HTTPS URL, optional title, rendered document and caller-supplied capture time with an 8 MiB decoded limit, 50,397,184-byte stdout envelope, 16 KiB stderr cap and 5-second timeout.
 
@@ -618,11 +618,27 @@ Protected areas: Khong production selector/parser, `RawPost`, Phase 10A automati
 
 Acceptance criteria: Automated synthetic parser/runner/boundary tests pass for exact current-tab targeting, fixed script, strict response, URL, decoded/transport limits, explicit process/TCC/Safari-setting errors, timeout/cancellation and forbidden-behavior audits. Successful acquisition alone does not approve selectors.
 
-Tests: Fixed-script forbidden-token audit, exact command/target tests, strict response/bounds, URL, TCC/developer-setting, start/nonzero/timeout/cancellation errors, production-source boundary audit and full Go regression/vet/CLI. Packaged subprocess attribution remains deferred; one separately approved user-guided live validation is still required before rendered-DOM reconnaissance.
+Tests: Fixed-script forbidden-token audit, exact command/target tests, strict response/bounds, URL, TCC/developer-setting, start/nonzero/timeout/cancellation errors, production-source boundary audit and full Go regression/vet/CLI. User-guided validation confirmed one-shot read-only acquisition from the expected active Facebook group tab without printing raw DOM. Packaged subprocess attribution remains deferred.
 
 Stop conditions: Needs arbitrary script input, unstable target ownership, unbounded DOM, session/profile access, network, forbidden browser technology, source mutation or selector decisions.
 
-Next milestone: after user-guided live validation succeeds, run a separate redacted rendered-DOM reconnaissance. Phase 10B2b production selectors remain blocked until that evidence identifies stable post-level structure.
+Next milestone: Phase 10B2e performs separate redacted rendered-DOM reconnaissance. Phase 10B2b production selectors remain blocked until that evidence identifies stable post-level structure.
+
+## Phase 10B2e - One-page rendered-DOM reconnaissance
+
+Status: complete with STOP/INCONCLUSIVE result after exactly one acquisition.
+
+Exact scope: Run only committed `AcquireSafariActiveTabRenderedDOM` once against one user-prepared active Facebook group tab and analyze private rendered DOM in memory for bounded redacted post-container, permalink, body, author, machine timestamp, group identity and traversal evidence.
+
+Result: Acquisition and strict Facebook group URL guard passed, but the command-output filter retained only the passing test summary and discarded the redacted structural report. Group identity is STRONG. All post-level concepts are NOT FOUND in retained evidence; unavailable counts are not treated as zero or proof of absence. See [FACEBOOK_SAFARI_RENDERED_DOM_RECONNAISSANCE.md](FACEBOOK_SAFARI_RENDERED_DOM_RECONNAISSANCE.md).
+
+Protected areas: No second acquisition, production selector/parser, `RawPost`, Phase 10A/11, private fixture, browser mutation, alternate browser mechanism, dependency, persistence, SQLite, SwiftUI, Xcode or bridge.
+
+Acceptance result: Fail closed. Phase 10B2b remains blocked because the proceed bar requires STRONG retained evidence for every critical post field and sufficient traversal order.
+
+Tests: Existing Go regression/vet/CLI plus documentation and repository privacy audits. No raw rendered DOM or private Facebook value entered the repository.
+
+Stop condition reached: A second acquisition would be required just to recover the first run's missing redacted metadata. Any repeat must be a separately approved reconnaissance milestone, not an automatic retry.
 
 ## Phase 11 - Scan mot group thu cong
 
