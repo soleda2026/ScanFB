@@ -88,6 +88,8 @@ Phase 10A nhan typed local `PreparedPageSnapshot`, validate fail-closed va map d
 
 Phase 10B1 chi acquire mot bounded page snapshot; no khong claim production Facebook DOM selectors, khong map sang `RawPost`, khong goi Phase 10A extraction, application pipeline, lifecycle, persistence, UI hoac bridge. Production selector validation thuoc Phase 10B2. Facebook boundary khong chua rule domain, khong biet MacBook-specific extraction va khong biet seller behavior.
 
+Phase 10B1 manual validation da thanh cong tren mot user-prepared Facebook group page voi source khoang 1.5-1.6 MB, duoi decoded bound 4 MiB. Phase 10B2a read-only reconnaissance tren dung mot page cho thay `tab.source()` chi expose HTML/bootstrap shell: khong co stable post container, permalink/ID, body, author hoac absolute timestamp marker de tao fail-closed selector. Vi vay Phase 10B2a la blocked/inconclusive va khong co edge moi tu Safari snapshot toi `RawPost`; Phase 10B2b production selector khong duoc bat dau tren acquisition source hien tai.
+
 ## Dependency direction
 
 ```text

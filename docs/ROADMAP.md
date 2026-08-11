@@ -552,7 +552,7 @@ Stop conditions: Can live DOM detail, relative-time/browser-locale inference, th
 
 ## Phase 10B1 - Safari user-prepared active-tab acquisition probe
 
-Status: complete after Phase 10B1 acceptance checks pass; manual live Safari validation remains deferred and Phase 10B2 remains incomplete.
+Status: complete, including successful manual live Safari validation on one user-prepared Facebook group page. Acquired source was approximately 1.5-1.6 MB, below the 4 MiB decoded-content bound.
 
 Exact scope: Implement mot Safari-only, user-triggered boundary doc URL, optional title va bounded page source cua dung current tab trong front Safari window. Nguoi dung tu mo Safari, dang nhap, dieu huong va de tab mong muon active; timestamp do caller cung cap.
 
@@ -560,23 +560,37 @@ Protected areas: Khong production selector, `RawPost` mapping, Phase 10A automat
 
 Acceptance criteria: Direct `/usr/bin/osascript` JXA invocation chi doc active tab; output chi gom URL/title/bounded source/caller timestamp; absolute HTTPS URL va 4 MiB decoded-content bound fail closed; stdout/stderr tach rieng; timeout, cancellation, TCC permission, process, tab va malformed/content errors explicit.
 
-Tests: Pure parser va injected runner tests cover exact preservation, bounds, URL validation, deterministic parsing, direct executable/arguments, stdout/stderr separation, timeout/cancellation, permission/process/tab errors va deferred-boundary audit. Khong launch Safari tu dong; live validation can user-guided approval rieng.
+Tests: Pure parser va injected runner tests cover exact preservation, bounds, URL validation, deterministic parsing, direct executable/arguments, stdout/stderr separation, timeout/cancellation, permission/process/tab errors va deferred-boundary audit. User-guided live validation da xac nhan exact active-tab acquisition ma khong print raw HTML.
 
 Stop conditions: Can Accessibility/UI scripting, extension, WebKit, browser profile/session storage, hidden networking, production DOM selector hoac Phase 11 execution.
 
-## Phase 10B2 - Production selector validation on one user-prepared Facebook group page
+## Phase 10B2a - One-page live Facebook DOM reconnaissance
 
-Status: incomplete.
+Status: blocked/inconclusive after exactly one read-only acquisition. The expected active group page was present, but Safari `tab.source()` did not represent the visible feed sufficiently for fail-closed post selectors.
 
-Exact scope: Future narrow milestone validate production selectors tren mot page Facebook group do nguoi dung da chuan bi, sau khi Phase 10B1 acquisition duoc manual validate.
+Exact scope: Docs-only redacted inspection of one user-prepared Facebook group page source for semantic post container, permalink/ID, body, author, absolute timestamp, group identity and visible ordering evidence.
 
-Protected areas: Khong auto login, khong mass profile open, khong credential/cookie storage, khong batch automation va khong gop Phase 11 execution vao selector milestone.
+Protected areas: Khong production selector/parser, `RawPost`, Phase 10A extraction, Phase 11, repository fixture/content, browser mutation, auto login/navigation/scroll/click/refresh/poll/retry, cookie/session/profile access, networking, SwiftUI, bridge hoac persistence.
 
-Acceptance criteria: Defined by a separate selector milestone with explicit fail-closed behavior and controlled manual validation.
+Acceptance result: Active-tab HTTPS URL provided strong page-level group identity, but post container, permalink/ID, body, author, timestamp and post ordering evidence were not found. Generic bootstrap symbols were rejected as unstable/unattributed. See [FACEBOOK_SAFARI_DOM_RECONNAISSANCE.md](FACEBOOK_SAFARI_DOM_RECONNAISSANCE.md).
 
-Tests: Fixture regression plus controlled manual validation without secrets when selector work becomes approved.
+Tests: Documentation consistency plus existing Go regression, vet and CLI checks. Live source remained temporary outside the repository and no private values were documented.
 
-Stop conditions: CAPTCHA, checkpoint, login required, DOM unknown, credential/session ownership ambiguity hoac can broad browser automation.
+Stop condition reached: visible content is primarily client-rendered and absent from `tab.source()`; reliable analysis would require a separately approved acquisition-decision milestone.
+
+## Phase 10B2b - Production selector implementation
+
+Status: incomplete and blocked by Phase 10B2a evidence.
+
+Exact scope: Do not begin until a separate milestone approves and validates a bounded read-only acquisition representation that actually contains stable post-level DOM evidence.
+
+Protected areas: Khong auto login, credential/cookie/session storage, broad browser automation, batch automation, Phase 11 execution hoac selector implementation based on obfuscated/presentation-only markers.
+
+Acceptance criteria: Not defined by Phase 10B2a; current `tab.source()` evidence is insufficient.
+
+Tests: Deferred with implementation.
+
+Stop conditions: Acquisition lacks stable post container, body, author, absolute timestamp or permalink/ID; requires forbidden browser access; DOM remains unknown.
 
 ## Phase 11 - Scan mot group thu cong
 

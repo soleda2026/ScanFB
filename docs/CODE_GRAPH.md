@@ -30,6 +30,7 @@ flowchart TD
     FB["Facebook adapter"] --> APP
     FB --> RAW["RawPost mapping contract"]
     SAFARI_ACTIVE_TAB["Phase 10B1 Safari active-tab snapshot"] --> FB
+    DOM_RECON["Phase 10B2a source reconnaissance: blocked"] -.documents missing post DOM.-> SAFARI_ACTIVE_TAB
     PREPARED_PAGE["Phase 10A typed local prepared snapshot"] --> PREPARED_EXTRACTOR["Fail-closed fixture extractor"]
     PREPARED_EXTRACTOR --> RAW
     RAW --> APP
@@ -107,6 +108,8 @@ Phase 9D them `internal/application/selection_lifecycle.go` cho deterministic ma
 Phase 10A them `internal/facebook/prepared_page.go` cho typed local `PreparedPageSnapshot` va `ExtractPreparedPage`. Extractor validate schema version, caller-supplied group/capture metadata, body, absolute RFC3339 timestamp, optional absolute HTTPS post URL va embedded group consistency; output la ordered `[]domain.RawPost`. Phase nay khong parse live Facebook DOM, khong acquire browser page, khong co cookie/credential/session/network, khong goi scan/lifecycle va khong co persistence, SwiftUI hoac bridge behavior.
 
 Phase 10B1 them `internal/facebook/safari_active_tab.go` cho mot Safari-only acquisition boundary. `AcquireSafariActiveTab` goi truc tiep `/usr/bin/osascript` bang JXA de doc URL, optional title va bounded source cua dung current tab trong front Safari window; timestamp do caller cung cap. Boundary validate absolute HTTPS URL, gioi han decoded content 4 MiB, tach stdout/stderr, map explicit process/TCC/tab/content errors va own timeout/cancellation process. No khong auto-login/navigation/tab switching/scrolling/polling, khong doc browser secrets/profile stores, khong dung network/Accessibility/WebKit/extension, khong tao `RawPost` va khong goi pipeline/lifecycle/persistence/SwiftUI/bridge. Production selector validation thuoc Phase 10B2.
+
+Phase 10B2a them docs-only [FACEBOOK_SAFARI_DOM_RECONNAISSANCE.md](FACEBOOK_SAFARI_DOM_RECONNAISSANCE.md) sau exactly one read-only acquisition cua user-prepared group page. Active URL xac nhan page identity, nhung `tab.source()` khong expose post container, permalink/ID, body, author hoac absolute timestamp markers. Reconnaissance blocked/inconclusive, khong them selector/parser/`RawPost` edge va khong cho phep Phase 10B2b tren source acquisition hien tai.
 
 Phase 5C them `internal/persistence/batch_record.go` cho completed scan batch snapshot contract. Contract gom opaque `BatchRecordID`, immutable-style `BatchRecord`, structural validation, deterministic converter tu `application.ScanBatchInput`/`ScanBatchResult` va save-only `BatchRepository.SaveBatch`. Chua co SQLite, schema, migration, file I/O, load/list/update/delete/search/paging API, ID generation, Facebook adapter, UI/CLI, concurrency hoac network behavior.
 
