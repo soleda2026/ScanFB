@@ -96,7 +96,10 @@ func (run safariCommandRunnerFunc) Run(ctx context.Context, executable string, a
 	return run(ctx, executable, args)
 }
 
-type osaScriptCommandRunner struct{}
+type osaScriptCommandRunner struct {
+	stdoutMaxBytes int
+	stderrMaxBytes int
+}
 
 // AcquireSafariActiveTab reads one bounded snapshot from the current tab of
 // Safari's front window without navigating or interacting with page content.
@@ -160,9 +163,10 @@ func classifySafariCommandFailure(stderr []byte) error {
 	}
 }
 
-func (osaScriptCommandRunner) Run(ctx context.Context, executable string, args []string) (safariCommandResult, error) {
-	stdout := newBoundedSafariOutputBuffer(safariAcquisitionResponseMaxBytes)
-	stderr := newBoundedSafariOutputBuffer(safariDiagnosticMaxBytes)
+func (runner osaScriptCommandRunner) Run(ctx context.Context, executable string, args []string) (safariCommandResult, error) {
+	stdoutMaxBytes, stderrMaxBytes := runner.outputLimits()
+	stdout := newBoundedSafariOutputBuffer(stdoutMaxBytes)
+	stderr := newBoundedSafariOutputBuffer(stderrMaxBytes)
 	command := exec.CommandContext(ctx, executable, args...)
 	command.Stdout = stdout
 	command.Stderr = stderr
@@ -189,6 +193,18 @@ func (osaScriptCommandRunner) Run(ctx context.Context, executable string, args [
 	}
 	result.exitCode = -1
 	return result, nil
+}
+
+func (runner osaScriptCommandRunner) outputLimits() (int, int) {
+	stdoutMaxBytes := runner.stdoutMaxBytes
+	if stdoutMaxBytes <= 0 {
+		stdoutMaxBytes = safariAcquisitionResponseMaxBytes
+	}
+	stderrMaxBytes := runner.stderrMaxBytes
+	if stderrMaxBytes <= 0 {
+		stderrMaxBytes = safariDiagnosticMaxBytes
+	}
+	return stdoutMaxBytes, stderrMaxBytes
 }
 
 type boundedSafariOutputBuffer struct {

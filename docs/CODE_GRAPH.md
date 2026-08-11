@@ -32,6 +32,8 @@ flowchart TD
     SAFARI_ACTIVE_TAB["Phase 10B1 Safari active-tab snapshot"] --> FB
     DOM_RECON["Phase 10B2a source reconnaissance: blocked"] -.documents missing post DOM.-> SAFARI_ACTIVE_TAB
     RENDERED_DOM_DECISION["Phase 10B2c rendered-DOM decision"] -.approves future bounded Apple Events probe.-> SAFARI_ACTIVE_TAB
+    RENDERED_DOM["Phase 10B2d bounded rendered-DOM snapshot"] --> FB
+    RENDERED_DOM_DECISION -.implemented by.-> RENDERED_DOM
     PREPARED_PAGE["Phase 10A typed local prepared snapshot"] --> PREPARED_EXTRACTOR["Fail-closed fixture extractor"]
     PREPARED_EXTRACTOR --> RAW
     RAW --> APP
@@ -71,6 +73,7 @@ flowchart TD
 - Facebook adapter: owner cua Phase 10B1 Safari-only user-triggered current-tab URL/title/bounded-source acquisition va fail-closed adapter errors; production DOM parsing/selector validation van deferred.
 - Prepared-page fixture extractor: Phase 10A owner cua typed local snapshot validation va deterministic ordered `RawPost` mapping; no live DOM/browser edge.
 - Safari active-tab acquisition: Phase 10B1 owner cua direct `/usr/bin/osascript` JXA call, caller-supplied capture time, bounded stdout/stderr, HTTPS URL validation va timeout/cancellation; no edge toi `RawPost`, application pipeline, persistence, SwiftUI hoac bridge.
+- Safari rendered-DOM acquisition: Phase 10B2d owner cua fixed read-only page-side JavaScript qua direct `/usr/bin/osascript`, exactly one current tab, caller-supplied capture time, 8 MiB decoded DOM, finite stdout envelope va fail-closed process/permission/content errors; no edge toi `RawPost`, selector, application pipeline, persistence, SwiftUI hoac bridge.
 - SwiftUI shell: owner cua native windows, navigation, presentation state va accessibility.
 - Overview fixture model/views: SwiftUI-only presentation nodes for Phase 8C sample dashboard; no edge to Go core.
 - Leads fixture model/views: SwiftUI-only presentation nodes for Phase 8D buyer lead tabs/cards; no edge to Go core.
@@ -113,6 +116,8 @@ Phase 10B1 them `internal/facebook/safari_active_tab.go` cho mot Safari-only acq
 Phase 10B2a them docs-only [FACEBOOK_SAFARI_DOM_RECONNAISSANCE.md](FACEBOOK_SAFARI_DOM_RECONNAISSANCE.md) sau exactly one read-only acquisition cua user-prepared group page. Active URL xac nhan page identity, nhung `tab.source()` khong expose post container, permalink/ID, body, author hoac absolute timestamp markers. Reconnaissance blocked/inconclusive, khong them selector/parser/`RawPost` edge va khong cho phep Phase 10B2b tren source acquisition hien tai.
 
 Phase 10B2c them docs-only [SAFARI_RENDERED_DOM_ACQUISITION_DECISION.md](SAFARI_RENDERED_DOM_ACQUISITION_DECISION.md). Decision approve mot future acquisition-only node dung fixed read-only page-side JavaScript qua Safari Apple Events tren exactly one current tab, bounded va fail closed. Dotted decision edge khong phai runtime edge: chua co implementation, entitlement, Xcode change, selector, `RawPost`, pipeline, persistence, SwiftUI/bridge behavior, extension, Accessibility, WebKit hoac network listener.
+
+Phase 10B2d them `internal/facebook/safari_rendered_dom.go` cho separate acquisition-only runtime node. `AcquireSafariActiveTabRenderedDOM` executes one fixed outerHTML expression tren front-window current tab, preserves exact HTTPS URL/title/rendered document/caller timestamp, caps decoded DOM tai 8 MiB va stdout transport tai 50,397,184 bytes, va reuse owned-process timeout/cancellation plus bounded stderr. Node khong parse Facebook structure, khong tao selector/`RawPost`, khong goi Phase 10A/11 va khong co browser mutation, private browser state, network/listener, Accessibility/System Events, extension/WebKit, persistence, SwiftUI hoac bridge edge. Automated tests pass; live validation va separate redacted reconnaissance van pending.
 
 Phase 5C them `internal/persistence/batch_record.go` cho completed scan batch snapshot contract. Contract gom opaque `BatchRecordID`, immutable-style `BatchRecord`, structural validation, deterministic converter tu `application.ScanBatchInput`/`ScanBatchResult` va save-only `BatchRepository.SaveBatch`. Chua co SQLite, schema, migration, file I/O, load/list/update/delete/search/paging API, ID generation, Facebook adapter, UI/CLI, concurrency hoac network behavior.
 

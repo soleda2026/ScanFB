@@ -610,17 +610,19 @@ Stop conditions: Official Apple evidence khong support exact mechanism; future s
 
 ## Phase 10B2d - Bounded Safari rendered-DOM acquisition probe
 
-Status: incomplete.
+Status: implementation complete after automated acceptance; user-guided live Safari validation remains pending.
 
-Exact scope: Future acquisition-only implementation of the Phase 10B2c-approved mechanism. Define one fixed read-only page-side script, exact finite decoded/transport bounds, current-tab URL validation, direct-process timeout/cancellation, TCC/Safari-setting errors, `NSAppleEventsUsageDescription` applicability, packaged `osascript` TCC/signing attribution, final Hardened Runtime/App Sandbox policy, any narrowly required Safari automation entitlement, test seam and one separately approved user-guided validation.
+Exact scope: Acquisition-only implementation of the Phase 10B2c-approved mechanism. `AcquireSafariActiveTabRenderedDOM` executes fixed read-only `document.documentElement ? document.documentElement.outerHTML : ""` through Safari Apple Events on exactly the current tab of the front window. It returns exact HTTPS URL, optional title, rendered document and caller-supplied capture time with an 8 MiB decoded limit, 50,397,184-byte stdout envelope, 16 KiB stderr cap and 5-second timeout.
 
 Protected areas: Khong production selector/parser, `RawPost`, Phase 10A automatic extraction, Phase 11, browser mutation/navigation/scroll/click/refresh, cookie/storage/session/profile access, extension, Accessibility, WebKit, listener, polling, retry, broad bridge/UI wiring hoac persistence.
 
-Acceptance criteria: One explicit call can fail closed or return one bounded rendered-DOM snapshot from exactly the prepared current Safari tab without private-state access or mutation; automated tests need no private Facebook fixture. Successful acquisition alone does not approve selectors.
+Acceptance criteria: Automated synthetic parser/runner/boundary tests pass for exact current-tab targeting, fixed script, strict response, URL, decoded/transport limits, explicit process/TCC/Safari-setting errors, timeout/cancellation and forbidden-behavior audits. Successful acquisition alone does not approve selectors.
 
-Tests: Fixed-script forbidden-token audit, exact command/target tests, strict response/bounds, URL, TCC/developer-setting, packaged subprocess attribution, start/nonzero/timeout/cancellation errors, production-source boundary audit, full Go regression/vet/CLI and separately approved redacted manual validation.
+Tests: Fixed-script forbidden-token audit, exact command/target tests, strict response/bounds, URL, TCC/developer-setting, start/nonzero/timeout/cancellation errors, production-source boundary audit and full Go regression/vet/CLI. Packaged subprocess attribution remains deferred; one separately approved user-guided live validation is still required before rendered-DOM reconnaissance.
 
 Stop conditions: Needs arbitrary script input, unstable target ownership, unbounded DOM, session/profile access, network, forbidden browser technology, source mutation or selector decisions.
+
+Next milestone: after user-guided live validation succeeds, run a separate redacted rendered-DOM reconnaissance. Phase 10B2b production selectors remain blocked until that evidence identifies stable post-level structure.
 
 ## Phase 11 - Scan mot group thu cong
 
