@@ -117,6 +117,22 @@ whose temporary analyzer writes only the redacted report to a mode-0600 file
 before process exit, verifies the report, and deletes it after documentation.
 It must not retain raw DOM or implement selectors.
 
+## Phase 10B2f preservation path
+
+Phase 10B2f adds pure `AnalyzeRenderedDOMStructure(renderedDOM, pageURL)` for a
+future separately approved reconnaissance run. The typed result contains only
+bounded counts, URL-shape validity, confidence values and canonical redacted
+marker categories. It contains no raw DOM, matched text, URL or identity.
+
+The analyzer has no browser, filesystem, clock or network access. A temporary
+manual helper may JSON-encode only the typed report and write it to a mode-0600
+file under `/tmp` before process exit. This prevents test-output compression
+from destroying the evidence while keeping raw rendered DOM in memory only.
+
+Phase 10B2f does not retroactively recover Phase 10B2e evidence and does not
+change its STOP/INCONCLUSIVE result. A new live acquisition still requires
+separate user approval.
+
 ## Non-goals preserved
 
 No production selector, Facebook parser, extraction struct, `RawPost`, relative

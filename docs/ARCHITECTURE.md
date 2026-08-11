@@ -96,6 +96,8 @@ Phase 10B2d implements `AcquireSafariActiveTabRenderedDOM` trong `internal/faceb
 
 Phase 10B2e executes exactly one production rendered-DOM acquisition for docs-only reconnaissance. The expected Facebook group URL guard passed, but the command-output filter did not retain the analyzer's redacted structural report. No post-level runtime edge is therefore approved: container, permalink, body, author, machine timestamp and traversal evidence remain unestablished. [FACEBOOK_SAFARI_RENDERED_DOM_RECONNAISSANCE.md](FACEBOOK_SAFARI_RENDERED_DOM_RECONNAISSANCE.md) records STOP/INCONCLUSIVE; Phase 10B2b remains blocked and Phase 11 is unchanged.
 
+Phase 10B2f adds pure `AnalyzeRenderedDOMStructure` inside `internal/facebook` as reconnaissance tooling, not product extraction. Input is only one rendered-DOM string plus optional page URL; output is a bounded typed report containing counts, group-page URL-shape validity, `STRONG`/`TENTATIVE`/`NOT_FOUND` confidence and canonical redacted marker names. The analyzer keeps no text-node value in its report, returns no URL/ID/body/author data, uses no browser/filesystem/network/clock/global state and has no edge to acquisition, `RawPost`, Phase 10A/11, persistence, SwiftUI or bridge. A temporary manual helper, outside runtime, may JSON-encode only this report to a mode-0600 `/tmp` file.
+
 ## Dependency direction
 
 ```text

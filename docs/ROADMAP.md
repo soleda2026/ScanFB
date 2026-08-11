@@ -640,6 +640,34 @@ Tests: Existing Go regression/vet/CLI plus documentation and repository privacy 
 
 Stop condition reached: A second acquisition would be required just to recover the first run's missing redacted metadata. Any repeat must be a separately approved reconnaissance milestone, not an automatic retry.
 
+## Phase 10B2f - Deterministic redacted reconnaissance reporting path
+
+Status: implementation complete after automated acceptance; no live acquisition performed.
+
+Exact scope: Add pure `AnalyzeRenderedDOMStructure(renderedDOM, pageURL)` and typed `RenderedDOMReconnaissanceReport` inside `internal/facebook`. The analyzer consumes one already-acquired bounded DOM plus optional page URL and emits only counts, URL-shape validity, deterministic traversal count, `STRONG`/`TENTATIVE`/`NOT_FOUND` confidence and bounded canonical marker categories.
+
+Protected areas: No Safari acquisition/runtime/script change, production selector/parser, `RawPost`, Phase 10A/11, browser mutation, private fixture, dependency, filesystem/network access in analyzer, persistence, SQLite, SwiftUI, Xcode or bridge.
+
+Acceptance criteria: Synthetic HTML tests prove semantic container/permalink/body/author/machine-time counts, group URL classification, traversal evidence, confidence downgrade, unstable-marker rejection, no private value in JSON, marker bounds and deterministic repeated output. Runtime source audit proves no browser, file, network, clock, selector or pipeline integration.
+
+Preservation procedure for a separately approved manual run:
+
+1. User leaves exactly one Facebook group tab active in Safari's front window.
+2. Temporary helper calls `AcquireSafariActiveTabRenderedDOM()` exactly once.
+3. Helper passes returned DOM and page URL directly in memory to `AnalyzeRenderedDOMStructure`.
+4. Helper JSON-encodes only the typed redacted report.
+5. Helper writes only that JSON to `/tmp/scanfb-rendered-dom-reconnaissance.json` with mode `0600`.
+6. Helper prints only the temp path and a short success line.
+7. Raw rendered DOM is never written to disk.
+8. No second acquisition, retry or alternate browser mechanism is allowed.
+9. No browser activation, navigation, tab switch, scroll, click, focus, refresh or other mutation is allowed.
+
+Next step: one separately approved user-guided live reconnaissance using this preserved typed result. Phase 10B2b remains blocked until retained evidence independently reaches its proceed bar.
+
+Tests: Focused synthetic analyzer tests, full Go regression/vet/CLI, diff/status and production-source/privacy audits.
+
+Stop conditions: Report would leak matched values, exceed bounds, require full parser dependency, need acquisition changes/browser mutation or become production selector logic.
+
 ## Phase 11 - Scan mot group thu cong
 
 Exact scope: Scan mot group voi user-triggered action.
