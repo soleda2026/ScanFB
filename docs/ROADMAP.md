@@ -470,7 +470,7 @@ Stop conditions: Need broad production workflow, Facebook adapter, database path
 
 ## Phase 9A - Group attempt and batch lifecycle state machine
 
-Status: complete after Phase 9A acceptance checks pass. Phase 9B+ remains incomplete.
+Status: complete after Phase 9A acceptance checks pass.
 
 Exact scope: Implement Go-only in-memory application-layer lifecycle state machine cho mot production-shaped batch dung 5 group, caller-supplied batch/attempt IDs, deterministic order, one-running-at-a-time va day-boundary expiration theo `Asia/Ho_Chi_Minh`.
 
@@ -484,7 +484,7 @@ Stop conditions: Can Facebook adapter behavior, production group storage, persis
 
 ## Phase 9B - WatchedGroup management foundation
 
-Status: complete after Phase 9B acceptance checks pass. Phase 9C+ remains incomplete.
+Status: complete after Phase 9B acceptance checks pass.
 
 Exact scope: Implement Go-only deterministic in-memory `WatchedGroup` value model va collection management cho caller-supplied identity/time, metadata, active/inactive lifecycle, lookup va stable insertion-order inspection voi tong so group khong gioi han.
 
@@ -496,15 +496,29 @@ Tests: Focused domain/application tests cho identity, validation, duplicates, un
 
 Stop conditions: Can persistence/schema, queue policy, UI/bridge, Facebook adapter hoac production scan orchestration.
 
-## Phase 9C+ - Queue policy, UI, adapter and orchestration slices
+## Phase 9C - Deterministic five-group round-robin selection policy
 
-Exact scope: Future narrow milestones may define next-five selection policy, queue presentation, one-group collection integration and later five-group production scan orchestration after Phase 9A/9B remain stable.
+Status: complete after Phase 9C acceptance checks pass. Phase 9D+ remains incomplete.
 
-Protected areas: Khong gop queue policy, UI, Facebook adapter hoac orchestration vao Phase 9B; moi slice phai co scope, tests va boundaries rieng.
+Exact scope: Implement Go-only pure in-memory policy de chon dung 5 active WatchedGroups bang circular insertion-order traversal tu explicit caller-managed collection-position cursor va tra cursor ngay sau group thu nam.
 
-Acceptance criteria: Defined by each future milestone. Phase 9C must explicitly decide candidate ordering, fairness, cursor/resume va whether presentation metadata participates in selection.
+Protected areas: Khong scan execution, Phase 9A lifecycle construction, generated ID, cursor/group persistence, Facebook, SQLite, SwiftUI, bridge, scheduler, retry, concurrency hoac networking.
 
-Tests: Future queue, UI, adapter and orchestration tests by slice.
+Acceptance criteria: Chi active groups eligible; inactive positions van nam trong cursor geometry; traversal wrap-around theo stable insertion order; insufficient active groups fail closed khong partial result; `displayOrder`, `createdAt` va `lastSuccessfulScanAt` khong anh huong ordering; repeated same input/cursor cho cung result.
+
+Tests: Focused application tests cho initial/bounded cursor, exact-five, continuation, wrap-around, inactive skip/geometry, insufficient/all-inactive/empty cases, duplicate prevention, metadata neutrality, reactivation, no mutation, defensive copies va absence cua execution/infrastructure behavior.
+
+Stop conditions: Can persistence, lifecycle mapping, UI/bridge, Facebook adapter hoac production scan execution.
+
+## Phase 9D+ - UI, lifecycle wiring, adapter and orchestration slices
+
+Exact scope: Future narrow milestones may map one selection to caller-supplied Phase 9A lifecycle identities, add queue presentation, one-group collection integration and later five-group production scan orchestration.
+
+Protected areas: Khong gop UI, Facebook adapter, persistence hoac production execution vao Phase 9C; moi slice phai co scope, tests va boundaries rieng.
+
+Acceptance criteria: Defined by each future milestone.
+
+Tests: Future UI, lifecycle mapping, adapter and orchestration tests by slice.
 
 Stop conditions: Can broad production workflow trong mot milestone.
 

@@ -35,7 +35,7 @@ Trong Go skeleton, cac layer duoc anh xa toi package:
 
 - `cmd/scanfb`: CLI entry point toi thieu.
 - `internal/domain`: entity, value object va invariant thuan; Phase 9B them `WatchedGroup` value model.
-- `internal/application`: application services/use cases; phu thuoc domain, rules, dedup va blocklist. Phase 9A them Go-only in-memory lifecycle state machine cho mot batch production-shaped dung 5 group; Phase 9B them deterministic in-memory `WatchedGroupCollection`.
+- `internal/application`: application services/use cases; phu thuoc domain, rules, dedup va blocklist. Phase 9A them Go-only in-memory lifecycle state machine cho mot batch production-shaped dung 5 group; Phase 9B them deterministic in-memory `WatchedGroupCollection`; Phase 9C them pure five-group round-robin selection policy.
 - `internal/orchestration`: thin synchronous use cases ket noi completed application result voi persistence-facing contract.
 - `internal/rules`: deterministic buyer-intent, author, time va geographic rules.
 - `internal/dedup`: duplicate detection va lead aggregation.
@@ -57,6 +57,8 @@ Dieu phoi scan batch, time window, state machine va domain services. Day la noi 
 Phase 9A them `ScanBatchLifecycle` trong Go application layer de model state transition cho mot production-shaped batch gom dung 5 watched groups. Lifecycle nay chi o in-memory, su dung caller-supplied batch/attempt IDs, preserve order, cho phep toi da mot `running` attempt, va khong goi `RunScanBatch`, Facebook adapter, persistence, bridge, UI, scheduler, retry hoac concurrency. Day-boundary handling dung supplied time, compare theo `Asia/Ho_Chi_Minh`, va expire unfinished attempts fail-closed.
 
 Phase 9B them `WatchedGroup` domain value va `WatchedGroupCollection` application service chi trong memory. Collection ho tro caller-supplied identity/time, metadata update, active/inactive state, lookup va stable insertion-order inspection cho so group khong gioi han. Phase nay khong chon next five groups, khong sort candidate cho scan, khong tao queue cursor, va khong goi Phase 9A lifecycle, Facebook, persistence, bridge, UI, scheduler, retry hoac concurrency.
+
+Phase 9C them `SelectNextFiveActiveGroups` de doc deterministic WatchedGroup snapshot ma khong mutate collection. Policy traverses circular theo insertion order tu explicit caller-managed collection-position cursor, skip inactive, tra dung 5 distinct active groups va cursor tai collection position ngay sau group thu nam; neu thieu 5 active groups thi fail closed khong co partial result. `displayOrder`, `createdAt` va `lastSuccessfulScanAt` khong tham gia ordering. Cursor chi o memory cua caller; selector khong tao `ScanBatchLifecycle`, ID, scan execution, persistence, Facebook, bridge, UI, scheduler, retry hoac concurrency.
 
 ### Use-case orchestration
 
