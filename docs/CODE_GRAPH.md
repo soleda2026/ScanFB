@@ -15,6 +15,7 @@ flowchart TD
     PERSIST_CONTRACT --> DOMAIN
     PERSIST_IMPL["Persistence implementation"] --> PERSIST_CONTRACT
     SQLITE["SQLite schema bootstrap, SaveBatch, and concrete LoadBatch"] --> PERSIST_CONTRACT
+    WATCHED_STATE_DECISION["Phase 9E2a dedicated WatchedGroup-state SQLite decision"] -.future implementation.-> PERSIST_IMPL
     MACOS_APP["macos/ScanFBApp SwiftUI shell"] -.future bridge.-> ORCH
     BRIDGE_HELPER["cmd/scanfb-bridge-helper typed operations"] -.typed request/response.-> BRIDGE_CORE
     BRIDGE_CORE["internal/bridge readiness and watched groups"]
@@ -47,6 +48,7 @@ flowchart TD
     GROUP_SELECTOR --> DOMAIN
     BRIDGE_CORE --> WATCHED_GROUPS
     BRIDGE_CORE --> GROUP_SELECTOR
+    BRIDGE_CORE -.future internal path resolution.-> WATCHED_STATE_DECISION
     GROUP_SELECTOR --> LIFECYCLE_MAPPER["Phase 9D selection-to-lifecycle mapper"]
     LIFECYCLE_MAPPER --> LIFECYCLE
     PROFILE["SearchProfile"] --> DOMAIN
@@ -75,6 +77,7 @@ flowchart TD
 - Domain: owner cua normalization contracts, SearchProfile, BuyerIntentClassifier, rule engine, geographic classifier, deduplication, lead aggregation va reason codes.
 - Persistence-facing contracts: owner cua completed batch snapshot contracts.
 - Persistence implementation: owner cua local storage implementation.
+- WatchedGroup persistence decision: Phase 9E2a owner cua approved future Application Support path, separate `watched-groups.sqlite3` schema v1, full Phase 9B value plus Phase 9C cursor transaction boundary and fail-closed restore policy. It is documentation-only and adds no runtime edge yet.
 - Facebook adapter: owner cua Phase 10B1 Safari-only user-triggered current-tab URL/title/bounded-source acquisition va fail-closed adapter errors; production DOM parsing/selector validation van deferred.
 - Prepared-page fixture extractor: Phase 10A owner cua typed local snapshot validation va deterministic ordered `RawPost` mapping; no live DOM/browser edge.
 - Safari active-tab acquisition: Phase 10B1 owner cua direct `/usr/bin/osascript` JXA call, caller-supplied capture time, bounded stdout/stderr, HTTPS URL validation va timeout/cancellation; no edge toi `RawPost`, application pipeline, persistence, SwiftUI hoac bridge.
@@ -116,6 +119,8 @@ Phase 9C them `internal/application/five_group_selection.go` cho pure determinis
 Phase 9D them `internal/application/selection_lifecycle.go` cho deterministic mapping tu mot approved `FiveGroupSelection` sang `ScanBatchLifecycle`. Mapper preserve exact selection order, ghep dung 5 caller-supplied attempt ID theo index va delegate batch ID, `ScanWindow` va attempt validation cho Phase 9A constructor. Mapper khong re-select, khong doc collection, khong dung/advance cursor, khong start attempt, khong chay scan, khong tao ID va khong co Facebook, persistence, SQLite, SwiftUI, bridge, scheduler, retry, goroutine/concurrency hoac networking.
 
 Phase 9E1 them typed watched-group operations trong `internal/bridge`, `WatchedGroupsStore` va UI tai `macos/ScanFBApp`. Swift giu snapshot/cursor chi cho current session va gui chung tren moi one-shot helper call; Go tai tao Phase 9B collection, ap dung add/active mutation va goi Phase 9C selector de tra exact bridge order. UI khong tu sort/chon group, va slice khong co lifecycle, scan execution, Facebook, persistence, SQLite, scheduler, retry, goroutine/concurrency hoac networking.
+
+Phase 9E2a them docs-only [WATCHED_GROUP_PERSISTENCE_DECISION.md](WATCHED_GROUP_PERSISTENCE_DECISION.md). Decision approve hai Go-owned SQLite databases duoi `<user-application-support>/com.soleda.ScanFB/`: `completed-batches.sqlite3` giu schema v1 hien tai va future `watched-groups.sqlite3` co schema v1 rieng. Group state va exact cursor cung transaction/store; helper future tu resolve path, Swift khong thay path, tests inject temporary path. Dotted edge khong phai runtime implementation: chua co database/table/migration/path resolver/bridge mutation.
 
 Phase 10A them `internal/facebook/prepared_page.go` cho typed local `PreparedPageSnapshot` va `ExtractPreparedPage`. Extractor validate schema version, caller-supplied group/capture metadata, body, absolute RFC3339 timestamp, optional absolute HTTPS post URL va embedded group consistency; output la ordered `[]domain.RawPost`. Phase nay khong parse live Facebook DOM, khong acquire browser page, khong co cookie/credential/session/network, khong goi scan/lifecycle va khong co persistence, SwiftUI hoac bridge behavior.
 
@@ -180,6 +185,7 @@ bus exists.
 - `internal/orchestration` duoc import `internal/application` va `internal/persistence`.
 - `macos/ScanFBApp` currently has no production dependency on Go packages. It may depend on Go application/orchestration boundaries only through the selected future local subprocess bridge after a separate implementation milestone.
 - Future SwiftUI-Go bridge slices may use only the selected local subprocess request/response model with typed versioned payloads.
+- Future Phase 9E2 may add only a narrow `internal/bridge` dependency on the dedicated Go WatchedGroup-state persistence boundary; bridge code must not expose raw SQL, filesystem paths or database-local IDs.
 - Phase 8C Overview fixture views may depend only on local Swift value models and SwiftUI.
 - Phase 8D Leads fixture views may depend only on local Swift value models and SwiftUI.
 - Phase 8E Dry Run fixture views may depend only on local Swift value models and SwiftUI.

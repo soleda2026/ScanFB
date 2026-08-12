@@ -143,7 +143,10 @@ Future bridge schemas must use:
 - no implicit nullable semantics;
 - no secrets, credentials, cookies or browser session data;
 - no raw database handles, SQL transport or database-local IDs;
-- no filesystem path assumptions until a later milestone defines path policy.
+- no arbitrary filesystem path input or output. Phase 9E2a now defines the
+  future production persistence location in
+  [WATCHED_GROUP_PERSISTENCE_DECISION.md](WATCHED_GROUP_PERSISTENCE_DECISION.md):
+  the helper resolves its Go-owned Application Support path internally.
 
 The first implementation may use JSON if every payload is typed and versioned.
 JSON must not mean arbitrary maps.
@@ -281,11 +284,13 @@ mechanics, notarization policy and hardened-runtime policy remain deferred.
 ## 15. Explicit Deferred Work
 
 - Release helper packaging.
-- Production database path policy.
+- Production database path resolver and persistence wiring implementation; the
+  location policy itself is resolved by Phase 9E2a.
 - Bridge observability format.
 - Error taxonomy in code.
 - Integration tests.
-- Any mutating bridge slice.
+- Any mutating bridge slice beyond the narrow Phase 9E1 watched-group
+  operations and the separately approved future Phase 9E2 persistence upgrade.
 - Scan orchestration UI wiring.
 - Lead list/search loading.
 - Facebook adapter integration.

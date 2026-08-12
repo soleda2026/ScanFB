@@ -39,7 +39,7 @@ Trong Go skeleton, cac layer duoc anh xa toi package:
 - `internal/orchestration`: thin synchronous use cases ket noi completed application result voi persistence-facing contract.
 - `internal/rules`: deterministic buyer-intent, author, time va geographic rules.
 - `internal/dedup`: duplicate detection va lead aggregation.
-- `internal/persistence`: persistence-facing contracts, deterministic in-memory adapter cho completed batch snapshots, va SQLite schema-bootstrap/transactional `SaveBatch`/concrete `LoadBatch` implementation; chua co list/update/delete/search/paging API hoac migration execution.
+- `internal/persistence`: persistence-facing contracts, deterministic in-memory adapter cho completed batch snapshots, va SQLite schema-bootstrap/transactional `SaveBatch`/concrete `LoadBatch` implementation. Phase 9E2a approve future dedicated WatchedGroup-state SQLite repository, nhung chua co runtime/schema implementation, list/update/delete/search/paging API hoac migration execution.
 - `internal/facebook`: adapter bien ngoai cho Facebook/browser; domain khong duoc import.
 - `internal/ui`: Go-layer documentation/package placeholder. Native macOS UI implementation lives outside `internal/` using SwiftUI.
 - `internal/bridge`: bridge-facing Go package for bounded typed `core_readiness` and Phase 9E1 watched-group operations. It reconstructs the authoritative Phase 9B collection for each watched-group request and delegates selection to Phase 9C; it does not access Facebook, SQLite or persistence.
@@ -83,6 +83,8 @@ Dinh nghia persistence-facing contract cho completed scan batch snapshot. Phase 
 Phase 5G2 them durable SQLite `SaveBatch` cho mot completed `BatchRecord` snapshot. Phase 5G3 them fail-closed `SQLiteBatchRepository.LoadBatch(id BatchRecordID) (BatchRecord, error)` de reconstruct mot complete snapshot tu schema version 1 trong read transaction. In-memory adapter van chi validate/save completed snapshot trong process de test va future wiring. Phase 5F chon SQLite la local durable storage technology va ghi schema design tai [PERSISTENCE_SCHEMA.md](PERSISTENCE_SCHEMA.md). Phase 5G1 them `SQLiteBatchRepository` bootstrap trong `internal/persistence`: open/create explicit local SQLite path, enable va verify foreign keys, create empty schema version 1 transactionally, validate schema metadata, va `Close`.
 
 `SQLiteBatchRepository` satisfy `BatchRepository` bang `SaveBatch(record BatchRecord) error`. Method nay validate `BatchRecord` truoc khi mutate database, ghi root va toan bo child collections trong mot transaction, translate duplicate `BatchRecordID` thanh `ErrBatchRecordAlreadyExists`, rollback moi write failure, va khong retry hay partial write. Concrete `LoadBatch` verify schema version 1, load child rows bang explicit positions, decode canonical timestamps/booleans, reject malformed stored enum-like values, run `BatchRecord.Validate`, va return zero record on failure. Khong co list/update/delete/search/paging/schema/migration/transaction API tren public contract.
+
+Phase 9E2a approve [WATCHED_GROUP_PERSISTENCE_DECISION.md](WATCHED_GROUP_PERSISTENCE_DECISION.md): Go-owned production storage nam trong OS-provided user Application Support root, thu muc `com.soleda.ScanFB`, voi hai database `completed-batches.sqlite3` va `watched-groups.sqlite3`. Existing completed-batch schema v1 giu nguyen; future WatchedGroup-state database bat dau schema v1 rieng va luu ordered full Phase 9B values cung exact Phase 9C cursor trong mot store/transaction boundary. Helper tu resolve production path, Swift khong thay path; tests van inject explicit temporary path. Day chi la decision, chua tao directory/database/schema/migration hoac bridge behavior.
 
 ### Facebook adapter
 
@@ -158,3 +160,9 @@ Phase 9E1 reuses that one-request subprocess boundary for only
 snapshot and cursor; the Go bridge reconstructs Phase 9B state and delegates
 exact-five ordering to Phase 9C. This is not persistence, a broad command bus,
 a lead/search bridge or production scan orchestration.
+
+Phase 9E2a decides that future persistent watched-group calls resolve the
+dedicated Application Support store internally in the helper. No bridge request
+or response carries a raw filesystem path, SQL, database handle or database-local
+ID. Phase 9E2 implementation must return authoritative Go-restored state and
+replace Swift snapshot/cursor authority with a finite typed advance intent.

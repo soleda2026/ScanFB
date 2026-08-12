@@ -542,6 +542,34 @@ Non-blocking future polish: The screen currently mixes Vietnamese labels with `W
 
 Stop conditions: Can persistence, production scan, Facebook acquisition, lifecycle execution, scheduler, retry, concurrency hoac broader product data bridge.
 
+## Phase 9E2a - Production persistence location and schema-evolution decision
+
+Status: complete after Phase 9E2a documentation acceptance checks pass. Outcome: APPROVE.
+
+Exact scope: Docs-only evaluation and selection of the production local-storage location, schema-version strategy, group/cursor transaction boundary, failure behavior and bridge path ownership needed to unblock Phase 9E2.
+
+Selected architecture: Two Go-owned SQLite databases under `<user-application-support>/com.soleda.ScanFB/`. `completed-batches.sqlite3` retains its current schema v1; future `watched-groups.sqlite3` starts an independent schema v1 for ordered full Phase 9B WatchedGroups and one exact Phase 9C cursor. The helper resolves production paths internally; Swift never sees them; tests inject explicit temporary paths.
+
+Protected areas: Documentation only. Khong Go/Swift/Xcode/runtime/schema SQL/table/database/migration/bridge behavior, Phase 11, Facebook/Safari, scheduler, retry, worker, networking, `UserDefaults` hoac `@AppStorage`.
+
+Acceptance criteria: Candidate comparison and one combined decision are recorded in [WATCHED_GROUP_PERSISTENCE_DECISION.md](WATCHED_GROUP_PERSISTENCE_DECISION.md); path is standard macOS Application Support without machine-specific values; completed-batch v1 is unchanged; cursor corruption fails closed without modulo repair; no source or schema changes occur.
+
+Tests: Markdown consistency/audit, `git diff --check`, full Go regression/vet and unchanged CLI smoke check. No Xcode build is required.
+
+Stop conditions: Implementation request, unresolved bundle identity, need to migrate completed-batch schema, raw path exposure to Swift, cross-database transaction invariant or broader redesign.
+
+## Phase 9E2 - Implement dedicated WatchedGroup-state SQLite persistence
+
+Exact scope: Future narrow implementation of the approved Phase 9E2a decision: Go production path resolver, dedicated state schema v1/repository, transactional full WatchedGroup plus cursor restore/mutation, persistent watched-group bridge behavior and Swift authoritative-state refresh/error presentation.
+
+Protected areas: Khong completed-batch schema change/migration, scan result/lifecycle persistence, Phase 11 execution, Facebook/Safari, scheduler, retry, background worker, networking, cloud/sync, Swift persistence hoac generic CRUD/SQL bridge.
+
+Acceptance criteria: Defined by the Phase 9E2 implementation request and the invariants in [WATCHED_GROUP_PERSISTENCE_DECISION.md](WATCHED_GROUP_PERSISTENCE_DECISION.md).
+
+Tests: Temporary-database Go persistence/bridge tests, focused Swift store tests, full regressions/build and separate user-guided relaunch verification.
+
+Stop conditions: Need completed-batch migration, arbitrary filesystem path bridge input, Swift-owned persistence, Phase 11/Facebook behavior or broader storage architecture.
+
 ## Phase 9E+ - Later adapter and orchestration slices
 
 Exact scope: Future narrow milestones may add persistence, expose lifecycle presentation through an approved bridge, add one-group collection integration and later five-group production scan orchestration.
