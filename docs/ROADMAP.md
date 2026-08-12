@@ -826,7 +826,7 @@ Stop conditions: Requires live selector details, persistence, cursor change, Swi
 
 ## Phase 11B - Production collector for one enrolled group
 
-Status: blocked until a reliable post source contract exists.
+Status: blocked. Phase 11B0 completed a docs-only source decision with outcome **DEFER because no candidate has sufficient evidence**.
 
 Exact scope: Future production implementation of the Phase 11A `GroupPostCollector` boundary for one enrolled group.
 
@@ -836,7 +836,7 @@ Acceptance criteria: Requires separately approved stable evidence for post ident
 
 Tests: Future adapter fixtures and separately approved manual validation; no live Facebook integration test belongs to Phase 11A.
 
-Stop conditions: The current Phase 10B2g result has zero complete-post evidence, so Phase 11B remains blocked.
+Stop conditions: The current Phase 10B2g result has zero complete-post evidence. Phase 11B0 also confirms that structured page-side output does not create missing field evidence, the removed official Groups API does not support the product model, official user export is not a joined-group feed, and alternate browser mechanisms do not prove the required fields. Phase 11B remains blocked. Only a separately authorized Phase 11B0a source-evidence renewal based on a materially new source/acquisition technique may precede another implementation decision.
 
 ## Phase 12 - Scan batch 5 group
 
