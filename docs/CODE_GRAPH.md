@@ -23,6 +23,7 @@ flowchart TD
     GROUPS_UI["Phase 9E3b enrolled Watched Groups presentation"] --> MACOS_APP
     ONE_GROUP_SCAN["Phase 11A one-group orchestration"] --> APP
     INJECTED_COLLECTOR["Injected GroupPostCollector"] --> ONE_GROUP_SCAN
+    MANUAL_INPUT_DECISION["Phase 11C0 manual prepared-post workflow decision"] -.future bounded DTO.-> PREPARED_PAGE
     OVERVIEW_FIXTURE["Overview fixture model and views"] --> MACOS_APP
     LEADS_FIXTURE["Leads fixture model and views"] --> MACOS_APP
     LEADS_INTERACTION_STATE["Leads session interaction state"] --> LEADS_FIXTURE
@@ -136,6 +137,8 @@ Phase 9E3b changes only product copy, the existing Groups presentation and focus
 Phase 11A adds application-facing collector/request/result contracts in `internal/application/one_group_scan_contract.go` and coordination in `internal/orchestration/one_group_scan.go`. `RunOneGroupScan` owns one active enrolled group attempt, invokes exactly one injected collector call, and routes ordered group-bound `RawPost` values into existing one-group-capable `application.RunScanBatch`. The result reuses `GroupScanAttempt` status/timestamps and `ScanBatchResult`; failures expose a narrow stage code without fabricating application data. Orchestration retains its application-only core dependency and has no edge to Phase 9C selection/cursor, persistence, Facebook/Safari, bridge/UI, networking or concurrency.
 
 Phase 11B0 adds a documentation-only decision node at [PRODUCTION_GROUP_COLLECTOR_SOURCE_DECISION.md](PRODUCTION_GROUP_COLLECTOR_SOURCE_DECISION.md). Its outcome is DEFER: no evaluated source proves exact group binding, ordered post data, body, author, absolute machine timestamp and post identity/permalink under the existing privacy and fail-closed boundaries. The node adds no production `GroupPostCollector` implementation and no Facebook/Safari, API/network, extension, Accessibility/WebKit, persistence, Swift/Xcode, bridge, Phase 11A or cursor edge.
+
+Phase 11C0 adds a dotted documentation-only decision edge from a future ScanFB-owned manual prepared-post form to the existing Phase 10A prepared snapshot boundary. [MVP_SCAN_INPUT_WORKFLOW_DECISION.md](MVP_SCAN_INPUT_WORKFLOW_DECISION.md) approves one versioned JSON DTO for one authoritative active enrolled group, 1-100 ordered posts and a 1 MiB aggregate bound; user fields remain explicit while group and capture values remain app-owned. There is no runtime importer/collector, Swift/UI, bridge, file/clipboard, persistence, browser, batch-five or cursor edge in Phase 11C0. A future production collector can still replace the manual adapter behind unchanged Phase 11A.
 
 Phase 10A them `internal/facebook/prepared_page.go` cho typed local `PreparedPageSnapshot` va `ExtractPreparedPage`. Extractor validate schema version, caller-supplied group/capture metadata, body, absolute RFC3339 timestamp, optional absolute HTTPS post URL va embedded group consistency; output la ordered `[]domain.RawPost`. Phase nay khong parse live Facebook DOM, khong acquire browser page, khong co cookie/credential/session/network, khong goi scan/lifecycle va khong co persistence, SwiftUI hoac bridge behavior.
 

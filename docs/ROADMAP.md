@@ -836,7 +836,35 @@ Acceptance criteria: Requires separately approved stable evidence for post ident
 
 Tests: Future adapter fixtures and separately approved manual validation; no live Facebook integration test belongs to Phase 11A.
 
-Stop conditions: The current Phase 10B2g result has zero complete-post evidence. Phase 11B0 also confirms that structured page-side output does not create missing field evidence, the removed official Groups API does not support the product model, official user export is not a joined-group feed, and alternate browser mechanisms do not prove the required fields. Phase 11B remains blocked. Only a separately authorized Phase 11B0a source-evidence renewal based on a materially new source/acquisition technique may precede another implementation decision.
+Stop conditions: The current Phase 10B2g result has zero complete-post evidence. Phase 11B0 also confirms that structured page-side output does not create missing field evidence, the removed official Groups API does not support the product model, official user export is not a joined-group feed, and alternate browser mechanisms do not prove the required fields. Phase 11B remains blocked. Only a separately authorized Phase 11B0a source-evidence renewal based on a materially new source/acquisition technique may precede another production collector implementation decision; the separate Phase 11C0 manual input decision does not reopen Phase 11B.
+
+## Phase 11C0 - Transitional MVP input workflow decision
+
+Status: complete after docs-only decision verification. Outcome: **APPROVE one ScanFB-owned manual prepared-post form for one enrolled group**, producing one bounded versioned prepared-snapshot JSON payload; no workflow code exists yet.
+
+Exact scope: Compare local file, deterministic form, clipboard, CSV/JSON import, external helper and other local input options. Select the form as the only user action, with authoritative app-owned group/capture fields, explicit user-supplied post fields, 1-100 ordered posts and a 1 MiB aggregate payload bound. See [MVP_SCAN_INPUT_WORKFLOW_DECISION.md](MVP_SCAN_INPUT_WORKFLOW_DECISION.md).
+
+Protected areas: Documentation only. No importer/collector implementation, Swift/UI, bridge operation, file/clipboard access, browser/Safari, selector, API/network client, persistence/schema, Phase 11A behavior, batch-five execution or cursor change.
+
+Acceptance criteria: Canonical v1 JSON DTO, exact user interaction, group/time authority, privacy, all-or-nothing validation, Phase 10A/11A integration boundary, rejected alternatives and one exact next implementation slice are documented without weakening Phase 11B0.
+
+Tests: Documentation consistency plus unchanged Go regression, vet, CLI and repository scope/status audits.
+
+Stop conditions: Requires user-authored JSON, relative-time inference, multiple formats, partial acceptance, browser/session access, private-data logging, persistence, Phase 11A change or cursor progression.
+
+## Phase 11C1 - Go-only bounded prepared-snapshot collector adapter
+
+Status: planned, not implemented.
+
+Exact scope: Implement only the strict prepared-snapshot JSON v1 DTO/decoder, 1 MiB and 100-post bounds, authoritative one-group binding, unchanged Phase 10A mapping and one concrete one-shot `GroupPostCollector` adapter.
+
+Protected areas: No Swift/UI, bridge wiring, file picker/import, clipboard access, persistence/schema, batch-five orchestration, cursor movement, Safari/browser, selector, API/network client, retry, scheduler, concurrency or background work.
+
+Acceptance criteria: Strict bounded decoding fails closed before mutation; exact group, order, author/body/identity values and absolute timestamps are preserved; Phase 10A errors become collection failures; the adapter satisfies unchanged Phase 11A without fabricating data.
+
+Tests: Synthetic DTO/decoder and collector fixtures for versions, byte/post bounds, duplicate/trailing JSON, group conflicts, author/body/time/URL validation, exact mapping/order, deterministic repetition and forbidden dependency audits.
+
+Stop conditions: Requires Phase 10A/11A redesign, multiple formats, UI/bridge behavior, persistence, browser access or cursor progression.
 
 ## Phase 12 - Scan batch 5 group
 

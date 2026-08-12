@@ -75,6 +75,8 @@ Sau MVP co the them buyer Search Profile khac nhu iPhone, may anh hoac laptop, n
 
 Moi explicit Scan action tu dong lay next five active enrolled groups theo internal persisted cursor, chay lan luot, dung va hien thi ket qua. Nguoi dung khong quan ly cursor va khong can bam mot action rieng de chuyen queue; lan Scan explicit tiep theo moi tiep tuc batch ke tiep. Enrollment chi ghi nhan group nguoi dung muon ScanFB scan; no khong chung minh current Facebook membership, access permission, Safari login validity hoac future post availability. Khi production execution ton tai, access failure phai thanh explicit group attempt/result thay vi am tham xoa enrolled group. Production scan execution van chua duoc implement; automatic joined-group discovery chi la optional future research, khong phai MVP dependency.
 
+Do Phase 11B chua co production Facebook collector duoc approve, Phase 11C0 chon mot transitional input workflow cho moi one-group collection call: ScanFB-owned form nhan cac post field do nguoi dung cung cap ro rang va tao mot bounded prepared snapshot version 1. Group identity va capture time do ScanFB cung cap, con body, author va absolute creation time phai duoc nguoi dung nhap truc tiep; khong infer relative time hoac field bi thieu. Workflow nay chua duoc implement, khong mo khoa Phase 11B va khong thay doi invariant moi full scan batch gom dung 5 group; Phase 12 van so huu viec dieu phoi batch va cursor.
+
 Nguoi dung chon che do dia ly cho tung lan Scan:
 
 1. TP.HCM

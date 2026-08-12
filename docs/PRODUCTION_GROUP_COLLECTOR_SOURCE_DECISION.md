@@ -86,7 +86,7 @@ establish a complete feed of posts from arbitrary private groups the user has
 joined. Manual re-entry would require the user to find and accurately preserve
 post identity, author, exact group, body, order, and an absolute timestamp for
 each post; syntax validation cannot prove those values are faithful. This is
-too error-prone and cumbersome to approve as the current scan input.
+too error-prone and cumbersome to approve as a production collection source.
 
 Candidate C is the least invasive fallback for a future product redefinition,
 but Phase 11B0 does not design a generic importer, alter Phase 10A, or approve
@@ -235,13 +235,15 @@ proving the missing fields.
 ## Next milestone
 
 No Phase 11B implementation milestone is approved. The only permitted next
-step is a separately authorized **Phase 11B0a source-evidence renewal** after a
-materially new source or acquisition technique is identified. That docs/manual
-evidence slice must prove complete redacted field coverage, timestamp quality,
-group binding, bounds, permissions, and an understandable user workflow before
-requesting an implementation decision. Re-running the closed Safari selector
-approach or merely wrapping the same DOM in structured JavaScript is not new
-evidence.
+step toward a production Facebook collector is a separately authorized **Phase
+11B0a source-evidence renewal** after a materially new source or acquisition
+technique is identified. That docs/manual evidence slice must prove complete
+redacted field coverage, timestamp quality, group binding, bounds, permissions,
+and an understandable user workflow before requesting a production collector
+implementation decision. A separate product decision may redefine the MVP
+input workflow without reopening Phase 11B; Phase 11C0 now records that decision.
+Re-running the closed Safari selector approach or merely wrapping the same DOM
+in structured JavaScript is not new evidence.
 
 ## Stop conditions
 
