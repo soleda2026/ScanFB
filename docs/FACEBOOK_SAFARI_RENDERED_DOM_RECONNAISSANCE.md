@@ -2,136 +2,116 @@
 
 Date: 2026-08-11
 
-Milestone: Phase 10B2e - one-page rendered-DOM reconnaissance only.
+Closeout milestone: Phase 10B2g - rendered-DOM live reconnaissance closeout
+only.
 
-Recommendation: **STOP / INCONCLUSIVE. Do not proceed to Phase 10B2b.**
+Decision: **Phase 10B2b production selectors remain BLOCKED.**
 
 ## Context
 
-Phase 10B2d implemented `AcquireSafariActiveTabRenderedDOM` as the only
-approved acquisition path. Before the live call, the user confirmed that
-Safari's front-window current tab was the intended logged-in Facebook group
-page and that `Allow JavaScript from Apple Events` was enabled.
+Phase 10B2d implemented and live-validated the bounded, read-only
+`AcquireSafariActiveTabRenderedDOM` path. Phase 10B2e then completed exactly one
+reconnaissance acquisition, but test-output compression discarded its redacted
+structural report, so that run stopped inconclusive rather than claiming the
+DOM lacked structure.
 
-Exactly one production acquisition was executed. The acquisition and in-memory
-analysis test passed, including its Facebook-group URL guard. No retry or
-second acquisition occurred.
+Phase 10B2f added pure `AnalyzeRenderedDOMStructure` and a mode-0600 `/tmp`
+preservation procedure for its bounded typed report. Phase 10B2g records the
+successfully preserved result from one separately user-guided acquisition
+against one active Facebook group page.
 
-Known Phase 10B2d manual-validation evidence placed the rendered document at
-approximately 2.9 MiB. The Phase 10B2e test runner retained only its passing
-summary and filtered the bounded redacted structural report, so this milestone
-cannot independently report a narrower size or post-level counts.
+This closeout does not implement selectors, extraction or scan execution.
 
-## Privacy and redaction
+## Privacy and acquisition
 
-The rendered DOM remained in process memory only. It was not written under the
-repository or to a temporary content file. The analysis emitted no raw DOM,
-post body, author name, Facebook user ID, post ID, permalink, cookie, token or
-session value. The temporary overlay and analyzer under `/tmp` contained code
-only and were deleted after the single run.
-
-No screenshot was taken. No Safari navigation, activation, tab switch, scroll,
-click, focus, refresh, typing, form submission, polling or retry occurred.
-
-## Page inspected
-
-- Page type: one user-prepared Facebook group page.
-- Active-page evidence: user confirmation plus the passing analyzer's strict
-  Facebook host and `/groups/<redacted>/` path guard.
+- Live acquisitions for this preserved result: 1.
+- Browser target: exactly one user-prepared current tab in Safari's front
+  window.
 - Acquisition path: production `AcquireSafariActiveTabRenderedDOM` only.
-- Approximate rendered-DOM size context: approximately 2.9 MiB from the
-  preceding Phase 10B2d live validation; the Phase 10B2e exact byte count was
-  not retained.
+- Analysis path: `AnalyzeRenderedDOMStructure` in memory.
+- Raw rendered DOM was not committed or stored as a repository fixture.
+- The preserved result contains counts, confidence and canonical redacted
+  marker names only.
+- No post body, author, Facebook user/group/post ID, permalink, profile URL,
+  cookie, token, credential or session value is recorded here.
+- No navigation, activation, tab switch, scroll, click, focus, refresh, typing,
+  form submission, polling or retry occurred.
 
-## Structural findings
+## Preserved result
 
-The temporary analyzer was designed to report only bounded counts, semantic
-attribute names and redacted href shapes. It checked top-level
-`role="article"` candidates and their descendant permalink, body, author and
-machine-time coverage without printing private values.
+| Field | Value |
+| --- | ---: |
+| Analyzed rendered DOM | 3,180,722 bytes |
+| Candidate post containers | 2 |
+| Candidates with permalink/post identity | 0 |
+| Candidates with body marker | 0 |
+| Candidates with author marker | 0 |
+| Candidates with machine-readable timestamp | 0 |
+| Candidates with relative-time-only evidence | 0 |
+| Candidates with complete post evidence | 0 |
+| Group-consistent permalinks | 0 |
+| Group-page URL shape valid | true |
+| Deterministic traversal candidates | 2 |
 
-The command-output filter reduced the successful test output to a pass summary
-and did not retain that redacted report. No credible post-level marker or count
-can therefore be asserted from the surviving Phase 10B2e evidence. A missing
-retained count is **not** recorded as zero and is not evidence that the marker
-was absent from the rendered DOM.
+These counts describe one page only and do not establish cross-page or
+cross-session stability.
 
 ## Confidence
 
-| Concept | Confidence | Retained evidence |
+| Concept | Confidence | Redacted evidence |
 | --- | --- | --- |
-| Post/article container | NOT FOUND | Candidate counts and marker categories were not retained. |
-| Post permalink or post ID | NOT FOUND | No redacted href-shape result survived the run. |
-| Post body container | NOT FOUND | Per-candidate body-marker coverage was not retained. |
-| Author identity/display container | NOT FOUND | Per-candidate profile-link coverage was not retained. |
-| Created-at timestamp | NOT FOUND | Machine-time and structured timestamp counts were not retained. |
-| Group identity | STRONG | User-confirmed target plus passing strict Facebook group URL guard. |
-| Ordering of visible posts | NOT FOUND | Candidate-container count and traversal evidence were not retained. |
+| Post/article container | STRONG | Two distinct semantic `role=article` candidates. |
+| Post permalink or post ID | NOT_FOUND | Zero candidates carried an approved permalink/identity shape. |
+| Post body container | NOT_FOUND | Zero candidates carried an approved body marker. |
+| Author identity/display container | NOT_FOUND | Zero candidates carried an approved author marker. |
+| Created-at timestamp | NOT_FOUND | Zero machine-readable and zero relative-time-only candidates. |
+| Group identity | STRONG | Validated Facebook group-page URL shape. |
+| Ordering of visible posts | STRONG | Two candidates have deterministic DOM source order. |
 
-`NOT FOUND` above means not established by retained evidence in this milestone;
-it does not claim that the corresponding structure is absent from the private
-page.
-
-## Structural counts
-
-- Live rendered-DOM acquisitions: 1.
-- Confirmed Facebook group pages: 1.
-- Candidate post containers: unavailable, not zero.
-- Candidates with permalink/post identity: unavailable, not zero.
-- Candidates with body marker: unavailable, not zero.
-- Candidates with author shape: unavailable, not zero.
-- Candidates with machine-readable timestamp: unavailable, not zero.
-- Candidates missing required fields: unavailable.
-
-These are one-page reconnaissance results only.
+STRONG container and traversal evidence does not compensate for missing
+permalink, body, author or timestamp evidence.
 
 ## Marker decisions
 
-The only marker category established by retained evidence is the validated
-active-page URL shape `/groups/<group>/` for page-level group identity.
+Recognized stable categories in this page:
 
-No post-level category is approved. In particular, this milestone does not
-approve `role="article"`, `/groups/<group>/posts/<post>/`, profile-link shapes,
-body-preview attributes, `time[datetime]`, timestamp fields or DOM order because
-their observed counts and correlations were not retained.
+- `role=article`
+- `dom-source-order`
 
-Generated or obfuscated CSS classes, nth-child positions, arbitrary depth,
-localized text, relative-time strings, title wording, generic React/Comet
-symbols, transient IDs and broad text searches remain explicitly rejected as
-production selectors regardless of this tooling failure.
+No other post-level marker category is approved by this result.
 
-## Blocker and recommendation
+The following categories remain explicitly rejected:
 
-The proceed bar requires STRONG evidence for distinct post containers,
-permalink/identity, body, author and machine-readable timestamp, plus sufficient
-deterministic traversal order. The retained evidence proves only page-level
-group identity.
+- arbitrary depth;
+- broad text search;
+- generated or obfuscated classes;
+- generic React/Comet symbols;
+- localized visible text;
+- nth-child positions;
+- relative-time text;
+- title wording;
+- transient internal IDs.
 
-A second acquisition would be required to recover the missing structural
-metadata. Phase 10B2e explicitly forbids a second acquisition just to
-understand the first, so this milestone stops fail closed.
+These rejected categories must not be reintroduced as selectors or private
+value heuristics merely to make progress.
 
-**Recommendation: STOP / INCONCLUSIVE. Phase 10B2b production selectors remain
-blocked.** Any repeat reconnaissance must be a separately approved milestone
-whose temporary analyzer writes only the redacted report to a mode-0600 file
-before process exit, verifies the report, and deletes it after documentation.
-It must not retain raw DOM or implement selectors.
+## Decision and blocker
 
-## Phase 10B2f preservation path
+The Phase 10B2b proceed bar requires strong fail-closed evidence for distinct
+post containers, permalink/post identity, body, author and machine-readable
+timestamp, plus sufficient traversal order. This result meets only the
+container, group-page identity and traversal parts of that bar.
 
-Phase 10B2f adds pure `AnalyzeRenderedDOMStructure(renderedDOM, pageURL)` for a
-future separately approved reconnaissance run. The typed result contains only
-bounded counts, URL-shape validity, confidence values and canonical redacted
-marker categories. It contains no raw DOM, matched text, URL or identity.
+Complete post evidence count is zero. Without an approved identity, body,
+author and timestamp relationship, a runtime parser could not produce a
+complete post deterministically or fail closed when critical structure
+disappears.
 
-The analyzer has no browser, filesystem, clock or network access. A temporary
-manual helper may JSON-encode only the typed report and write it to a mode-0600
-file under `/tmp` before process exit. This prevents test-output compression
-from destroying the evidence while keeping raw rendered DOM in memory only.
-
-Phase 10B2f does not retroactively recover Phase 10B2e evidence and does not
-change its STOP/INCONCLUSIVE result. A new live acquisition still requires
-separate user approval.
+**Decision: keep Phase 10B2b BLOCKED and close the current Safari rendered-DOM
+selector investigation.** Do not weaken selector standards. No further Safari
+selector implementation should proceed unless a separately justified new
+evidence or acquisition technique supplies the missing critical structure
+without violating ScanFB's privacy and browser boundaries.
 
 ## Non-goals preserved
 

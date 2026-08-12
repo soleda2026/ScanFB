@@ -642,7 +642,7 @@ Stop condition reached: A second acquisition would be required just to recover t
 
 ## Phase 10B2f - Deterministic redacted reconnaissance reporting path
 
-Status: implementation complete after automated acceptance; no live acquisition performed.
+Status: complete after automated acceptance. Phase 10B2g subsequently validated the preservation path with one user-guided live result.
 
 Exact scope: Add pure `AnalyzeRenderedDOMStructure(renderedDOM, pageURL)` and typed `RenderedDOMReconnaissanceReport` inside `internal/facebook`. The analyzer consumes one already-acquired bounded DOM plus optional page URL and emits only counts, URL-shape validity, deterministic traversal count, `STRONG`/`TENTATIVE`/`NOT_FOUND` confidence and bounded canonical marker categories.
 
@@ -662,11 +662,27 @@ Preservation procedure for a separately approved manual run:
 8. No second acquisition, retry or alternate browser mechanism is allowed.
 9. No browser activation, navigation, tab switch, scroll, click, focus, refresh or other mutation is allowed.
 
-Next step: one separately approved user-guided live reconnaissance using this preserved typed result. Phase 10B2b remains blocked until retained evidence independently reaches its proceed bar.
+Next step completed by Phase 10B2g: one separately user-guided live reconnaissance preserved the typed result. Phase 10B2b remains blocked because retained evidence did not reach its proceed bar.
 
 Tests: Focused synthetic analyzer tests, full Go regression/vet/CLI, diff/status and production-source/privacy audits.
 
 Stop conditions: Report would leak matched values, exceed bounds, require full parser dependency, need acquisition changes/browser mutation or become production selector logic.
+
+## Phase 10B2g - Rendered-DOM live reconnaissance closeout
+
+Status: complete with Phase 10B2b BLOCKED and the current Safari selector investigation closed.
+
+Exact scope: Docs-only record of one successfully preserved Phase 10B2f typed report from one user-guided active Facebook group-page acquisition.
+
+Result: 3,180,722 rendered-DOM bytes; two semantic article candidates; deterministic traversal count two; valid group-page URL shape. Permalink, body, author, machine timestamp, relative-time-only, complete-evidence and group-consistent permalink counts are all zero. Container, group identity and traversal confidence are STRONG; permalink, body, author and machine timestamp are NOT_FOUND. Recognized categories are only `role=article` and `dom-source-order`.
+
+Decision: Phase 10B2b remains BLOCKED. Distinct containers and traversal do not satisfy the proceed bar without approved post identity, body, author and machine-readable timestamp evidence. Selector standards must not be weakened to use obfuscated classes, nth-child, localized/relative text, broad search or private-value heuristics.
+
+Protected areas: No Go/Swift/Xcode/bridge/persistence/browser runtime change, selector/parser, `RawPost`, Phase 10A/11, private fixture, dependency, browser mutation or second acquisition in this closeout.
+
+Next step: none within the current Safari selector approach. Any future investigation requires a separately justified new evidence or acquisition technique that preserves ScanFB's privacy and fail-closed boundaries.
+
+Tests: Documentation consistency plus unchanged Go regression/vet/CLI and repository privacy/status audits.
 
 ## Phase 11 - Scan mot group thu cong
 

@@ -98,6 +98,8 @@ Phase 10B2e executes exactly one production rendered-DOM acquisition for docs-on
 
 Phase 10B2f adds pure `AnalyzeRenderedDOMStructure` inside `internal/facebook` as reconnaissance tooling, not product extraction. Input is only one rendered-DOM string plus optional page URL; output is a bounded typed report containing counts, group-page URL-shape validity, `STRONG`/`TENTATIVE`/`NOT_FOUND` confidence and canonical redacted marker names. The analyzer keeps no text-node value in its report, returns no URL/ID/body/author data, uses no browser/filesystem/network/clock/global state and has no edge to acquisition, `RawPost`, Phase 10A/11, persistence, SwiftUI or bridge. A temporary manual helper, outside runtime, may JSON-encode only this report to a mode-0600 `/tmp` file.
 
+Phase 10B2g records the preserved live Phase 10B2f report and closes the current Safari rendered-DOM selector investigation. Acquisition and redacted preservation work; one page yielded two `role=article` candidates in deterministic DOM order. Zero candidates had approved permalink, body, author or machine timestamp evidence, and complete evidence count was zero. No selector/`RawPost` edge is added, Phase 10B2b remains blocked, and further Safari selector work requires a separately justified evidence or acquisition technique rather than weaker markers.
+
 ## Dependency direction
 
 ```text

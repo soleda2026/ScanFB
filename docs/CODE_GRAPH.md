@@ -36,6 +36,7 @@ flowchart TD
     RENDERED_DOM_DECISION -.implemented by.-> RENDERED_DOM
     RENDERED_DOM_RECON["Phase 10B2e rendered-DOM reconnaissance: inconclusive"] -.retained no post-level evidence.-> RENDERED_DOM
     REDACTED_RECON_REPORT["Phase 10B2f bounded redacted evidence report"] -.future manual input.-> RENDERED_DOM_RECON
+    RENDERED_DOM_CLOSEOUT["Phase 10B2g selector investigation closeout"] -.blocks selector edge.-> REDACTED_RECON_REPORT
     PREPARED_PAGE["Phase 10A typed local prepared snapshot"] --> PREPARED_EXTRACTOR["Fail-closed fixture extractor"]
     PREPARED_EXTRACTOR --> RAW
     RAW --> APP
@@ -124,6 +125,8 @@ Phase 10B2d them `internal/facebook/safari_rendered_dom.go` cho separate acquisi
 Phase 10B2e them docs-only [FACEBOOK_SAFARI_RENDERED_DOM_RECONNAISSANCE.md](FACEBOOK_SAFARI_RENDERED_DOM_RECONNAISSANCE.md) sau exactly one successful production acquisition tren user-confirmed Facebook group tab. Temporary in-memory analyzer output was filtered to a pass summary, nen no post-container/permalink/body/author/machine-time/traversal counts survived. Reconnaissance stops inconclusive, adds no selector/`RawPost` edge and keeps Phase 10B2b blocked.
 
 Phase 10B2f them `internal/facebook/rendered_dom_reconnaissance.go` cho pure bounded evidence-report node. `AnalyzeRenderedDOMStructure` consumes only rendered DOM plus optional page URL and returns count/shape/confidence-only `RenderedDOMReconnaissanceReport`; marker arrays toi da 16 canonical strings, moi string toi da 64 bytes. Node khong acquire Safari, khong write file, khong return private match, khong implement selector/`RawPost`, va khong co edge toi Phase 10A/11, persistence, SwiftUI, bridge hoac network. Future manual helper co the encode only typed report vao mode-0600 `/tmp` file de preserve evidence independent of RTK stdout.
+
+Phase 10B2g records one preserved live report: 3,180,722 analyzed bytes, two semantic article candidates and traversal count two, but zero approved permalink/body/author/machine-time/complete-evidence candidates. Only `role=article` and `dom-source-order` are recognized. The closeout adds no runtime edge and keeps Phase 10B2b blocked; current Safari selector investigation ends unless a separately justified technique supplies the missing critical structure.
 
 Phase 5C them `internal/persistence/batch_record.go` cho completed scan batch snapshot contract. Contract gom opaque `BatchRecordID`, immutable-style `BatchRecord`, structural validation, deterministic converter tu `application.ScanBatchInput`/`ScanBatchResult` va save-only `BatchRepository.SaveBatch`. Chua co SQLite, schema, migration, file I/O, load/list/update/delete/search/paging API, ID generation, Facebook adapter, UI/CLI, concurrency hoac network behavior.
 
