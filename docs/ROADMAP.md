@@ -854,7 +854,7 @@ Stop conditions: Requires user-authored JSON, relative-time inference, multiple 
 
 ## Phase 11C1 - Go-only bounded prepared-snapshot collector adapter
 
-Status: planned, not implemented.
+Status: complete after focused Phase 11C1/Phase 11A integration tests, relevant regressions, full Go tests, vet, CLI smoke and source-boundary audits pass.
 
 Exact scope: Implement only the strict prepared-snapshot JSON v1 DTO/decoder, 1 MiB and 100-post bounds, authoritative one-group binding, unchanged Phase 10A mapping and one concrete one-shot `GroupPostCollector` adapter.
 
@@ -865,6 +865,22 @@ Acceptance criteria: Strict bounded decoding fails closed before mutation; exact
 Tests: Synthetic DTO/decoder and collector fixtures for versions, byte/post bounds, duplicate/trailing JSON, group conflicts, author/body/time/URL validation, exact mapping/order, deterministic repetition and forbidden dependency audits.
 
 Stop conditions: Requires Phase 10A/11A redesign, multiple formats, UI/bridge behavior, persistence, browser access or cursor progression.
+
+Implementation: `facebook.NewPreparedSnapshotCollector(payload []byte)` defensively copies every in-bound payload and records oversized input without retaining it. The collector strictly decodes only `schema_version` plus 1-100 ordered posts, caps aggregate input at 1 MiB, enforces finite per-field byte bounds and exact `+07:00` RFC3339/RFC3339Nano `created_at`, binds every post to the requested active enrolled group, sets `CapturedAt` from `ScanWindow.ScanStarted()`, and calls Phase 10A `ExtractPreparedPage` exactly once. Any error returns zero collection data.
+
+## Phase 11C2 - Typed bridge and manual prepared-post form wiring
+
+Status: planned, not implemented.
+
+Exact scope: Add one narrow typed local bridge operation and ScanFB-owned macOS form that constructs the already-approved Phase 11C1 JSON v1 payload for one authoritative enrolled group and invokes the existing one-group orchestration path.
+
+Protected areas: No file picker/import, bulk clipboard reader, Safari/browser, selector, API/network client, input-payload persistence, schema change, production collector, exact-five batch execution, cursor movement, retry, scheduler or background work.
+
+Acceptance criteria: Swift only presents typed fields and encodes the canonical payload; Go remains authoritative for group identity, capture/scan time, strict validation, Phase 10A mapping and Phase 11A execution. Missing absolute time or another invalid field fails visibly with no partial result.
+
+Tests: Focused bridge schema/operation tests, Swift store/form tests, complete Go/macOS regressions and separately guided local manual validation with synthetic data only.
+
+Stop conditions: Requires multiple input formats, Swift-owned validation/identity/time authority, file/clipboard automation, persistence, browser access, Phase 11A redesign, batch-five execution or cursor progression.
 
 ## Phase 12 - Scan batch 5 group
 

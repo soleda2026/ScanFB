@@ -24,6 +24,9 @@ flowchart TD
     ONE_GROUP_SCAN["Phase 11A one-group orchestration"] --> APP
     INJECTED_COLLECTOR["Injected GroupPostCollector"] --> ONE_GROUP_SCAN
     MANUAL_INPUT_DECISION["Phase 11C0 manual prepared-post workflow decision"] -.future bounded DTO.-> PREPARED_PAGE
+    PREPARED_COLLECTOR["Phase 11C1 strict prepared-snapshot collector"] --> INJECTED_COLLECTOR
+    PREPARED_COLLECTOR --> PREPARED_EXTRACTOR
+    MANUAL_INPUT_DECISION -.implemented by.-> PREPARED_COLLECTOR
     OVERVIEW_FIXTURE["Overview fixture model and views"] --> MACOS_APP
     LEADS_FIXTURE["Leads fixture model and views"] --> MACOS_APP
     LEADS_INTERACTION_STATE["Leads session interaction state"] --> LEADS_FIXTURE
@@ -139,6 +142,8 @@ Phase 11A adds application-facing collector/request/result contracts in `interna
 Phase 11B0 adds a documentation-only decision node at [PRODUCTION_GROUP_COLLECTOR_SOURCE_DECISION.md](PRODUCTION_GROUP_COLLECTOR_SOURCE_DECISION.md). Its outcome is DEFER: no evaluated source proves exact group binding, ordered post data, body, author, absolute machine timestamp and post identity/permalink under the existing privacy and fail-closed boundaries. The node adds no production `GroupPostCollector` implementation and no Facebook/Safari, API/network, extension, Accessibility/WebKit, persistence, Swift/Xcode, bridge, Phase 11A or cursor edge.
 
 Phase 11C0 adds a dotted documentation-only decision edge from a future ScanFB-owned manual prepared-post form to the existing Phase 10A prepared snapshot boundary. [MVP_SCAN_INPUT_WORKFLOW_DECISION.md](MVP_SCAN_INPUT_WORKFLOW_DECISION.md) approves one versioned JSON DTO for one authoritative active enrolled group, 1-100 ordered posts and a 1 MiB aggregate bound; user fields remain explicit while group and capture values remain app-owned. There is no runtime importer/collector, Swift/UI, bridge, file/clipboard, persistence, browser, batch-five or cursor edge in Phase 11C0. A future production collector can still replace the manual adapter behind unchanged Phase 11A.
+
+Phase 11C1 adds `internal/facebook.PreparedSnapshotCollector` as the first concrete implementation of the existing injected collector edge. Constructor-owned caller bytes pass through strict bounded JSON v1 decoding, authoritative request group/capture mapping and exactly one Phase 10A extraction call before ordered `RawPost` values reach Phase 11A. The node has no file/stdin/clipboard, Swift/Xcode/bridge, browser/Safari/network, persistence, cursor, generated-ID, internal-clock, retry, scheduler, concurrency or Phase 12 edge.
 
 Phase 10A them `internal/facebook/prepared_page.go` cho typed local `PreparedPageSnapshot` va `ExtractPreparedPage`. Extractor validate schema version, caller-supplied group/capture metadata, body, absolute RFC3339 timestamp, optional absolute HTTPS post URL va embedded group consistency; output la ordered `[]domain.RawPost`. Phase nay khong parse live Facebook DOM, khong acquire browser page, khong co cookie/credential/session/network, khong goi scan/lifecycle va khong co persistence, SwiftUI hoac bridge behavior.
 
