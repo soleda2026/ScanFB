@@ -79,15 +79,24 @@ type ScanBatchLifecycleSummary struct {
 
 // NewScanBatchLifecycle creates one deterministic five-group lifecycle batch.
 func NewScanBatchLifecycle(batchID string, window domain.ScanWindow, inputs []GroupScanAttemptInput) (ScanBatchLifecycle, error) {
+	if len(inputs) != domain.MaxScanRequestGroups {
+		return ScanBatchLifecycle{}, ErrScanBatchLifecycleInvalidGroupCount
+	}
+	return newScanLifecycle(batchID, window, inputs)
+}
+
+// NewOneGroupScanLifecycle creates one lifecycle containing exactly one caller-selected group.
+func NewOneGroupScanLifecycle(scanID string, window domain.ScanWindow, input GroupScanAttemptInput) (ScanBatchLifecycle, error) {
+	return newScanLifecycle(scanID, window, []GroupScanAttemptInput{input})
+}
+
+func newScanLifecycle(batchID string, window domain.ScanWindow, inputs []GroupScanAttemptInput) (ScanBatchLifecycle, error) {
 	batchID = strings.TrimSpace(batchID)
 	if batchID == "" {
 		return ScanBatchLifecycle{}, ErrScanBatchLifecycleInvalidBatchID
 	}
 	if !validLifecycleScanWindow(window) {
 		return ScanBatchLifecycle{}, ErrScanBatchLifecycleInvalidScanWindow
-	}
-	if len(inputs) != domain.MaxScanRequestGroups {
-		return ScanBatchLifecycle{}, ErrScanBatchLifecycleInvalidGroupCount
 	}
 
 	attempts := make([]GroupScanAttempt, len(inputs))
@@ -175,7 +184,7 @@ func (b ScanBatchLifecycle) Summary() ScanBatchLifecycleSummary {
 
 func (b ScanBatchLifecycle) IsTerminal() bool {
 	summary := b.Summary()
-	return summary.Total == domain.MaxScanRequestGroups && summary.Terminal == summary.Total
+	return summary.Total > 0 && summary.Terminal == summary.Total
 }
 
 func (b ScanBatchLifecycle) ActiveAttempt() (GroupScanAttempt, bool) {

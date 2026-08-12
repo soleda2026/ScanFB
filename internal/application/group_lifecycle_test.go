@@ -27,6 +27,31 @@ func TestNewScanBatchLifecycleRequiresExactlyFiveGroups(t *testing.T) {
 	}
 }
 
+func TestNewOneGroupScanLifecycleUsesExistingTransitionSemantics(t *testing.T) {
+	lifecycle, err := NewOneGroupScanLifecycle(
+		"scan-001",
+		phase9AScanWindow(t, phase9AScanStart(t)),
+		GroupScanAttemptInput{AttemptID: "attempt-001", WatchedGroupID: "group-001"},
+	)
+	if err != nil {
+		t.Fatalf("NewOneGroupScanLifecycle() error = %v", err)
+	}
+	if got := lifecycle.Attempts(); len(got) != 1 || got[0].Status() != GroupAttemptStatusPending {
+		t.Fatalf("initial attempts = %#v, want one pending attempt", got)
+	}
+
+	if _, err := lifecycle.StartNextPending(phase9ATime(t, 10, 30)); err != nil {
+		t.Fatalf("StartNextPending() error = %v", err)
+	}
+	attempt, err := lifecycle.SucceedAttempt("attempt-001", phase9ATime(t, 10, 31))
+	if err != nil {
+		t.Fatalf("SucceedAttempt() error = %v", err)
+	}
+	if attempt.Status() != GroupAttemptStatusSucceeded || !lifecycle.IsTerminal() {
+		t.Fatalf("completed lifecycle = %#v, want one terminal succeeded attempt", lifecycle.Attempts())
+	}
+}
+
 func TestNewScanBatchLifecycleRejectsEmptyGroupID(t *testing.T) {
 	inputs := phase9AAttemptInputs()
 	inputs[2].WatchedGroupID = " \t "

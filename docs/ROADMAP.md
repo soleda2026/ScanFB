@@ -810,17 +810,33 @@ Next step: none within the current Safari selector approach. Any future investig
 
 Tests: Documentation consistency plus unchanged Go regression/vet/CLI and repository privacy/status audits.
 
-## Phase 11 - Scan mot group thu cong
+## Phase 11A - One enrolled-group manual scan orchestration contract
 
-Exact scope: Scan mot group voi user-triggered action.
+Status: complete after focused tests, full Go regression, vet, CLI smoke and source-boundary audits pass.
 
-Protected areas: Khong batch 5 group, khong retry lien tuc.
+Exact scope: Go-only deterministic orchestration for exactly one caller-selected, already-enrolled active WatchedGroup. One injected collector receives the group and ScanWindow, then returns group-bound ordered `RawPost` values for existing Phase 5B application processing.
 
-Acceptance criteria: Mot group co attempt state va ket qua domain.
+Protected areas: No live Facebook collector, Safari selector/acquisition wiring, batch-five selection, cursor advancement, persistence write/schema, retry, scheduler, concurrency, background work, Swift, bridge or networking.
 
-Tests: Manual validation va fixtures regression.
+Acceptance criteria: Caller IDs/times are preserved; Phase 9A pending/running/succeeded/failed/day-boundary semantics are reused; collector is called exactly once; inactive/mismatched/failing input fails closed; successful collection uses `RunScanBatch` with one group; zero posts are explicit success; failures fabricate no application result.
 
-Stop conditions: Mat quyen truy cap group hoac selector quan trong thieu.
+Tests: Focused application/orchestration fixtures cover active/inactive, exact collector request/count, ordered posts, success/T19 failure, identity conflict, invalid application configuration, zero posts, caller identity/time, day boundary, cancellation, determinism, defensive results and source boundaries.
+
+Stop conditions: Requires live selector details, persistence, cursor change, Swift/bridge work, Phase 5B redesign or a production collector.
+
+## Phase 11B - Production collector for one enrolled group
+
+Status: blocked until a reliable post source contract exists.
+
+Exact scope: Future production implementation of the Phase 11A `GroupPostCollector` boundary for one enrolled group.
+
+Protected areas: Do not weaken selector evidence standards, use unstable DOM heuristics, fabricate `RawPost`, add retries/background behavior or access browser private stores.
+
+Acceptance criteria: Requires separately approved stable evidence for post identity, body, author, machine-readable timestamp and group binding before implementation can begin.
+
+Tests: Future adapter fixtures and separately approved manual validation; no live Facebook integration test belongs to Phase 11A.
+
+Stop conditions: The current Phase 10B2g result has zero complete-post evidence, so Phase 11B remains blocked.
 
 ## Phase 12 - Scan batch 5 group
 

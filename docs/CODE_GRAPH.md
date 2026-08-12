@@ -21,6 +21,8 @@ flowchart TD
     BRIDGE_CORE["internal/bridge readiness and watched groups"]
     MACOS_APP -.local subprocess.-> BRIDGE_HELPER
     GROUPS_UI["Phase 9E3b enrolled Watched Groups presentation"] --> MACOS_APP
+    ONE_GROUP_SCAN["Phase 11A one-group orchestration"] --> APP
+    INJECTED_COLLECTOR["Injected GroupPostCollector"] --> ONE_GROUP_SCAN
     OVERVIEW_FIXTURE["Overview fixture model and views"] --> MACOS_APP
     LEADS_FIXTURE["Leads fixture model and views"] --> MACOS_APP
     LEADS_INTERACTION_STATE["Leads session interaction state"] --> LEADS_FIXTURE
@@ -130,6 +132,8 @@ Phase 9E2b historically corrected the primary UI toward future joined-group disc
 Phase 9E3a adds only [FACEBOOK_JOINED_GROUPS_RECONNAISSANCE.md](FACEBOOK_JOINED_GROUPS_RECONNAISSANCE.md) after exactly one user-guided call to the existing Phase 10B2d API. Redacted evidence found one canonical group-link/name association and one tentative containing section, but no semantic group-item container, explicit joined-membership marker or strong multi-item traversal. The dotted reconnaissance edge adds no parser/discovery/runtime behavior and blocks Phase 9E3; there is no edge to WatchedGroup persistence, cursor, bridge/UI, `RawPost`, scan or Phase 11/12.
 
 Phase 9E3b changes only product copy, the existing Groups presentation and focused Swift source checks. Enrollment calls the unchanged `watched_groups_add` bridge operation and consumes its full authoritative state/selection response. It adds no schema, persistence owner, discovery/acquisition edge, membership verification, cursor advancement or Phase 11/12 execution.
+
+Phase 11A adds application-facing collector/request/result contracts in `internal/application/one_group_scan_contract.go` and coordination in `internal/orchestration/one_group_scan.go`. `RunOneGroupScan` owns one active enrolled group attempt, invokes exactly one injected collector call, and routes ordered group-bound `RawPost` values into existing one-group-capable `application.RunScanBatch`. The result reuses `GroupScanAttempt` status/timestamps and `ScanBatchResult`; failures expose a narrow stage code without fabricating application data. Orchestration retains its application-only core dependency and has no edge to Phase 9C selection/cursor, persistence, Facebook/Safari, bridge/UI, networking or concurrency.
 
 Phase 10A them `internal/facebook/prepared_page.go` cho typed local `PreparedPageSnapshot` va `ExtractPreparedPage`. Extractor validate schema version, caller-supplied group/capture metadata, body, absolute RFC3339 timestamp, optional absolute HTTPS post URL va embedded group consistency; output la ordered `[]domain.RawPost`. Phase nay khong parse live Facebook DOM, khong acquire browser page, khong co cookie/credential/session/network, khong goi scan/lifecycle va khong co persistence, SwiftUI hoac bridge behavior.
 
