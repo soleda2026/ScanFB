@@ -232,6 +232,23 @@ read-only. The UI did not imply manual population or cursor advancement, and no
 discovery, Facebook, Safari or browser action occurred. This closeout does not
 relaunch the app.
 
+## Joined-groups reconnaissance checks
+
+Phase 9E3a used exactly one user-guided call to the committed
+`AcquireSafariActiveTabRenderedDOM()` API against one user-prepared Facebook
+page visibly listing joined groups. The temporary analyzer kept the 3,208,287
+rendered-DOM bytes only in memory and persisted only a small redacted JSON
+report under `/tmp` with mode `0600`; no private value or raw DOM entered the
+repository or stdout.
+
+The retained evidence contains one tentative semantic section, zero semantic
+group-item containers, one canonical group-link/name association, zero
+explicit machine-readable joined-membership candidates, one ambiguous group
+link and one traversal candidate. Identity and display-name association are
+STRONG; section and ordering are TENTATIVE; item and joined-versus-recommended
+distinction are NOT_FOUND. The expected result is STOP/INCONCLUSIVE, with no
+production discovery code, retry or second acquisition.
+
 ## Test matrix toi thieu
 
 | ID | Fixture | Expected |
@@ -359,6 +376,7 @@ relaunch the app.
 - Phase 9E2a: docs-only checks cover all location/schema candidates, one APPROVE outcome, exact Application Support path shape, Go/helper ownership, separate state schema v1, unchanged completed-batch v1, full WatchedGroup field inventory, cursor transaction/restore/corruption policy, temp-path test override and absence of runtime/schema/bridge/Swift persistence changes.
 - Phase 9E2: implemented Go/bridge/Swift tests cover dedicated temporary SQLite state bootstrap, exact full-value/insertion-order restore, authoritative identity conflicts, active metadata, exact cursor persistence/reopen behavior, atomic failures, typed bridge storage errors and Swift authoritative refresh. Manual relaunch persistence verification is intentionally deferred to Phase 9E3/9E4 until a supported primary population flow exists; this is not a persistence failure.
 - Phase 9E2b: Swift/source tests cover hidden manual add/queue advance, disabled unavailable joined-group synchronization copy, read-only next-five preview and list-only rendering; full Phase 9E2 storage/bridge regressions remain required because no schema or authority behavior changes.
+- Phase 9E3a: docs-only one-page reconnaissance records bounded redacted counts and exact confidence after one read-only rendered-DOM acquisition. It accepts canonical group-link and same-link name evidence but rejects broad `/groups/` scraping, localized text, generated classes, DOM depth and positional selectors; missing item/membership distinction keeps Phase 9E3 blocked.
 - Phase 9E+: later persistence, adapter and production scan orchestration tests must be defined by separate narrow milestones.
 - Phase 10A: Go-only prepared-page tests cover typed local fixture schema, exact ordered `RawPost` mapping, caller group/name/capture propagation, Vietnamese body preservation, absolute RFC3339 timestamps, optional absolute HTTPS post URLs, supplied stable/display-only author identity, missing-field fail-closed errors, group conflict rejection, determinism, input immutability, no fabricated optional data, no live DOM/browser/network/session/cookie/credential access, no scan/lifecycle execution and no persistence/UI/bridge behavior.
 - Phase 10B1: Go-only Safari active-tab acquisition tests cover strict deterministic response parsing, exact URL/title/content and caller timestamp preservation, optional empty title, absolute HTTPS/no-userinfo URL validation, empty/oversized content rejection with a 4 MiB decoded-content bound and finite worst-case JSON transport envelope, direct `/usr/bin/osascript` JXA arguments, front-window current-tab-only reads, bounded separate stdout/stderr, explicit start/nonzero/TCC/not-running/no-window/no-tab/timeout/cancellation errors, result fields without browser secrets, and source audits excluding Chrome, Accessibility/UI scripting, WebKit/extension, network/listener, browser profile stores, `RawPost`/Phase 10A automatic extraction, Phase 11 lifecycle/pipeline, persistence, SQLite, Swift, Xcode and bridge behavior. User-guided manual validation acquired one expected active group page successfully without printing raw HTML; its approximately 1.5-1.6 MB source remained below the 4 MiB bound.

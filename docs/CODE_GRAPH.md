@@ -35,6 +35,7 @@ flowchart TD
     RENDERED_DOM_DECISION["Phase 10B2c rendered-DOM decision"] -.approves future bounded Apple Events probe.-> SAFARI_ACTIVE_TAB
     RENDERED_DOM["Phase 10B2d bounded rendered-DOM snapshot"] --> FB
     RENDERED_DOM_DECISION -.implemented by.-> RENDERED_DOM
+    JOINED_GROUP_RECON["Phase 9E3a joined-groups reconnaissance: inconclusive"] -.blocks discovery edge.-> RENDERED_DOM
     RENDERED_DOM_RECON["Phase 10B2e rendered-DOM reconnaissance: inconclusive"] -.retained no post-level evidence.-> RENDERED_DOM
     REDACTED_RECON_REPORT["Phase 10B2f bounded redacted evidence report"] -.future manual input.-> RENDERED_DOM_RECON
     RENDERED_DOM_CLOSEOUT["Phase 10B2g selector investigation closeout"] -.blocks selector edge.-> REDACTED_RECON_REPORT
@@ -125,6 +126,8 @@ Phase 9E2a them docs-only [WATCHED_GROUP_PERSISTENCE_DECISION.md](WATCHED_GROUP_
 Phase 9E2 them `SQLiteWatchedGroupRepository`, independent schema v1 va Go Application Support resolver. Repository restore full groups theo explicit insertion position, validate authoritative identity/metadata/cursor, dung DELETE journal, va transact add/set-active/cursor advance. Watched-group bridge v2 khong nhan client collection/cursor/path; Swift store chi render authoritative response va explicit loading/storage-error states. Existing completed-batch schema v1 khong doi; khong co migration runner, Facebook, scan execution, scheduler, retry, networking hoac generated ID.
 
 Phase 9E2b corrects product semantics without a new runtime edge. Future primary group input is a separately implemented joined-group discovery/synchronization path from the user's authenticated Facebook/Safari context. Current WatchedGroup storage remains source-neutral; manual add and `watched_groups_next_five` stay below the UI as fallback/test and future internal progression primitives. Rendering list/preview never advances cursor.
+
+Phase 9E3a adds only [FACEBOOK_JOINED_GROUPS_RECONNAISSANCE.md](FACEBOOK_JOINED_GROUPS_RECONNAISSANCE.md) after exactly one user-guided call to the existing Phase 10B2d API. Redacted evidence found one canonical group-link/name association and one tentative containing section, but no semantic group-item container, explicit joined-membership marker or strong multi-item traversal. The dotted reconnaissance edge adds no parser/discovery/runtime behavior and blocks Phase 9E3; there is no edge to WatchedGroup persistence, cursor, bridge/UI, `RawPost`, scan or Phase 11/12.
 
 Phase 10A them `internal/facebook/prepared_page.go` cho typed local `PreparedPageSnapshot` va `ExtractPreparedPage`. Extractor validate schema version, caller-supplied group/capture metadata, body, absolute RFC3339 timestamp, optional absolute HTTPS post URL va embedded group consistency; output la ordered `[]domain.RawPost`. Phase nay khong parse live Facebook DOM, khong acquire browser page, khong co cookie/credential/session/network, khong goi scan/lifecycle va khong co persistence, SwiftUI hoac bridge behavior.
 

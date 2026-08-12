@@ -590,9 +590,25 @@ Persistence closeout: Automated repository, bridge and Swift tests verify reopen
 
 Stop conditions: Requires real Facebook discovery, persistence provenance/schema redesign, scan execution or removal of useful fallback bridge/domain behavior.
 
+## Phase 9E3a - Joined-groups page rendered-DOM reconnaissance
+
+Status: complete with STOP/INCONCLUSIVE result after exactly one user-guided read-only acquisition.
+
+Exact scope: Docs-only inspection of one user-prepared Facebook page visibly listing joined groups through the committed `AcquireSafariActiveTabRenderedDOM()` path. Raw DOM stayed in memory; only bounded counts, confidence and generic marker categories were retained.
+
+Result: 3,208,287 rendered-DOM bytes; one tentative containing section; zero semantic group-item containers; one canonical group-link/name association; zero directly numeric IDs; zero explicit machine-readable joined-membership candidates; one ambiguous group link; and one traversal candidate. Identity and name association are STRONG, section and ordering are TENTATIVE, item and joined-versus-recommended evidence are NOT_FOUND.
+
+Decision: Phase 9E3 remains blocked. A broad `/groups/` link scan cannot distinguish joined groups from recommendations, navigation or unrelated links. See [FACEBOOK_JOINED_GROUPS_RECONNAISSANCE.md](FACEBOOK_JOINED_GROUPS_RECONNAISSANCE.md).
+
+Protected areas: No production discovery/parser/selector, persistence/synchronization, active-state change, cursor advancement, `RawPost`, scan, Phase 11/12, bridge/UI, dependency, browser mutation/navigation/scroll/click, retry, network/listener, Accessibility, WebKit, extension or browser private-state access.
+
+Tests: Documentation consistency plus unchanged Go regression/vet/CLI checks. The live run used exactly one acquisition; no private value or raw DOM entered the repository.
+
+Stop condition reached: stable item boundaries and joined-versus-recommended evidence are absent. Any new attempt requires a separately approved evidence/acquisition milestone; do not weaken markers.
+
 ## Phase 9E3 - Joined-group discovery acquisition contract
 
-Status: future.
+Status: blocked by the Phase 9E3a STOP/INCONCLUSIVE result.
 
 Exact scope: Define and validate one bounded, user-triggered acquisition contract for discovering groups joined by the Facebook account already authenticated in Safari. No persistence synchronization or scan execution.
 
