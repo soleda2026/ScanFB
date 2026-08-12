@@ -560,7 +560,7 @@ Stop conditions: Implementation request, unresolved bundle identity, need to mig
 
 ## Phase 9E2 - Implement dedicated WatchedGroup-state SQLite persistence
 
-Status: complete. Implementation and automated verification passed. Manual relaunch persistence verification is intentionally deferred until Phase 9E3/9E4 provides a supported primary group-population flow; this is not a persistence failure.
+Status: complete. Implementation, automated verification and Phase 9E3b user-guided quit/relaunch verification passed. Persisted group membership and active/inactive state are both manually verified across process relaunch.
 
 Exact scope: Implement the approved Phase 9E2a decision: Go production path resolver, dedicated state schema v1/repository, transactional full WatchedGroup plus cursor restore/mutation, persistent watched-group bridge behavior and Swift authoritative-state refresh/error presentation.
 
@@ -568,13 +568,15 @@ Protected areas: Khong completed-batch schema change/migration, scan result/life
 
 Acceptance criteria: `watched-groups.sqlite3` uses independent schema v1 and DELETE journal; Go restores insertion order/full metadata/exact cursor and owns all mutations; corrupt state fails closed; bridge requests carry no collection/cursor/path authority; Swift distinguishes loading, successful empty state and storage failure. Existing completed-batch schema v1 remains unchanged.
 
-Tests: Temporary-database Go persistence/bridge tests, focused Swift store tests, full regressions and build passed. Automated reopen tests verify persisted groups, active state, insertion order and exact cursor. Manual relaunch persistence verification is deferred to Phase 9E3/9E4 because the corrected product contract exposes no supported primary population flow yet.
+Tests: Temporary-database Go persistence/bridge tests, focused Swift store tests, full regressions and build passed. Automated reopen tests verify persisted groups, active state, insertion order and exact cursor. Phase 9E3b manual acceptance verified group persistence after one full quit/relaunch, then inactive-state persistence after a second full quit/relaunch through the supported enrollment UI.
 
 Stop conditions: Need completed-batch migration, arbitrary filesystem path bridge input, Swift-owned persistence, Phase 11/Facebook behavior or broader storage architecture.
 
 ## Phase 9E2b - Group discovery product-contract correction
 
 Status: complete. Implementation, automated verification and user-guided manual UI verification passed.
+
+Historical note: Phase 9E3b supersedes this milestone's assumption that automatic joined-group discovery is the primary product source. The verification below remains an accurate record of the Phase 9E2b UI at closeout.
 
 Exact scope: Preserve Phase 9E2 source-neutral persistence while correcting the primary UI/product contract: future joined-group discovery is the normal group source, active toggles remain user-controlled, next-five is an informational preview, and cursor progression is internal rather than a separate user action.
 
@@ -586,7 +588,7 @@ Tests: Focused Swift presentation/store checks, unchanged Phase 9E2 persistence/
 
 Manual verification: The freshly built Groups screen opened successfully; `+ Thêm nhóm` and `Chuyển lượt chọn` were absent; disabled `Đồng bộ nhóm đã tham gia` was visible and unavailable; the empty state stated that discovery is not implemented; and `Next 5 Groups` remained a visible read-only preview. The flow did not imply manual population or cursor advancement and triggered no discovery, Facebook, Safari or browser behavior.
 
-Persistence closeout: Automated repository, bridge and Swift tests verify reopen behavior. Manual quit/relaunch persistence verification is intentionally deferred to Phase 9E3/9E4, when a supported primary discovery/population flow exists; the deferment is not evidence of a persistence failure.
+Persistence closeout: Automated repository, bridge and Swift tests verify reopen behavior. Phase 9E3b user-guided verification now satisfies the previously deferred manual quit/relaunch check through the supported enrollment flow; the earlier deferment was not evidence of a persistence failure.
 
 Stop conditions: Requires real Facebook discovery, persistence provenance/schema redesign, scan execution or removal of useful fallback bridge/domain behavior.
 
@@ -606,9 +608,23 @@ Tests: Documentation consistency plus unchanged Go regression/vet/CLI checks. Th
 
 Stop condition reached: stable item boundaries and joined-versus-recommended evidence are absent. Any new attempt requires a separately approved evidence/acquisition milestone; do not weaken markers.
 
+## Phase 9E3b - Approved-group enrollment product correction
+
+Status: complete. Implementation, automated verification and user-guided manual acceptance passed.
+
+Exact scope: Restore the existing Add sheet as a one-time setup action for user-approved Facebook groups. Persist each group through the unchanged Go-owned WatchedGroup Add path, keep active/inactive eligibility and read-only next-five presentation, remove the disabled automatic-sync affordance and keep cursor progression internal.
+
+Product contract: Automatic enumeration of every joined Facebook group is not required for MVP. Enrollment records a group the user wants scanned but does not prove current membership, access permission, Safari login validity or future post availability. A future scan must report access failure as an explicit group attempt/result rather than silently removing the enrolled group.
+
+Protected areas: No schema/protocol redesign, discovery/acquisition, membership verification, Safari/Facebook runtime, selector, Swift persistence, cursor advancement, scan execution, Phase 11/12, networking, background work, scheduler or retry.
+
+Acceptance criteria: Enrollment action and one-time local-storage copy are visible; blocked sync affordance and manual queue advancement are absent; successful Add consumes the authoritative backend response; persisted state loads on startup; toggles remain authoritative; next-five stays read-only and does not advance cursor; persistence errors remain explicit.
+
+Tests: Focused Swift store/UI checks, existing bridge/persistence tests, full macOS and Go regressions, vet, CLI smoke check and Debug build passed. User-guided manual acceptance launched the fresh bundle, opened Groups, verified enrollment/empty/read-only-preview UI and absence of sync/manual-advance controls, enrolled one real group, verified it remained after full quit/relaunch, changed it inactive and verified both the group and OFF state remained after another full quit/relaunch. No Facebook Scan, Safari acquisition, discovery, browser mutation or cursor advancement occurred; private group identity is intentionally not recorded.
+
 ## Phase 9E3 - Joined-group discovery acquisition contract
 
-Status: blocked by the Phase 9E3a STOP/INCONCLUSIVE result.
+Status: optional future research, currently blocked by the Phase 9E3a STOP/INCONCLUSIVE result; not required for MVP.
 
 Exact scope: Define and validate one bounded, user-triggered acquisition contract for discovering groups joined by the Facebook account already authenticated in Safari. No persistence synchronization or scan execution.
 
@@ -622,7 +638,7 @@ Stop conditions: Stable joined-group evidence is unavailable, permission attribu
 
 ## Phase 9E4 - Discovered-group synchronization
 
-Status: future, after Phase 9E3 succeeds.
+Status: optional future research only if a separately approved Phase 9E3 succeeds; not an MVP blocker.
 
 Exact scope: Reconcile one validated discovered-group snapshot into the existing source-neutral WatchedGroup repository while preserving user-controlled active state and deterministic insertion/cursor semantics.
 
@@ -636,7 +652,7 @@ Stop conditions: Requires account/session storage, ambiguous identity merging, s
 
 ## Phase 9E+ - Later adapter and orchestration slices
 
-Exact scope: Future narrow milestones may expose lifecycle presentation through an approved bridge, add one-group collection integration and later five-group production scan orchestration.
+Exact scope: The shortest MVP path proceeds from the Phase 9E3b enrolled-group set to one known enrolled-group scan, then to an explicit user-triggered next-five batch scan. Future narrow milestones may expose lifecycle presentation through an approved bridge; automatic internal cursor progression begins only when real batch execution semantics are ready.
 
 Protected areas: Khong gop Facebook adapter, persistence hoac production execution vao Phase 9E1; moi slice phai co scope, tests va boundaries rieng.
 

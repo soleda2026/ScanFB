@@ -20,7 +20,7 @@ flowchart TD
     BRIDGE_HELPER["cmd/scanfb-bridge-helper typed operations"] -.typed request/response.-> BRIDGE_CORE
     BRIDGE_CORE["internal/bridge readiness and watched groups"]
     MACOS_APP -.local subprocess.-> BRIDGE_HELPER
-    GROUPS_UI["Phase 9E2 Watched Groups presentation store"] --> MACOS_APP
+    GROUPS_UI["Phase 9E3b enrolled Watched Groups presentation"] --> MACOS_APP
     OVERVIEW_FIXTURE["Overview fixture model and views"] --> MACOS_APP
     LEADS_FIXTURE["Leads fixture model and views"] --> MACOS_APP
     LEADS_INTERACTION_STATE["Leads session interaction state"] --> LEADS_FIXTURE
@@ -91,7 +91,7 @@ flowchart TD
 - Dry Run fixture model/views: SwiftUI-only presentation nodes for Phase 8E review tabs/cards; no edge to Go core.
 - Blocklist fixture model/views: SwiftUI-only presentation nodes for Phase 8F sample blocklist entries; no edge to Go core and no ownership of blocklist semantics.
 - Settings fixture model/views: SwiftUI presentation nodes for Phase 8F read-only sample settings plus Phase 8I.2 readiness-only Go bridge check; no persistence writes and no lead/search/product data.
-- Watched Groups UI/store: Phase 9E2/9E2b SwiftUI presentation owner. It displays authoritative bridge-returned state, keeps active toggles and a read-only next-five preview, hides manual add/queue advance from primary UX, and shows future discovery as explicitly unavailable. It has no SQLite/path, Facebook discovery or scan-execution edge.
+- Watched Groups UI/store: Phase 9E2/9E3b SwiftUI presentation owner. It exposes one-time group enrollment through the existing authoritative Add operation, displays bridge-returned state, keeps active toggles and a read-only next-five preview, and has no manual queue advance. It has no SQLite/path, Facebook discovery or scan-execution edge.
 
 Phase 2 files trong `internal/domain` gom minimal models cho `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Domain package chi duoc import Go standard library.
 
@@ -125,9 +125,11 @@ Phase 9E2a them docs-only [WATCHED_GROUP_PERSISTENCE_DECISION.md](WATCHED_GROUP_
 
 Phase 9E2 them `SQLiteWatchedGroupRepository`, independent schema v1 va Go Application Support resolver. Repository restore full groups theo explicit insertion position, validate authoritative identity/metadata/cursor, dung DELETE journal, va transact add/set-active/cursor advance. Watched-group bridge v2 khong nhan client collection/cursor/path; Swift store chi render authoritative response va explicit loading/storage-error states. Existing completed-batch schema v1 khong doi; khong co migration runner, Facebook, scan execution, scheduler, retry, networking hoac generated ID.
 
-Phase 9E2b corrects product semantics without a new runtime edge. Future primary group input is a separately implemented joined-group discovery/synchronization path from the user's authenticated Facebook/Safari context. Current WatchedGroup storage remains source-neutral; manual add and `watched_groups_next_five` stay below the UI as fallback/test and future internal progression primitives. Rendering list/preview never advances cursor.
+Phase 9E2b historically corrected the primary UI toward future joined-group discovery without a new runtime edge. Phase 9E3b supersedes that product assumption: existing Add is now the primary one-time enrollment path for user-approved groups, while `watched_groups_next_five` remains a future internal progression primitive. Rendering list/preview never advances cursor.
 
 Phase 9E3a adds only [FACEBOOK_JOINED_GROUPS_RECONNAISSANCE.md](FACEBOOK_JOINED_GROUPS_RECONNAISSANCE.md) after exactly one user-guided call to the existing Phase 10B2d API. Redacted evidence found one canonical group-link/name association and one tentative containing section, but no semantic group-item container, explicit joined-membership marker or strong multi-item traversal. The dotted reconnaissance edge adds no parser/discovery/runtime behavior and blocks Phase 9E3; there is no edge to WatchedGroup persistence, cursor, bridge/UI, `RawPost`, scan or Phase 11/12.
+
+Phase 9E3b changes only product copy, the existing Groups presentation and focused Swift source checks. Enrollment calls the unchanged `watched_groups_add` bridge operation and consumes its full authoritative state/selection response. It adds no schema, persistence owner, discovery/acquisition edge, membership verification, cursor advancement or Phase 11/12 execution.
 
 Phase 10A them `internal/facebook/prepared_page.go` cho typed local `PreparedPageSnapshot` va `ExtractPreparedPage`. Extractor validate schema version, caller-supplied group/capture metadata, body, absolute RFC3339 timestamp, optional absolute HTTPS post URL va embedded group consistency; output la ordered `[]domain.RawPost`. Phase nay khong parse live Facebook DOM, khong acquire browser page, khong co cookie/credential/session/network, khong goi scan/lifecycle va khong co persistence, SwiftUI hoac bridge behavior.
 

@@ -4,8 +4,9 @@ Tai lieu nay la nguon chuan tac cao nhat cho hanh vi scan, filter, SearchProfile
 
 ## Nguon va batch
 
-- Nguon chinh la Facebook group ma tai khoan da dang nhap trong Safari cua nguoi dung da tham gia. Product flow muc tieu discover danh sach nay, luu local va cho nguoi dung bat/tat group can theo doi.
-- Manual add chi la fallback/scaffolding, khong phai primary workflow. Real joined-group discovery chua duoc implement.
+- Nguon chinh la tap Facebook group duoc nguoi dung phe duyet va them mot lan vao ScanFB. App luu local tung group va cho nguoi dung bat/tat eligibility.
+- Enrollment nhan canonical HTTPS group URL va ten theo existing WatchedGroup contract; khong scrape Facebook, khong tu verify membership va khong chung minh current access hoac Safari login validity.
+- Khi production execution ton tai, access failure cua enrolled group phai thanh explicit group attempt/result thay vi am tham xoa group. Automatic joined-group discovery chi la optional future research, khong phai MVP dependency.
 - Khong gioi han tong so group luu trong app.
 - Moi scan batch gom dung 5 group.
 - App tu chon next five active groups tu internal persisted cursor. Xem preview khong advance cursor.

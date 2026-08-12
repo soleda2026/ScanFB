@@ -2,6 +2,7 @@ import SwiftUI
 
 struct WatchedGroupsView: View {
     @ObservedObject var store: WatchedGroupsStore
+    @State private var isShowingEnrollment = false
 
     var body: some View {
         ScrollView {
@@ -16,6 +17,9 @@ struct WatchedGroupsView: View {
         .task {
             await store.loadIfNeeded()
         }
+        .sheet(isPresented: $isShowingEnrollment) {
+            AddWatchedGroupSheet(store: store, isPresented: $isShowingEnrollment)
+        }
     }
 
     private var header: some View {
@@ -24,12 +28,8 @@ struct WatchedGroupsView: View {
                 .font(.largeTitle)
                 .fontWeight(.semibold)
 
-            Text("Các nhóm đã tham gia sẽ được đồng bộ từ Facebook trong Safari và lưu cục bộ trên máy này.")
+            Text("Thêm một lần các nhóm Facebook bạn muốn theo dõi. ScanFB lưu cục bộ để dùng cho những lần Scan sau.")
                 .font(.body)
-                .foregroundStyle(.secondary)
-
-            Text("Tính năng đồng bộ chưa khả dụng.")
-                .font(.callout)
                 .foregroundStyle(.secondary)
         }
     }
@@ -43,10 +43,11 @@ struct WatchedGroupsView: View {
 
                 Spacer()
 
-                Button("Đồng bộ nhóm đã tham gia", systemImage: "arrow.triangle.2.circlepath") {}
-                    .disabled(true)
-                    .help("Chưa khả dụng")
-                    .accessibilityLabel("Đồng bộ nhóm đã tham gia, chưa khả dụng")
+                Button("Thêm nhóm theo dõi", systemImage: "plus") {
+                    isShowingEnrollment = true
+                }
+                .disabled(store.loadState != .loaded || store.isBusy)
+                .help("Thêm một nhóm và lưu cho các lần Scan sau")
             }
 
             if store.loadState == .loading || store.loadState == .idle {
@@ -61,9 +62,9 @@ struct WatchedGroupsView: View {
                 .frame(maxWidth: .infinity, minHeight: 150)
             } else if store.groups.isEmpty {
                 ContentUnavailableView(
-                    "Chưa có nhóm theo dõi",
+                    "Chưa thêm nhóm theo dõi",
                     systemImage: "rectangle.stack",
-                    description: Text("Danh sách sẽ xuất hiện sau khi tính năng đồng bộ nhóm đã tham gia được triển khai.")
+                    description: Text("Thêm các nhóm Facebook bạn muốn ScanFB theo dõi. Mỗi nhóm được lưu cục bộ và chỉ cần thêm một lần.")
                 )
                 .frame(maxWidth: .infinity, minHeight: 150)
             } else {
@@ -102,7 +103,7 @@ struct WatchedGroupsView: View {
                 .font(.title2)
                 .fontWeight(.semibold)
 
-            Text("Bản xem trước chỉ đọc cho batch Scan tiếp theo.")
+            Text("Bản xem trước chỉ đọc, tự động lấy 5 nhóm đang hoạt động cho batch Scan tiếp theo. Xem trước không đổi lượt.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
 

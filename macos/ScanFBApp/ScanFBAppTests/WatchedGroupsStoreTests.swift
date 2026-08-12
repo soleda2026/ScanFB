@@ -197,22 +197,37 @@ final class WatchedGroupsStoreTests: XCTestCase {
         XCTAssertEqual(requests.map(\.operation), [.list])
     }
 
-    func testPrimaryGroupsViewHidesManualAddAndManualQueueAdvance() throws {
+    func testPrimaryGroupsViewShowsEnrollmentAndNoManualQueueAdvance() throws {
         let source = try groupsViewSource()
 
-        XCTAssertFalse(source.contains("AddWatchedGroupSheet"))
-        XCTAssertFalse(source.contains("Thêm nhóm"))
+        XCTAssertTrue(source.contains("AddWatchedGroupSheet"))
+        XCTAssertTrue(source.contains("Thêm nhóm theo dõi"))
         XCTAssertFalse(source.contains("Chuyển lượt chọn"))
         XCTAssertFalse(source.contains("advanceSelection"))
     }
 
-    func testPrimaryGroupsViewShowsDisabledFutureDiscoveryAndReadOnlyPreview() throws {
+    func testPrimaryGroupsViewOmitsAutomaticDiscoveryAndKeepsReadOnlyPreview() throws {
         let source = try groupsViewSource()
 
-        XCTAssertTrue(source.contains("Đồng bộ nhóm đã tham gia"))
-        XCTAssertTrue(source.contains("Tính năng đồng bộ chưa khả dụng."))
-        XCTAssertTrue(source.contains(".disabled(true)"))
-        XCTAssertTrue(source.contains("Bản xem trước chỉ đọc cho batch Scan tiếp theo."))
+        XCTAssertFalse(source.contains("Đồng bộ nhóm đã tham gia"))
+        XCTAssertFalse(source.contains("Tính năng đồng bộ chưa khả dụng."))
+        XCTAssertTrue(source.contains("Bản xem trước chỉ đọc"))
+        XCTAssertTrue(source.contains("Xem trước không đổi lượt."))
+    }
+
+    func testPrimaryGroupsViewEmptyStateExplainsOneTimeLocalEnrollment() throws {
+        let source = try groupsViewSource()
+
+        XCTAssertTrue(source.contains("Chưa thêm nhóm theo dõi"))
+        XCTAssertTrue(source.contains("Mỗi nhóm được lưu cục bộ và chỉ cần thêm một lần."))
+    }
+
+    func testEnrollmentSheetExplainsOneTimeSetup() throws {
+        let source = try enrollmentSheetSource()
+
+        XCTAssertTrue(source.contains("Thêm nhóm theo dõi"))
+        XCTAssertTrue(source.contains("Thêm nhóm một lần bằng URL Facebook."))
+        XCTAssertTrue(source.contains("store.addGroup"))
     }
 
     func testLoadIfNeededDoesNotPollOrReload() async {
@@ -244,6 +259,15 @@ private func groupsViewSource() throws -> String {
         .deletingLastPathComponent()
     let sourceURL = projectDirectory
         .appendingPathComponent("ScanFBApp/Views/Groups/WatchedGroupsView.swift")
+    return try String(contentsOf: sourceURL, encoding: .utf8)
+}
+
+private func enrollmentSheetSource() throws -> String {
+    let projectDirectory = URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+    let sourceURL = projectDirectory
+        .appendingPathComponent("ScanFBApp/Views/Groups/AddWatchedGroupSheet.swift")
     return try String(contentsOf: sourceURL, encoding: .utf8)
 }
 

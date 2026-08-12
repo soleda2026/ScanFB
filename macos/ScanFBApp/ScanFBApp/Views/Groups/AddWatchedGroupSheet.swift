@@ -12,6 +12,10 @@ struct AddWatchedGroupSheet: View {
                 .font(.title2)
                 .fontWeight(.semibold)
 
+            Text("Thêm nhóm một lần bằng URL Facebook. ScanFB lưu nhóm cục bộ cho các lần Scan sau.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+
             Form {
                 TextField("Tên nhóm", text: $name)
                 TextField("URL nhóm", text: $canonicalURL)

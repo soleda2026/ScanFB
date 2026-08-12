@@ -2,11 +2,11 @@
 
 Tai lieu nay dinh nghia entity toi thieu va quan he muc domain. Kieu du lieu cu the se duoc khoa trong milestone sau. ScanFB hien tai la buyer-only: khong co `LeadIntent` buyer/seller, `SellerLead` hoac seller mode.
 
-Phase 2 Go implementation chi trien khai subset domain toi thieu cho normalized post input va cau hinh mot scan: `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Phase 4C Go implementation chi them in-memory blocklist identity primitives trong `internal/blocklist`. Phase 4D Go implementation chi them application-layer in-memory filtering cua aggregated leads qua blocklist. Phase 5A Go implementation them application-layer deterministic pipeline cho already-collected `RawPost` values qua rules, eligible selection, in-memory aggregation va blocklist filtering. Phase 5B Go implementation them application-layer in-memory batch model cho mot den nam explicit groups, deterministic flattening va count summaries. Phase 5C Go implementation them persistence-facing completed `BatchRecord` snapshot contract va save-only repository interface. Phase 5D Go implementation them `InMemoryBatchRepository` adapter chi trong memory. Phase 5E Go implementation them thin `internal/orchestration` use case de run completed batch, convert thanh `BatchRecord` va save qua repository contract. Phase 5F them durable SQLite schema design tai [PERSISTENCE_SCHEMA.md](PERSISTENCE_SCHEMA.md). Phase 5G1 them SQLite schema-bootstrap foundation trong `internal/persistence`. Phase 5G2 them transactional SQLite `SaveBatch` cho completed `BatchRecord`. Phase 5G3 them concrete-only SQLite `LoadBatch` cho mot complete `BatchRecord`. Phase 9B them Go-only `WatchedGroup` value model va deterministic in-memory collection cho metadata va active/inactive lifecycle. Phase 9C them application-layer active-only circular selection theo insertion order. Phase 9E2 persist full ordered WatchedGroup state va exact internal cursor; joined-group discovery va scan execution van chua co.
+Phase 2 Go implementation chi trien khai subset domain toi thieu cho normalized post input va cau hinh mot scan: `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Phase 4C Go implementation chi them in-memory blocklist identity primitives trong `internal/blocklist`. Phase 4D Go implementation chi them application-layer in-memory filtering cua aggregated leads qua blocklist. Phase 5A Go implementation them application-layer deterministic pipeline cho already-collected `RawPost` values qua rules, eligible selection, in-memory aggregation va blocklist filtering. Phase 5B Go implementation them application-layer in-memory batch model cho mot den nam explicit groups, deterministic flattening va count summaries. Phase 5C Go implementation them persistence-facing completed `BatchRecord` snapshot contract va save-only repository interface. Phase 5D Go implementation them `InMemoryBatchRepository` adapter chi trong memory. Phase 5E Go implementation them thin `internal/orchestration` use case de run completed batch, convert thanh `BatchRecord` va save qua repository contract. Phase 5F them durable SQLite schema design tai [PERSISTENCE_SCHEMA.md](PERSISTENCE_SCHEMA.md). Phase 5G1 them SQLite schema-bootstrap foundation trong `internal/persistence`. Phase 5G2 them transactional SQLite `SaveBatch` cho completed `BatchRecord`. Phase 5G3 them concrete-only SQLite `LoadBatch` cho mot complete `BatchRecord`. Phase 9B them Go-only `WatchedGroup` value model va deterministic in-memory collection cho metadata va active/inactive lifecycle. Phase 9C them application-layer active-only circular selection theo insertion order. Phase 9E2 persist full ordered WatchedGroup state va exact internal cursor; Phase 9E3b dung existing Add path de enroll group, con scan execution van chua co.
 
 ## WatchedGroup
 
-Purpose: Luu group Facebook da discover hoac duoc nhap qua fallback ma nguoi dung chu dong bat/tat de theo doi.
+Purpose: Luu Facebook group duoc nguoi dung phe duyet va them mot lan, sau do chu dong bat/tat de theo doi.
 
 Required fields: `id`, `facebookGroupId` hoac `canonicalUrl`, `name`, `createdAt`, `isActive`.
 
@@ -14,7 +14,7 @@ Optional fields: `notes`, `lastSuccessfulScanAt`, `lastError`, `displayOrder`.
 
 Identity/key: `facebookGroupId` neu co, nguoc lai `canonicalUrl`.
 
-Lifecycle: Product flow muc tieu tao/cap nhat tu future joined-group synchronization; manual add support hien tai chi la fallback/scaffolding. Nguoi dung bat/tat group ma khong doi authoritative identity.
+Lifecycle: Nguoi dung enroll group qua existing authoritative Add path; group duoc giu qua cac lan mo app va co the bat/tat ma khong doi authoritative identity. Optional future discovery/synchronization, neu duoc phe duyet rieng, co the dung cung source-neutral model.
 
 Invariants:
 
@@ -22,6 +22,7 @@ Invariants:
 - Khong gioi han tong so group.
 - Mot batch chi lay dung 5 group.
 - WatchedGroup persistence la source-neutral; persisted row khong imply manual provenance va khong luu account/session/browser identity.
+- Enrollment khong chung minh current Facebook membership, access permission, Safari login validity hoac future post availability.
 
 ## ScanSession
 

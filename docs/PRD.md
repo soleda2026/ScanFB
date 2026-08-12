@@ -2,7 +2,7 @@
 
 ## Muc tieu
 
-ScanFB la app local tren macOS giup nguoi dung tim cac bai Facebook the hien nhu cau **can mua** trong cac group Facebook ma tai khoan dang nhap trong Safari da tham gia. Product flow muc tieu se discover cac group nay, luu local va cho nguoi dung bat/tat group can theo doi; manual add chi la fallback/scaffolding, khong phai primary workflow.
+ScanFB la app local tren macOS giup nguoi dung tim cac bai Facebook the hien nhu cau **can mua** trong cac group Facebook do nguoi dung phe duyet. Nguoi dung them moi group mot lan, ScanFB luu local va cho phep bat/tat group can theo doi. Automatic enumeration cua moi group ma tai khoan Facebook da tham gia khong phai yeu cau MVP.
 
 MVP tap trung vao built-in MacBook Search Profile: tim nguoi can mua MacBook hoac MacBook Pro. Workflow scan theo batch, phan loai deterministic, gom trung lead va hien thi ket qua co ly do ro rang. Marketplace la nguon phu, khong phai trong tam MVP.
 
@@ -25,7 +25,7 @@ Nguoi dung la ca nhan hoac nhom ban MacBook can theo doi nhu cau mua trong cac F
 
 ## Pham vi MVP
 
-- Discover danh sach Facebook group ma tai khoan dang nhap trong Safari da tham gia, luu local va cho phep bat/tat group can theo doi.
+- Them mot lan cac Facebook group duoc nguoi dung phe duyet, luu local va cho phep bat/tat group can theo doi.
 - Moi scan batch gom dung 5 group.
 - Scan tung group lan luot, khong mo nhieu group dong thoi.
 - Chi xet bai duoc tao trong ngay hien tai theo timezone `Asia/Ho_Chi_Minh`, tu 00:00 den thoi diem nguoi dung bam Scan.
@@ -73,7 +73,7 @@ Sau MVP co the them buyer Search Profile khac nhu iPhone, may anh hoac laptop, n
 
 ## Hanh vi scan
 
-Moi explicit Scan action tu dong lay next five active groups theo internal persisted cursor, chay lan luot, dung va hien thi ket qua. Nguoi dung khong quan ly cursor va khong can bam mot action rieng de chuyen queue; lan Scan explicit tiep theo moi tiep tuc batch ke tiep. Real joined-group discovery va production scan execution van chua duoc implement trong milestone hien tai.
+Moi explicit Scan action tu dong lay next five active enrolled groups theo internal persisted cursor, chay lan luot, dung va hien thi ket qua. Nguoi dung khong quan ly cursor va khong can bam mot action rieng de chuyen queue; lan Scan explicit tiep theo moi tiep tuc batch ke tiep. Enrollment chi ghi nhan group nguoi dung muon ScanFB scan; no khong chung minh current Facebook membership, access permission, Safari login validity hoac future post availability. Khi production execution ton tai, access failure phai thanh explicit group attempt/result thay vi am tham xoa enrolled group. Production scan execution van chua duoc implement; automatic joined-group discovery chi la optional future research, khong phai MVP dependency.
 
 Nguoi dung chon che do dia ly cho tung lan Scan:
 

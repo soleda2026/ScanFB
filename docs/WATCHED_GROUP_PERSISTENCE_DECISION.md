@@ -179,10 +179,11 @@ Each WatchedGroup preserves exactly:
 - displayOrder;
 - explicit insertion position.
 
-The row is source-neutral: persistence does not imply manual provenance. Future
-joined-group synchronization may populate the same identity/state fields in a
-separate milestone without adding account, session, browser or membership
-metadata to schema v1.
+The row is source-neutral: persistence does not imply provenance. Phase 9E3b
+one-time enrollment populates these same identity/state fields without a schema
+change. Optional future discovery/synchronization may also use them only in a
+separately approved milestone, without adding account, session, browser or
+membership metadata to schema v1.
 
 At least one authoritative source identity remains required by the Go domain.
 Persistence does not generate IDs, infer identity, normalize stored values,
