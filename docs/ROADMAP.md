@@ -560,19 +560,67 @@ Stop conditions: Implementation request, unresolved bundle identity, need to mig
 
 ## Phase 9E2 - Implement dedicated WatchedGroup-state SQLite persistence
 
-Exact scope: Future narrow implementation of the approved Phase 9E2a decision: Go production path resolver, dedicated state schema v1/repository, transactional full WatchedGroup plus cursor restore/mutation, persistent watched-group bridge behavior and Swift authoritative-state refresh/error presentation.
+Status: complete. Implementation and automated verification passed. Manual relaunch persistence verification is intentionally deferred until Phase 9E3/9E4 provides a supported primary group-population flow; this is not a persistence failure.
+
+Exact scope: Implement the approved Phase 9E2a decision: Go production path resolver, dedicated state schema v1/repository, transactional full WatchedGroup plus cursor restore/mutation, persistent watched-group bridge behavior and Swift authoritative-state refresh/error presentation.
 
 Protected areas: Khong completed-batch schema change/migration, scan result/lifecycle persistence, Phase 11 execution, Facebook/Safari, scheduler, retry, background worker, networking, cloud/sync, Swift persistence hoac generic CRUD/SQL bridge.
 
-Acceptance criteria: Defined by the Phase 9E2 implementation request and the invariants in [WATCHED_GROUP_PERSISTENCE_DECISION.md](WATCHED_GROUP_PERSISTENCE_DECISION.md).
+Acceptance criteria: `watched-groups.sqlite3` uses independent schema v1 and DELETE journal; Go restores insertion order/full metadata/exact cursor and owns all mutations; corrupt state fails closed; bridge requests carry no collection/cursor/path authority; Swift distinguishes loading, successful empty state and storage failure. Existing completed-batch schema v1 remains unchanged.
 
-Tests: Temporary-database Go persistence/bridge tests, focused Swift store tests, full regressions/build and separate user-guided relaunch verification.
+Tests: Temporary-database Go persistence/bridge tests, focused Swift store tests, full regressions and build passed. Automated reopen tests verify persisted groups, active state, insertion order and exact cursor. Manual relaunch persistence verification is deferred to Phase 9E3/9E4 because the corrected product contract exposes no supported primary population flow yet.
 
 Stop conditions: Need completed-batch migration, arbitrary filesystem path bridge input, Swift-owned persistence, Phase 11/Facebook behavior or broader storage architecture.
 
+## Phase 9E2b - Group discovery product-contract correction
+
+Status: complete. Implementation, automated verification and user-guided manual UI verification passed.
+
+Exact scope: Preserve Phase 9E2 source-neutral persistence while correcting the primary UI/product contract: future joined-group discovery is the normal group source, active toggles remain user-controlled, next-five is an informational preview, and cursor progression is internal rather than a separate user action.
+
+Protected areas: Khong real discovery, Facebook/Safari acquisition, selector, schema expansion, account/session/browser persistence, scan execution, Phase 11/12, automatic cursor advance, dependency hoac Xcode configuration change.
+
+Acceptance criteria: Primary Groups UI hides manual add and queue advance; disabled discovery copy is explicit; preview rendering sends list only; persistence/bridge remain authoritative and unchanged; docs define manual add as fallback/scaffolding and cursor as future batch-progression state.
+
+Tests: Focused Swift presentation/store checks, unchanged Phase 9E2 persistence/bridge tests, full regressions/build and source audits passed. This closeout does not relaunch the already manually verified app.
+
+Manual verification: The freshly built Groups screen opened successfully; `+ Thêm nhóm` and `Chuyển lượt chọn` were absent; disabled `Đồng bộ nhóm đã tham gia` was visible and unavailable; the empty state stated that discovery is not implemented; and `Next 5 Groups` remained a visible read-only preview. The flow did not imply manual population or cursor advancement and triggered no discovery, Facebook, Safari or browser behavior.
+
+Persistence closeout: Automated repository, bridge and Swift tests verify reopen behavior. Manual quit/relaunch persistence verification is intentionally deferred to Phase 9E3/9E4, when a supported primary discovery/population flow exists; the deferment is not evidence of a persistence failure.
+
+Stop conditions: Requires real Facebook discovery, persistence provenance/schema redesign, scan execution or removal of useful fallback bridge/domain behavior.
+
+## Phase 9E3 - Joined-group discovery acquisition contract
+
+Status: future.
+
+Exact scope: Define and validate one bounded, user-triggered acquisition contract for discovering groups joined by the Facebook account already authenticated in Safari. No persistence synchronization or scan execution.
+
+Protected areas: Khong selectors for posts, RawPost extraction, credential/cookie/session/profile persistence, group synchronization, scan lifecycle, retry/polling, background worker hoac network service.
+
+Acceptance criteria: Typed discovered-group identity/evidence boundary, explicit user action, bounded/redacted failures and no fabricated groups. Exact acquisition technique requires separate evidence and approval.
+
+Tests: Synthetic contract fixtures plus separately approved user-guided validation; no private group identity enters repository fixtures or docs.
+
+Stop conditions: Stable joined-group evidence is unavailable, permission attribution is unclear, or implementation requires private browser stores/account identity persistence.
+
+## Phase 9E4 - Discovered-group synchronization
+
+Status: future, after Phase 9E3 succeeds.
+
+Exact scope: Reconcile one validated discovered-group snapshot into the existing source-neutral WatchedGroup repository while preserving user-controlled active state and deterministic insertion/cursor semantics.
+
+Protected areas: Khong scan execution, post selectors, provenance/schema expansion without a separate decision, silent identity merge, automatic activation policy invention, scheduler, retry or background synchronization.
+
+Acceptance criteria: Existing identities update deterministically, new groups are added without duplicates, active choices remain stable, missing discovery evidence fails closed, and synchronization does not advance cursor.
+
+Tests: Temporary-repository fixtures for add/update/conflict/repeated synchronization, active-state preservation, cursor immutability and atomic failure.
+
+Stop conditions: Requires account/session storage, ambiguous identity merging, schema migration or scan execution.
+
 ## Phase 9E+ - Later adapter and orchestration slices
 
-Exact scope: Future narrow milestones may add persistence, expose lifecycle presentation through an approved bridge, add one-group collection integration and later five-group production scan orchestration.
+Exact scope: Future narrow milestones may expose lifecycle presentation through an approved bridge, add one-group collection integration and later five-group production scan orchestration.
 
 Protected areas: Khong gop Facebook adapter, persistence hoac production execution vao Phase 9E1; moi slice phai co scope, tests va boundaries rieng.
 
@@ -744,11 +792,11 @@ Stop conditions: Mat quyen truy cap group hoac selector quan trong thieu.
 
 ## Phase 12 - Scan batch 5 group
 
-Exact scope: Chay lan luot dung 5 group va tra summary.
+Exact scope: Mot explicit Scan action consumes the internal next-five selection, chay lan luot dung 5 group, advances persisted cursor as part of defined real batch progression, tra summary va dung. Explicit Scan action tiep theo moi consumes batch ke.
 
-Protected areas: Khong parallel group, khong infinite scroll, khong scheduler.
+Protected areas: Khong manual queue-advance control, parallel group, infinite scroll, scheduler hoac cursor advance chi do preview/render.
 
-Acceptance criteria: Summary day du sau batch, batch dung cho user bam tiep.
+Acceptance criteria: Summary day du sau batch, cursor progression atomic theo execution policy, batch dung cho user bam Scan tiep va preview khong mutate progression.
 
 Tests: Batch integration tests va manual validation.
 

@@ -3,12 +3,10 @@ import XCTest
 
 @MainActor
 final class WatchedGroupsStoreTests: XCTestCase {
-    func testBridgeRequestEncodingIsTypedAndDeterministic() throws {
+    func testBridgeRequestEncodingOmitsClientOwnedStateAndIsDeterministic() throws {
         let request = WatchedGroupsBridgeRequest(
-            schemaVersion: 1,
+            schemaVersion: WatchedGroupsBridgeClient.schemaVersion,
             operation: .list,
-            groups: [],
-            cursor: 0,
             newGroup: nil,
             groupID: nil,
             active: nil
@@ -20,40 +18,92 @@ final class WatchedGroupsStoreTests: XCTestCase {
         XCTAssertEqual(first, second)
         XCTAssertEqual(
             String(data: first, encoding: .utf8),
-            #"{"cursor":0,"groups":[],"operation":"watched_groups_list","schema_version":1}"#
+            #"{"operation":"watched_groups_list","schema_version":2}"#
         )
     }
 
-    func testBridgeResponseDecodingPreservesSelectionOrder() throws {
+    func testBridgeRequestEncodingRemainsBounded() {
+        let request = WatchedGroupsBridgeRequest(
+            schemaVersion: WatchedGroupsBridgeClient.schemaVersion,
+            operation: .add,
+            newGroup: AddWatchedGroupBridgeValue(
+                id: "group-a",
+                name: String(repeating: "x", count: WatchedGroupsBridgeClient.maxRequestBytes),
+                canonicalURL: "https://www.facebook.com/groups/group-a",
+                createdAt: "2026-08-12T09:00:00+07:00"
+            ),
+            groupID: nil,
+            active: nil
+        )
+
+        XCTAssertThrowsError(try WatchedGroupsBridgeClient.encodeRequest(request))
+    }
+
+    func testBridgeResponseDecodingPreservesFullStateSelectionOrderAndCursor() throws {
         let data = Data(
-            #"{"schema_version":1,"operation":"watched_groups_next_five","status":"ok","groups":[],"selection":[{"id":"group-c","name":"Group C","canonical_url":"https://www.facebook.com/groups/group-c","created_at":"2026-08-12T09:00:00+07:00","active":true},{"id":"group-a","name":"Group A","canonical_url":"https://www.facebook.com/groups/group-a","created_at":"2026-08-12T09:00:00+07:00","active":true},{"id":"group-e","name":"Group E","canonical_url":"https://www.facebook.com/groups/group-e","created_at":"2026-08-12T09:00:00+07:00","active":true},{"id":"group-b","name":"Group B","canonical_url":"https://www.facebook.com/groups/group-b","created_at":"2026-08-12T09:00:00+07:00","active":true},{"id":"group-d","name":"Group D","canonical_url":"https://www.facebook.com/groups/group-d","created_at":"2026-08-12T09:00:00+07:00","active":true}],"next_cursor":4}"#.utf8
+            #"{"schema_version":2,"operation":"watched_groups_next_five","status":"ok","groups":[],"selection":[{"id":"group-c","facebook_group_id":"facebook-c","name":"Group C","canonical_url":"https://www.facebook.com/groups/group-c","created_at":"2026-08-12T09:00:00+07:00","active":false,"notes":"note","last_successful_scan_at":"2026-08-12T10:00:00+07:00","last_error":"error","display_order":3},{"id":"group-a","facebook_group_id":"","name":"Group A","canonical_url":"https://www.facebook.com/groups/group-a","created_at":"2026-08-12T09:00:00+07:00","active":true,"notes":"","last_successful_scan_at":"","last_error":"","display_order":1},{"id":"group-e","facebook_group_id":"","name":"Group E","canonical_url":"https://www.facebook.com/groups/group-e","created_at":"2026-08-12T09:00:00+07:00","active":true,"notes":"","last_successful_scan_at":"","last_error":"","display_order":5},{"id":"group-b","facebook_group_id":"","name":"Group B","canonical_url":"https://www.facebook.com/groups/group-b","created_at":"2026-08-12T09:00:00+07:00","active":true,"notes":"","last_successful_scan_at":"","last_error":"","display_order":2},{"id":"group-d","facebook_group_id":"","name":"Group D","canonical_url":"https://www.facebook.com/groups/group-d","created_at":"2026-08-12T09:00:00+07:00","active":true,"notes":"","last_successful_scan_at":"","last_error":"","display_order":4}],"current_cursor":4}"#.utf8
         )
 
         let response = try WatchedGroupsBridgeClient.decodeResponse(data, operation: .nextFive).get()
 
-        XCTAssertEqual(response.selection?.map(\.id), ["group-c", "group-a", "group-e", "group-b", "group-d"])
-        XCTAssertEqual(response.nextCursor, 4)
+        XCTAssertEqual(response.selection.map(\.id), ["group-c", "group-a", "group-e", "group-b", "group-d"])
+        XCTAssertEqual(response.currentCursor, 4)
+        XCTAssertEqual(response.selection[0].facebookGroupID, "facebook-c")
+        XCTAssertEqual(response.selection[0].notes, "note")
+        XCTAssertFalse(response.selection[0].active)
     }
 
-    func testEmptyStateNeedsFiveActiveGroups() async {
+    func testInitialLoadExposesLoadingThenLoadedState() async {
+        let bridge = DeferredWatchedGroupsBridge()
+        let store = WatchedGroupsStore(client: WatchedGroupsBridgeClient { request in
+            await bridge.perform(request)
+        })
+
+        let load = Task { await store.loadIfNeeded() }
+        await bridge.waitUntilRequested()
+        XCTAssertEqual(store.loadState, .loading)
+        XCTAssertTrue(store.isBusy)
+
+        await bridge.resume(with: .success(response(.list, groups: [], selection: [], cursor: 0)))
+        await load.value
+
+        XCTAssertEqual(store.loadState, .loaded)
+        XCTAssertFalse(store.isBusy)
+        XCTAssertTrue(store.groups.isEmpty)
+    }
+
+    func testRestoreUsesBackendAuthoritativeGroupsActiveStateAndSelection() async {
+        var groups = makeGroups(6)
+        groups[1] = group("group-b", active: false)
+        let selection = [groups[5], groups[0], groups[2], groups[3], groups[4]]
         let store = makeStore(responses: [
-            .list: [.success(collectionResponse(.list, groups: []))],
-            .nextFive: [.success(insufficientResponse())],
+            .list: [.success(response(.list, groups: groups, selection: selection, cursor: 5))],
         ])
 
         await store.loadIfNeeded()
 
+        XCTAssertEqual(store.groups, groups)
+        XCTAssertFalse(store.groups[1].active)
+        XCTAssertEqual(store.nextFive.map(\.id), ["group-f", "group-a", "group-c", "group-d", "group-e"])
+    }
+
+    func testEmptyRestoreIsARealLoadedEmptyState() async {
+        let store = makeStore(responses: [
+            .list: [.success(response(.list, groups: [], selection: [], cursor: 0))],
+        ])
+
+        await store.loadIfNeeded()
+
+        XCTAssertEqual(store.loadState, .loaded)
         XCTAssertTrue(store.groups.isEmpty)
-        XCTAssertTrue(store.nextFive.isEmpty)
         XCTAssertTrue(store.needsMoreActiveGroups)
         XCTAssertNil(store.errorMessage)
     }
 
-    func testFewerThanFiveDoesNotExposePartialSelection() async {
+    func testInsufficientActiveGroupsKeepPreviewEmpty() async {
         let groups = makeGroups(4)
         let store = makeStore(responses: [
-            .list: [.success(collectionResponse(.list, groups: groups))],
-            .nextFive: [.success(insufficientResponse())],
+            .list: [.success(response(.list, groups: groups, selection: [], cursor: 0))],
         ])
 
         await store.loadIfNeeded()
@@ -63,175 +113,138 @@ final class WatchedGroupsStoreTests: XCTestCase {
         XCTAssertTrue(store.needsMoreActiveGroups)
     }
 
-    func testExactlyFiveDisplaysExactSelection() async {
+    func testExactlyFiveActiveGroupsPreserveAuthoritativePreviewOrder() async {
         let groups = makeGroups(5)
+        let selection = [groups[2], groups[3], groups[4], groups[0], groups[1]]
         let store = makeStore(responses: [
-            .list: [.success(collectionResponse(.list, groups: groups))],
-            .nextFive: [.success(selectionResponse(groups, nextCursor: 0))],
+            .list: [.success(response(.list, groups: groups, selection: selection, cursor: 2))],
         ])
 
         await store.loadIfNeeded()
 
-        XCTAssertEqual(store.nextFive.map(\.id), groups.map(\.id))
+        XCTAssertEqual(store.nextFive.map(\.id), ["group-c", "group-d", "group-e", "group-a", "group-b"])
         XCTAssertFalse(store.needsMoreActiveGroups)
     }
 
-    func testMoreThanFivePreservesApplicationSelectionOrder() async {
-        let groups = makeGroups(7)
-        let selection = [groups[5], groups[6], groups[0], groups[1], groups[2]]
+    func testStorageLoadFailureIsVisibleAndNotPresentedAsEmptySuccess() async {
         let store = makeStore(responses: [
-            .list: [.success(collectionResponse(.list, groups: groups))],
-            .nextFive: [.success(selectionResponse(selection, nextCursor: 3))],
+            .list: [.success(errorResponse(.list, code: .storageError))],
         ])
 
         await store.loadIfNeeded()
 
-        XCTAssertEqual(store.nextFive.map(\.id), ["group-f", "group-g", "group-a", "group-b", "group-c"])
+        XCTAssertEqual(store.loadState, .failed)
+        XCTAssertFalse(store.needsMoreActiveGroups)
+        XCTAssertEqual(store.errorMessage, "Không thể mở hoặc đọc dữ liệu nhóm đã lưu.")
     }
 
-    func testInactiveGroupPresentationIsPreserved() async {
-        var groups = makeGroups(5)
-        groups[2] = group("group-c", active: false)
-        let store = makeStore(responses: [
-            .list: [.success(collectionResponse(.list, groups: groups))],
-            .nextFive: [.success(insufficientResponse())],
+    func testAddAppliesSingleBackendAuthoritativeResponse() async {
+        let initial = makeGroups(1)
+        let refreshed = makeGroups(2)
+        let stub = WatchedGroupsBridgeStub(responses: [
+            .list: [.success(response(.list, groups: initial, selection: [], cursor: 0))],
+            .add: [.success(response(.add, groups: refreshed, selection: [], cursor: 0))],
         ])
-
-        await store.loadIfNeeded()
-
-        XCTAssertFalse(store.groups[2].active)
-        XCTAssertEqual(store.groups[2].name, "Group C")
-    }
-
-    func testAddGroupValidationErrorIsUnderstandableAndPreservesState() async {
-        let groups = makeGroups(2)
-        let store = makeStore(
-            initialGroups: groups,
-            responses: [
-                .add: [.success(errorResponse(.add, code: .invalidGroup))],
-            ]
+        let store = WatchedGroupsStore(
+            client: WatchedGroupsBridgeClient { request in await stub.perform(request) },
+            idProvider: { "group-b" },
+            dateProvider: { Date(timeIntervalSince1970: 1_786_502_400) }
         )
 
-        let added = await store.addGroup(name: "", canonicalURL: "not-a-url")
-
-        XCTAssertFalse(added)
-        XCTAssertEqual(store.groups, groups)
-        XCTAssertEqual(store.errorMessage, "Tên nhóm hoặc URL nhóm không hợp lệ. URL phải dùng HTTPS.")
-    }
-
-    func testActivationRefreshesGroupsAndNextFive() async {
-        var initialGroups = makeGroups(6)
-        initialGroups[1] = group("group-b", active: false)
-        let initialSelection = [initialGroups[0], initialGroups[2], initialGroups[3], initialGroups[4], initialGroups[5]]
-        let activatedGroups = makeGroups(6)
-        let activatedSelection = Array(activatedGroups.prefix(5))
-        let store = makeStore(responses: [
-            .list: [.success(collectionResponse(.list, groups: initialGroups))],
-            .setActive: [.success(collectionResponse(.setActive, groups: activatedGroups))],
-            .nextFive: [
-                .success(selectionResponse(initialSelection, nextCursor: 0)),
-                .success(selectionResponse(activatedSelection, nextCursor: 5)),
-            ],
-        ])
-
         await store.loadIfNeeded()
-        await store.setActive(true, for: "group-b")
+        let added = await store.addGroup(name: "Group B", canonicalURL: "https://www.facebook.com/groups/group-b")
 
-        XCTAssertTrue(store.groups[1].active)
-        XCTAssertEqual(store.nextFive.map(\.id), activatedSelection.map(\.id))
+        XCTAssertTrue(added)
+        XCTAssertEqual(store.groups, refreshed)
+        let requests = await stub.recordedRequests()
+        XCTAssertEqual(requests.map(\.operation), [.list, .add])
+        XCTAssertEqual(requests[1].newGroup?.id, "group-b")
     }
 
-    func testDeactivationRefreshesWithoutSwiftReordering() async {
-        let initialGroups = makeGroups(6)
-        var deactivatedGroups = initialGroups
-        deactivatedGroups[1] = group("group-b", active: false)
-        let refreshedSelection = [
-            deactivatedGroups[5],
-            deactivatedGroups[0],
-            deactivatedGroups[2],
-            deactivatedGroups[3],
-            deactivatedGroups[4],
-        ]
-        let store = makeStore(responses: [
-            .list: [.success(collectionResponse(.list, groups: initialGroups))],
-            .setActive: [.success(collectionResponse(.setActive, groups: deactivatedGroups))],
-            .nextFive: [
-                .success(selectionResponse(Array(initialGroups.prefix(5)), nextCursor: 5)),
-                .success(selectionResponse(refreshedSelection, nextCursor: 5)),
-            ],
+    func testToggleAppliesSingleBackendAuthoritativeResponse() async {
+        let initial = makeGroups(5)
+        var refreshed = initial
+        refreshed[1] = group("group-b", active: false)
+        let stub = WatchedGroupsBridgeStub(responses: [
+            .list: [.success(response(.list, groups: initial, selection: initial, cursor: 0))],
+            .setActive: [.success(response(.setActive, groups: refreshed, selection: [], cursor: 0))],
         ])
+        let store = WatchedGroupsStore(client: WatchedGroupsBridgeClient { request in await stub.perform(request) })
 
         await store.loadIfNeeded()
         await store.setActive(false, for: "group-b")
 
         XCTAssertFalse(store.groups[1].active)
-        XCTAssertEqual(store.nextFive.map(\.id), ["group-f", "group-a", "group-c", "group-d", "group-e"])
+        XCTAssertTrue(store.nextFive.isEmpty)
+        let requests = await stub.recordedRequests()
+        XCTAssertEqual(requests.map(\.operation), [.list, .setActive])
+        XCTAssertEqual(requests[1].groupID, "group-b")
+        XCTAssertEqual(requests[1].active, false)
     }
 
-    func testAdvanceUsesReturnedCursorAndPreservesNextResultOrder() async {
-        let groups = makeGroups(7)
-        let firstSelection = Array(groups.prefix(5))
-        let secondSelection = [groups[5], groups[6], groups[0], groups[1], groups[2]]
+    func testRenderingPreviewDoesNotRequestCursorAdvance() async {
+        let groups = makeGroups(6)
+        let first = Array(groups.prefix(5))
         let stub = WatchedGroupsBridgeStub(responses: [
-            .list: [.success(collectionResponse(.list, groups: groups))],
-            .nextFive: [
-                .success(selectionResponse(firstSelection, nextCursor: 5)),
-                .success(selectionResponse(secondSelection, nextCursor: 3)),
-            ],
+            .list: [.success(response(.list, groups: groups, selection: first, cursor: 0))],
         ])
-        let store = WatchedGroupsStore(client: WatchedGroupsBridgeClient { request in
-            await stub.perform(request)
-        })
+        let store = WatchedGroupsStore(client: WatchedGroupsBridgeClient { request in await stub.perform(request) })
 
         await store.loadIfNeeded()
-        await store.advanceSelection()
 
-        XCTAssertEqual(store.nextFive.map(\.id), secondSelection.map(\.id))
+        XCTAssertEqual(store.nextFive.map(\.id), ["group-a", "group-b", "group-c", "group-d", "group-e"])
         let requests = await stub.recordedRequests()
-        XCTAssertEqual(requests.filter { $0.operation == .nextFive }.map(\.cursor), [0, 5])
+        XCTAssertEqual(requests.map(\.operation), [.list])
     }
 
-    func testAddSuppliesGeneratedIdentityAndTimestampWithoutUserMetadata() async {
-        let addedGroup = group("generated-id", active: true)
+    func testPrimaryGroupsViewHidesManualAddAndManualQueueAdvance() throws {
+        let source = try groupsViewSource()
+
+        XCTAssertFalse(source.contains("AddWatchedGroupSheet"))
+        XCTAssertFalse(source.contains("Thêm nhóm"))
+        XCTAssertFalse(source.contains("Chuyển lượt chọn"))
+        XCTAssertFalse(source.contains("advanceSelection"))
+    }
+
+    func testPrimaryGroupsViewShowsDisabledFutureDiscoveryAndReadOnlyPreview() throws {
+        let source = try groupsViewSource()
+
+        XCTAssertTrue(source.contains("Đồng bộ nhóm đã tham gia"))
+        XCTAssertTrue(source.contains("Tính năng đồng bộ chưa khả dụng."))
+        XCTAssertTrue(source.contains(".disabled(true)"))
+        XCTAssertTrue(source.contains("Bản xem trước chỉ đọc cho batch Scan tiếp theo."))
+    }
+
+    func testLoadIfNeededDoesNotPollOrReload() async {
         let stub = WatchedGroupsBridgeStub(responses: [
-            .add: [.success(collectionResponse(.add, groups: [addedGroup]))],
-            .nextFive: [.success(insufficientResponse())],
+            .list: [.success(response(.list, groups: [], selection: [], cursor: 0))],
         ])
-        let fixedDate = Date(timeIntervalSince1970: 1_786_502_400)
-        let store = WatchedGroupsStore(
-            client: WatchedGroupsBridgeClient { request in
-                await stub.perform(request)
-            },
-            idProvider: { "generated-id" },
-            dateProvider: { fixedDate }
-        )
+        let store = WatchedGroupsStore(client: WatchedGroupsBridgeClient { request in await stub.perform(request) })
 
-        let added = await store.addGroup(
-            name: "Group G",
-            canonicalURL: "https://www.facebook.com/groups/generated-id"
-        )
+        await store.loadIfNeeded()
+        await store.loadIfNeeded()
 
-        XCTAssertTrue(added)
         let requests = await stub.recordedRequests()
-        let request = requests.first { $0.operation == .add }
-        XCTAssertEqual(request?.newGroup?.id, "generated-id")
-        XCTAssertEqual(request?.newGroup?.name, "Group G")
-        XCTAssertEqual(request?.newGroup?.canonicalURL, "https://www.facebook.com/groups/generated-id")
-        XCTAssertNotNil(request?.newGroup?.createdAt)
+        XCTAssertEqual(requests.map(\.operation), [.list])
     }
 
     private func makeStore(
-        initialGroups: [WatchedGroupBridgeValue] = [],
         responses: [WatchedGroupsBridgeOperation: [Result<WatchedGroupsBridgeResponse, CoreReadinessBridgeError>]]
     ) -> WatchedGroupsStore {
         let stub = WatchedGroupsBridgeStub(responses: responses)
-        return WatchedGroupsStore(
-            client: WatchedGroupsBridgeClient { request in
-                await stub.perform(request)
-            },
-            initialGroups: initialGroups
-        )
+        return WatchedGroupsStore(client: WatchedGroupsBridgeClient { request in
+            await stub.perform(request)
+        })
     }
+}
+
+private func groupsViewSource() throws -> String {
+    let projectDirectory = URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+    let sourceURL = projectDirectory
+        .appendingPathComponent("ScanFBApp/Views/Groups/WatchedGroupsView.swift")
+    return try String(contentsOf: sourceURL, encoding: .utf8)
 }
 
 private actor WatchedGroupsBridgeStub {
@@ -242,9 +255,7 @@ private actor WatchedGroupsBridgeStub {
         self.responses = responses
     }
 
-    func perform(
-        _ request: WatchedGroupsBridgeRequest
-    ) -> Result<WatchedGroupsBridgeResponse, CoreReadinessBridgeError> {
+    func perform(_ request: WatchedGroupsBridgeRequest) -> Result<WatchedGroupsBridgeResponse, CoreReadinessBridgeError> {
         requests.append(request)
         guard var operationResponses = responses[request.operation], !operationResponses.isEmpty else {
             return .failure(.malformedResponse)
@@ -259,38 +270,45 @@ private actor WatchedGroupsBridgeStub {
     }
 }
 
-private func collectionResponse(
+private actor DeferredWatchedGroupsBridge {
+    private var continuation: CheckedContinuation<Result<WatchedGroupsBridgeResponse, CoreReadinessBridgeError>, Never>?
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+
+    func perform(_ request: WatchedGroupsBridgeRequest) async -> Result<WatchedGroupsBridgeResponse, CoreReadinessBridgeError> {
+        _ = request
+        return await withCheckedContinuation { continuation in
+            self.continuation = continuation
+            waiters.forEach { $0.resume() }
+            waiters.removeAll()
+        }
+    }
+
+    func waitUntilRequested() async {
+        guard continuation == nil else { return }
+        await withCheckedContinuation { waiters.append($0) }
+    }
+
+    func resume(with result: Result<WatchedGroupsBridgeResponse, CoreReadinessBridgeError>) {
+        continuation?.resume(returning: result)
+        continuation = nil
+    }
+}
+
+private func response(
     _ operation: WatchedGroupsBridgeOperation,
-    groups: [WatchedGroupBridgeValue]
+    groups: [WatchedGroupBridgeValue],
+    selection: [WatchedGroupBridgeValue],
+    cursor: Int
 ) -> WatchedGroupsBridgeResponse {
     WatchedGroupsBridgeResponse(
-        schemaVersion: 1,
+        schemaVersion: WatchedGroupsBridgeClient.schemaVersion,
         operation: operation,
         status: .ok,
         groups: groups,
-        selection: nil,
-        nextCursor: nil,
-        errorCode: nil
-    )
-}
-
-private func selectionResponse(
-    _ selection: [WatchedGroupBridgeValue],
-    nextCursor: Int
-) -> WatchedGroupsBridgeResponse {
-    WatchedGroupsBridgeResponse(
-        schemaVersion: 1,
-        operation: .nextFive,
-        status: .ok,
-        groups: [],
         selection: selection,
-        nextCursor: nextCursor,
+        currentCursor: cursor,
         errorCode: nil
     )
-}
-
-private func insufficientResponse() -> WatchedGroupsBridgeResponse {
-    errorResponse(.nextFive, code: .insufficientActiveGroups)
 }
 
 private func errorResponse(
@@ -298,12 +316,12 @@ private func errorResponse(
     code: WatchedGroupsBridgeErrorCode
 ) -> WatchedGroupsBridgeResponse {
     WatchedGroupsBridgeResponse(
-        schemaVersion: 1,
+        schemaVersion: WatchedGroupsBridgeClient.schemaVersion,
         operation: operation,
         status: .error,
         groups: [],
-        selection: nil,
-        nextCursor: nil,
+        selection: [],
+        currentCursor: 0,
         errorCode: code
     )
 }
@@ -319,9 +337,14 @@ private func group(_ id: String, active: Bool) -> WatchedGroupBridgeValue {
     let suffix = id.last.map(String.init)?.uppercased() ?? "?"
     return WatchedGroupBridgeValue(
         id: id,
+        facebookGroupID: "",
         name: "Group \(suffix)",
         canonicalURL: "https://www.facebook.com/groups/\(id)",
         createdAt: "2026-08-12T09:00:00+07:00",
-        active: active
+        active: active,
+        notes: "",
+        lastSuccessfulScanAt: "",
+        lastError: "",
+        displayOrder: 0
     )
 }

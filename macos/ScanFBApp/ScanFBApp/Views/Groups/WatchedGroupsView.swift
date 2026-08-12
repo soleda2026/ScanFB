@@ -2,7 +2,6 @@ import SwiftUI
 
 struct WatchedGroupsView: View {
     @ObservedObject var store: WatchedGroupsStore
-    @State private var isPresentingAddGroup = false
 
     var body: some View {
         ScrollView {
@@ -17,9 +16,6 @@ struct WatchedGroupsView: View {
         .task {
             await store.loadIfNeeded()
         }
-        .sheet(isPresented: $isPresentingAddGroup) {
-            AddWatchedGroupSheet(store: store, isPresented: $isPresentingAddGroup)
-        }
     }
 
     private var header: some View {
@@ -28,8 +24,12 @@ struct WatchedGroupsView: View {
                 .font(.largeTitle)
                 .fontWeight(.semibold)
 
-            Text("Danh sách chỉ tồn tại trong phiên ứng dụng hiện tại.")
+            Text("Các nhóm đã tham gia sẽ được đồng bộ từ Facebook trong Safari và lưu cục bộ trên máy này.")
                 .font(.body)
+                .foregroundStyle(.secondary)
+
+            Text("Tính năng đồng bộ chưa khả dụng.")
+                .font(.callout)
                 .foregroundStyle(.secondary)
         }
     }
@@ -43,20 +43,27 @@ struct WatchedGroupsView: View {
 
                 Spacer()
 
-                Button {
-                    isPresentingAddGroup = true
-                } label: {
-                    Label("Thêm nhóm", systemImage: "plus")
-                }
-                .disabled(store.isBusy)
-                .accessibilityLabel("Thêm nhóm theo dõi")
+                Button("Đồng bộ nhóm đã tham gia", systemImage: "arrow.triangle.2.circlepath") {}
+                    .disabled(true)
+                    .help("Chưa khả dụng")
+                    .accessibilityLabel("Đồng bộ nhóm đã tham gia, chưa khả dụng")
             }
 
-            if store.groups.isEmpty {
+            if store.loadState == .loading || store.loadState == .idle {
+                ProgressView("Đang tải nhóm đã lưu…")
+                    .frame(maxWidth: .infinity, minHeight: 150)
+            } else if store.loadState == .failed {
+                ContentUnavailableView(
+                    "Không thể tải nhóm đã lưu",
+                    systemImage: "externaldrive.badge.xmark",
+                    description: Text(store.errorMessage ?? "Không thể mở dữ liệu nhóm đã lưu.")
+                )
+                .frame(maxWidth: .infinity, minHeight: 150)
+            } else if store.groups.isEmpty {
                 ContentUnavailableView(
                     "Chưa có nhóm theo dõi",
                     systemImage: "rectangle.stack",
-                    description: Text("Thêm nhóm thủ công để chuẩn bị lượt chọn tiếp theo.")
+                    description: Text("Danh sách sẽ xuất hiện sau khi tính năng đồng bộ nhóm đã tham gia được triển khai.")
                 )
                 .frame(maxWidth: .infinity, minHeight: 150)
             } else {
@@ -80,7 +87,7 @@ struct WatchedGroupsView: View {
                 .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
             }
 
-            if let errorMessage = store.errorMessage {
+            if store.loadState != .failed, let errorMessage = store.errorMessage {
                 Text(errorMessage)
                     .font(.callout)
                     .foregroundStyle(.red)
@@ -91,26 +98,22 @@ struct WatchedGroupsView: View {
 
     private var nextFiveSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text("Next 5 Groups")
-                    .font(.title2)
-                    .fontWeight(.semibold)
+            Text("Next 5 Groups")
+                .font(.title2)
+                .fontWeight(.semibold)
 
-                Spacer()
+            Text("Bản xem trước chỉ đọc cho batch Scan tiếp theo.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
 
-                if store.canAdvanceSelection {
-                    Button {
-                        Task {
-                            await store.advanceSelection()
-                        }
-                    } label: {
-                        Label("Chuyển lượt chọn", systemImage: "arrow.forward")
-                    }
-                    .disabled(store.isBusy)
-                }
-            }
-
-            if store.needsMoreActiveGroups {
+            if store.loadState != .loaded {
+                Text("Lượt chọn sẽ hiển thị sau khi tải dữ liệu nhóm.")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
+                    .padding(14)
+                    .background(.quaternary, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            } else if store.needsMoreActiveGroups {
                 Text("Cần ít nhất 5 nhóm đang hoạt động.")
                     .font(.body)
                     .foregroundStyle(.secondary)

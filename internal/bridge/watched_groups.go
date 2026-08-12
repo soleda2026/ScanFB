@@ -9,9 +9,12 @@ import (
 
 	"github.com/soleda2026/ScanFB/internal/application"
 	"github.com/soleda2026/ScanFB/internal/domain"
+	"github.com/soleda2026/ScanFB/internal/persistence"
 )
 
 const (
+	WatchedGroupsSchemaVersion = 2
+
 	OperationWatchedGroupsList      = "watched_groups_list"
 	OperationWatchedGroupsAdd       = "watched_groups_add"
 	OperationWatchedGroupsSetActive = "watched_groups_set_active"
@@ -25,17 +28,23 @@ const (
 	WatchedGroupsErrorGroupNotFound      = "group_not_found"
 	WatchedGroupsErrorInsufficientActive = "insufficient_active_groups"
 	WatchedGroupsErrorInvalidCursor      = "invalid_cursor"
+	WatchedGroupsErrorStorage            = "storage_error"
 
-	MaxWatchedGroupsRequestBytes  = 1024 * 1024
+	MaxWatchedGroupsRequestBytes  = 64 * 1024
 	MaxWatchedGroupsResponseBytes = 1024 * 1024
 )
 
 type WatchedGroupBridgeValue struct {
-	ID           string `json:"id"`
-	Name         string `json:"name"`
-	CanonicalURL string `json:"canonical_url"`
-	CreatedAt    string `json:"created_at"`
-	Active       bool   `json:"active"`
+	ID                   string `json:"id"`
+	FacebookGroupID      string `json:"facebook_group_id"`
+	CanonicalURL         string `json:"canonical_url"`
+	Name                 string `json:"name"`
+	CreatedAt            string `json:"created_at"`
+	Active               bool   `json:"active"`
+	Notes                string `json:"notes"`
+	LastSuccessfulScanAt string `json:"last_successful_scan_at"`
+	LastError            string `json:"last_error"`
+	DisplayOrder         int    `json:"display_order"`
 }
 
 type AddWatchedGroupBridgeValue struct {
@@ -48,8 +57,6 @@ type AddWatchedGroupBridgeValue struct {
 type WatchedGroupsRequest struct {
 	SchemaVersion int                         `json:"schema_version"`
 	Operation     string                      `json:"operation"`
-	Groups        []WatchedGroupBridgeValue   `json:"groups"`
-	Cursor        int                         `json:"cursor"`
 	NewGroup      *AddWatchedGroupBridgeValue `json:"new_group,omitempty"`
 	GroupID       string                      `json:"group_id,omitempty"`
 	Active        *bool                       `json:"active,omitempty"`
@@ -60,9 +67,23 @@ type WatchedGroupsResponse struct {
 	Operation     string                    `json:"operation"`
 	Status        string                    `json:"status"`
 	Groups        []WatchedGroupBridgeValue `json:"groups"`
-	Selection     []WatchedGroupBridgeValue `json:"selection,omitempty"`
-	NextCursor    *int                      `json:"next_cursor,omitempty"`
+	Selection     []WatchedGroupBridgeValue `json:"selection"`
+	CurrentCursor int                       `json:"current_cursor"`
 	ErrorCode     string                    `json:"error_code,omitempty"`
+}
+
+type WatchedGroupStateRepository interface {
+	Load() (persistence.WatchedGroupState, error)
+	Add(domain.WatchedGroup) (persistence.WatchedGroupState, error)
+	SetActive(string, bool) (persistence.WatchedGroupState, error)
+	AdvanceCursor() (persistence.WatchedGroupState, error)
+	Close() error
+}
+
+type WatchedGroupRepositoryFactory func() (WatchedGroupStateRepository, error)
+
+func productionWatchedGroupRepositoryFactory() (WatchedGroupStateRepository, error) {
+	return persistence.OpenProductionSQLiteWatchedGroupRepository()
 }
 
 func DecodeWatchedGroupsRequest(reader io.Reader) (WatchedGroupsRequest, error) {
@@ -81,7 +102,7 @@ func DecodeWatchedGroupsRequest(reader io.Reader) (WatchedGroupsRequest, error) 
 	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
 		return WatchedGroupsRequest{}, ErrMalformedRequest
 	}
-	if request.SchemaVersion != SchemaVersion {
+	if request.SchemaVersion != WatchedGroupsSchemaVersion {
 		return WatchedGroupsRequest{}, ErrUnsupportedSchemaVersion
 	}
 	if !isWatchedGroupsOperation(request.Operation) {
@@ -90,63 +111,56 @@ func DecodeWatchedGroupsRequest(reader io.Reader) (WatchedGroupsRequest, error) 
 	return request, nil
 }
 
-func HandleWatchedGroups(request WatchedGroupsRequest) WatchedGroupsResponse {
-	response := WatchedGroupsResponse{
-		SchemaVersion: SchemaVersion,
-		Operation:     request.Operation,
-		Status:        WatchedGroupsStatusOK,
-		Groups:        []WatchedGroupBridgeValue{},
-	}
-
-	collection, err := collectionFromBridgeValues(request.Groups)
-	if err != nil {
-		return watchedGroupsErrorResponse(request.Operation, err)
-	}
+func HandleWatchedGroups(repository WatchedGroupStateRepository, request WatchedGroupsRequest) WatchedGroupsResponse {
+	var (
+		state persistence.WatchedGroupState
+		err   error
+	)
 
 	switch request.Operation {
 	case OperationWatchedGroupsList:
-		response.Groups = bridgeValuesFromGroups(collection.Groups())
+		state, err = repository.Load()
 	case OperationWatchedGroupsAdd:
 		if request.NewGroup == nil {
 			return watchedGroupsErrorResponse(request.Operation, domain.ErrMissingWatchedGroupIdentity)
 		}
-		group, err := groupFromAddBridgeValue(*request.NewGroup)
-		if err != nil {
-			return watchedGroupsErrorResponse(request.Operation, err)
+		var group domain.WatchedGroup
+		group, err = groupFromAddBridgeValue(*request.NewGroup)
+		if err == nil {
+			state, err = repository.Add(group)
 		}
-		if err := collection.Add(group); err != nil {
-			return watchedGroupsErrorResponse(request.Operation, err)
-		}
-		response.Groups = bridgeValuesFromGroups(collection.Groups())
 	case OperationWatchedGroupsSetActive:
 		if request.Active == nil {
 			return watchedGroupsErrorResponse(request.Operation, domain.ErrInvalidWatchedGroupID)
 		}
-		if *request.Active {
-			_, err = collection.Activate(request.GroupID)
-		} else {
-			_, err = collection.Deactivate(request.GroupID)
-		}
-		if err != nil {
-			return watchedGroupsErrorResponse(request.Operation, err)
-		}
-		response.Groups = bridgeValuesFromGroups(collection.Groups())
+		state, err = repository.SetActive(request.GroupID, *request.Active)
 	case OperationWatchedGroupsNextFive:
-		cursor, err := application.NewWatchedGroupSelectionCursor(request.Cursor)
-		if err != nil {
-			return watchedGroupsErrorResponse(request.Operation, err)
-		}
-		selection, err := application.SelectNextFiveActiveGroups(collection.Groups(), cursor)
-		if err != nil {
-			return watchedGroupsErrorResponse(request.Operation, err)
-		}
-		nextCursor := selection.NextCursor().Position()
-		response.Groups = bridgeValuesFromGroups(collection.Groups())
-		response.Selection = bridgeValuesFromGroups(selection.Groups())
-		response.NextCursor = &nextCursor
+		state, err = repository.AdvanceCursor()
 	}
+	if err != nil {
+		return watchedGroupsErrorResponse(request.Operation, err)
+	}
+	return watchedGroupsResponseFromState(request.Operation, state)
+}
 
-	return response
+func watchedGroupsResponseFromState(operation string, state persistence.WatchedGroupState) WatchedGroupsResponse {
+	response := WatchedGroupsResponse{
+		SchemaVersion: WatchedGroupsSchemaVersion,
+		Operation:     operation,
+		Status:        WatchedGroupsStatusOK,
+		Groups:        bridgeValuesFromGroups(state.Groups()),
+		Selection:     []WatchedGroupBridgeValue{},
+		CurrentCursor: state.Cursor().Position(),
+	}
+	selection, err := application.SelectNextFiveActiveGroups(state.Groups(), state.Cursor())
+	if err == nil {
+		response.Selection = bridgeValuesFromGroups(selection.Groups())
+		return response
+	}
+	if errors.Is(err, application.ErrEmptyWatchedGroupSelectionCollection) || errors.Is(err, application.ErrInsufficientActiveWatchedGroups) {
+		return response
+	}
+	return watchedGroupsErrorResponse(operation, err)
 }
 
 func EncodeWatchedGroupsResponse(response WatchedGroupsResponse) ([]byte, error) {
@@ -160,20 +174,29 @@ func EncodeWatchedGroupsResponse(response WatchedGroupsResponse) ([]byte, error)
 	return append(payload, '\n'), nil
 }
 
-func ServeWatchedGroups(stdin io.Reader, stdout io.Writer, stderr io.Writer) int {
+func ServeWatchedGroups(stdin io.Reader, stdout io.Writer, stderr io.Writer, factory WatchedGroupRepositoryFactory) int {
 	request, err := DecodeWatchedGroupsRequest(stdin)
 	if err != nil {
 		writeDiagnostic(stderr, "watched groups request rejected")
 		return 2
 	}
 
-	payload, err := EncodeWatchedGroupsResponse(HandleWatchedGroups(request))
+	repository, err := factory()
 	if err != nil {
-		writeDiagnostic(stderr, "watched groups response failed")
+		writeDiagnostic(stderr, "watched group storage unavailable")
+		return writeWatchedGroupsResponse(stdout, watchedGroupsErrorResponse(request.Operation, err))
+	}
+	defer repository.Close()
+
+	return writeWatchedGroupsResponse(stdout, HandleWatchedGroups(repository, request))
+}
+
+func writeWatchedGroupsResponse(stdout io.Writer, response WatchedGroupsResponse) int {
+	payload, err := EncodeWatchedGroupsResponse(response)
+	if err != nil {
 		return 3
 	}
 	if _, err := stdout.Write(payload); err != nil {
-		writeDiagnostic(stderr, "watched groups response write failed")
 		return 3
 	}
 	return 0
@@ -191,32 +214,6 @@ func isWatchedGroupsOperation(operation string) bool {
 	}
 }
 
-func collectionFromBridgeValues(values []WatchedGroupBridgeValue) (*application.WatchedGroupCollection, error) {
-	collection := application.NewWatchedGroupCollection()
-	for _, value := range values {
-		group, err := groupFromBridgeValue(value)
-		if err != nil {
-			return nil, err
-		}
-		if err := collection.Add(group); err != nil {
-			return nil, err
-		}
-	}
-	return collection, nil
-}
-
-func groupFromBridgeValue(value WatchedGroupBridgeValue) (domain.WatchedGroup, error) {
-	createdAt, err := time.Parse(time.RFC3339Nano, value.CreatedAt)
-	if err != nil {
-		return domain.WatchedGroup{}, domain.ErrInvalidWatchedGroupCreatedAt
-	}
-	group, err := domain.NewWatchedGroup(value.ID, "", value.CanonicalURL, value.Name, createdAt)
-	if err != nil {
-		return domain.WatchedGroup{}, err
-	}
-	return group.WithActive(value.Active), nil
-}
-
 func groupFromAddBridgeValue(value AddWatchedGroupBridgeValue) (domain.WatchedGroup, error) {
 	createdAt, err := time.Parse(time.RFC3339Nano, value.CreatedAt)
 	if err != nil {
@@ -228,12 +225,21 @@ func groupFromAddBridgeValue(value AddWatchedGroupBridgeValue) (domain.WatchedGr
 func bridgeValuesFromGroups(groups []domain.WatchedGroup) []WatchedGroupBridgeValue {
 	values := make([]WatchedGroupBridgeValue, len(groups))
 	for i, group := range groups {
+		lastSuccessful := ""
+		if value, ok := group.LastSuccessfulScanAt(); ok {
+			lastSuccessful = value.Format(time.RFC3339Nano)
+		}
 		values[i] = WatchedGroupBridgeValue{
-			ID:           group.ID(),
-			Name:         group.Name(),
-			CanonicalURL: group.CanonicalURL(),
-			CreatedAt:    group.CreatedAt().Format(time.RFC3339Nano),
-			Active:       group.IsActive(),
+			ID:                   group.ID(),
+			FacebookGroupID:      group.FacebookGroupID(),
+			CanonicalURL:         group.CanonicalURL(),
+			Name:                 group.Name(),
+			CreatedAt:            group.CreatedAt().Format(time.RFC3339Nano),
+			Active:               group.IsActive(),
+			Notes:                group.Notes(),
+			LastSuccessfulScanAt: lastSuccessful,
+			LastError:            group.LastError(),
+			DisplayOrder:         group.DisplayOrder(),
 		}
 	}
 	return values
@@ -241,10 +247,11 @@ func bridgeValuesFromGroups(groups []domain.WatchedGroup) []WatchedGroupBridgeVa
 
 func watchedGroupsErrorResponse(operation string, err error) WatchedGroupsResponse {
 	return WatchedGroupsResponse{
-		SchemaVersion: SchemaVersion,
+		SchemaVersion: WatchedGroupsSchemaVersion,
 		Operation:     operation,
 		Status:        WatchedGroupsStatusError,
 		Groups:        []WatchedGroupBridgeValue{},
+		Selection:     []WatchedGroupBridgeValue{},
 		ErrorCode:     watchedGroupsErrorCode(err),
 	}
 }
@@ -262,7 +269,16 @@ func watchedGroupsErrorCode(err error) string {
 		return WatchedGroupsErrorInsufficientActive
 	case errors.Is(err, application.ErrInvalidWatchedGroupSelectionCursor):
 		return WatchedGroupsErrorInvalidCursor
-	default:
+	case errors.Is(err, persistence.ErrInvalidStoredWatchedGroupState):
+		return WatchedGroupsErrorStorage
+	case errors.Is(err, domain.ErrInvalidWatchedGroupID),
+		errors.Is(err, domain.ErrInvalidWatchedGroupName),
+		errors.Is(err, domain.ErrInvalidWatchedGroupCreatedAt),
+		errors.Is(err, domain.ErrMissingWatchedGroupIdentity),
+		errors.Is(err, domain.ErrInvalidWatchedGroupCanonicalURL),
+		errors.Is(err, domain.ErrWatchedGroupScanBeforeCreated):
 		return WatchedGroupsErrorInvalidGroup
+	default:
+		return WatchedGroupsErrorStorage
 	}
 }

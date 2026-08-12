@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"os"
 	"os/exec"
 	"testing"
 )
@@ -41,8 +42,16 @@ func TestHelperProcessReadinessRoundTrip(t *testing.T) {
 }
 
 func TestHelperProcessWatchedGroupsRoundTrip(t *testing.T) {
-	command := exec.Command("go", "run", ".")
-	command.Stdin = bytes.NewBufferString(`{"schema_version":1,"operation":"watched_groups_list","groups":[],"cursor":0}`)
+	helperPath := t.TempDir() + "/scanfb-bridge-helper"
+	build := exec.Command("go", "build", "-o", helperPath, ".")
+	if output, err := build.CombinedOutput(); err != nil {
+		t.Fatalf("build helper failed: %v; output=%q", err, output)
+	}
+
+	command := exec.Command(helperPath)
+	command.Stdin = bytes.NewBufferString(`{"schema_version":2,"operation":"watched_groups_list"}`)
+	temporaryConfig := t.TempDir()
+	command.Env = append(os.Environ(), "HOME="+temporaryConfig, "XDG_CONFIG_HOME="+temporaryConfig)
 
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
@@ -61,7 +70,7 @@ func TestHelperProcessWatchedGroupsRoundTrip(t *testing.T) {
 	if err := json.Unmarshal(bytes.TrimSpace(stdout.Bytes()), &response); err != nil {
 		t.Fatalf("stdout is not JSON response: %v; stdout=%q", err, stdout.String())
 	}
-	if response.SchemaVersion != 1 || response.Operation != "watched_groups_list" || response.Status != "ok" {
+	if response.SchemaVersion != 2 || response.Operation != "watched_groups_list" || response.Status != "ok" {
 		t.Fatalf("unexpected response: %#v", response)
 	}
 }

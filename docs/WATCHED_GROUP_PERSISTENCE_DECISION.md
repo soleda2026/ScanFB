@@ -2,11 +2,11 @@
 
 ## Status
 
-APPROVE for future implementation in Phase 9E2.
+APPROVE, implemented by Phase 9E2.
 
-Phase 9E2a is documentation-only. It defines storage location and schema
-evolution policy but adds no database, table, migration, runtime path resolver,
-bridge behavior or Swift persistence.
+Phase 9E2a was documentation-only. Phase 9E2 now implements the approved
+database, runtime path resolver, bridge authority and Swift presentation flow
+without adding migration execution or Swift persistence.
 
 ## Blocker Context
 
@@ -101,9 +101,9 @@ validation only.
 
 ### B. Separate WatchedGroup database v1
 
-Selected. The completed-batch schema and repository remain unchanged. A future
-Phase 9E2 implementation may introduce only a dedicated WatchedGroup-state
-repository and its empty schema version 1.
+Selected. The completed-batch schema and repository remain unchanged. Phase
+9E2 introduces only a dedicated WatchedGroup-state repository and its empty
+schema version 1.
 
 ### C. One database with independently versioned logical schemas
 
@@ -118,7 +118,7 @@ or migration framework will be introduced by this decision.
 
 ## Selected Architecture
 
-ScanFB will use separate local SQLite databases under one application-owned
+ScanFB uses separate local SQLite databases under one application-owned
 directory:
 
 ```text
@@ -147,7 +147,7 @@ storage-location migration decision.
 - The CLI remains unchanged and does not open either production database.
 - Repository constructors retain explicit-path support for deterministic tests.
   Tests use temporary directories and never use production Application Support.
-- The future Go production resolver creates the application directory before
+- The Go production resolver creates the application directory before
   opening the database. Failure to resolve or create it is an explicit storage
   error and must not be presented as an empty group list.
 - The directory and database are owned by the current user. Creation must use
@@ -179,15 +179,26 @@ Each WatchedGroup preserves exactly:
 - displayOrder;
 - explicit insertion position.
 
+The row is source-neutral: persistence does not imply manual provenance. Future
+joined-group synchronization may populate the same identity/state fields in a
+separate milestone without adding account, session, browser or membership
+metadata to schema v1.
+
 At least one authoritative source identity remains required by the Go domain.
 Persistence does not generate IDs, infer identity, normalize stored values,
 repair duplicates or recompute metadata.
 
-The schema must enforce one row per local ID, the representable authoritative
+The schema enforces one row per local ID, the representable authoritative
 identity constraints, unique insertion positions, supported boolean values,
 one schema metadata row and one cursor state row. Go restore must still rebuild
 `WatchedGroupCollection` in insertion order so Phase 9B validation remains the
 final authority, including cross-kind canonical conflicts.
+
+Phase 9E2 implements tables `watched_group_schema_metadata`, `watched_groups`
+and `watched_group_selection_state`, with explicit unique indexes for local ID,
+Facebook ID and URL-only canonical identity. It uses finite SQLite DELETE
+journal mode. The application directory is created/chmoded `0700`, the database
+is chmoded `0600`, and transient sidecars remain inside that owner-only directory.
 
 ## Cursor Semantics
 
@@ -201,6 +212,9 @@ final authority, including cross-kind canonical conflicts.
   silently reduced modulo the collection size.
 - An explicit selection advance persists the exact `NextCursor()` returned by
   Phase 9C in one transaction before success is returned.
+- Preview/list reads never advance the cursor. In the intended product flow,
+  future real batch execution owns the explicit advance; the cursor is not a
+  user-managed queue control.
 - An insufficient-active-groups result does not advance the cursor.
 - Add and active-state changes preserve the current cursor and persist their
   mutations atomically. The Phase 9E2 scope has no delete operation, so those
@@ -228,16 +242,15 @@ a separate architecture decision.
 
 ## Bridge Implications
 
-Future Phase 9E2 keeps the existing narrow watched-group operation family. The
+Phase 9E2 keeps the existing narrow watched-group operation family. The
 helper opens the dedicated state store internally for each one-request bridge
 call. Bridge payloads contain typed group/action data only, never SQL, database
 handles, database-local IDs or filesystem paths.
 
-The Phase 9E2 bridge schema must remove the Phase 9E1 Swift snapshot/cursor as
+The Phase 9E2 bridge schema removes the Phase 9E1 Swift snapshot/cursor as
 persistent authority. Restore and mutation responses return authoritative Go
-state. `watched_groups_next_five` may gain one finite typed advance intent so a
-read can preserve the cursor and an explicit user action can atomically persist
-Phase 9C `NextCursor()` without adding a generic command bus.
+state. `watched_groups_next_five` is the finite typed advance intent that
+atomically persists Phase 9C `NextCursor()` without adding a generic command bus.
 
 Storage errors use bounded typed bridge failures. Diagnostic output remains
 bounded, redacted and stderr-only; no path or private group value is written to
@@ -256,20 +269,19 @@ ordered, sequential, one-way, fully transactional migrations and temporary
 database tests. Migration failure rolls back completely; unsupported versions
 fail closed; no database is silently recreated. Backup policy remains deferred.
 
-## Implementation Prerequisites
+## Implemented Boundary
 
-The next milestone is **Phase 9E2 - Implement dedicated WatchedGroup-state
-SQLite persistence**. Its narrow prerequisites are:
+Phase 9E2 implements the approved boundary:
 
-1. Add a Go production path resolver for the approved Application Support
+1. Go production path resolver for the approved Application Support
    location, with explicit temporary-path injection for tests.
-2. Add a dedicated WatchedGroup-state repository and schema v1 without changing
+2. Dedicated WatchedGroup-state repository and schema v1 without changing
    completed-batch schema/runtime code.
-3. Persist and restore the full Phase 9B value plus exact Phase 9C cursor with
+3. Full Phase 9B value plus exact Phase 9C cursor persistence/restore with
    the validation and transactions above.
-4. Upgrade only the existing watched-group bridge schema/handlers to load and
+4. Existing watched-group bridge schema/handlers upgraded to load and
    mutate authoritative persistent state.
-5. Update `WatchedGroupsStore` to display loading/storage failures and refresh
+5. `WatchedGroupsStore` displays loading/storage failures and refreshes
    only from authoritative bridge responses.
 
 ## Non-Goals

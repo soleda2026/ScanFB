@@ -1,8 +1,8 @@
 # Persistence Schema Design
 
-Phase 5F defined the durable local SQLite storage model for completed ScanFB batch snapshots. Phase 5G1 implemented the SQLite foundation for schema version 1: explicit-path open/create, foreign-key enable/verify, transactional empty-schema creation, schema metadata validation, and close. Phase 5G2 implemented transactional durable `SaveBatch` for one complete `BatchRecord` snapshot. Phase 5G3 implements concrete-only fail-closed `SQLiteBatchRepository.LoadBatch` reconstruction for one complete `BatchRecord` snapshot. Phase 9E2a resolves production location at the architecture level but does not wire this repository. List APIs, migrations, UI/CLI wiring, and production scan persistence remain deferred.
+Phase 5F defined the durable local SQLite storage model for completed ScanFB batch snapshots. Phase 5G1 implemented the SQLite foundation for schema version 1: explicit-path open/create, foreign-key enable/verify, transactional empty-schema creation, schema metadata validation, and close. Phase 5G2 implemented transactional durable `SaveBatch` for one complete `BatchRecord` snapshot. Phase 5G3 implements concrete-only fail-closed `SQLiteBatchRepository.LoadBatch` reconstruction for one complete `BatchRecord` snapshot. Phase 9E2 implements a separate WatchedGroup-state database; it does not wire or migrate this completed-batch repository. List APIs, completed-batch migrations, UI/CLI wiring, and production scan persistence remain deferred.
 
-This document remains authoritative only for the completed-batch database schema. [WATCHED_GROUP_PERSISTENCE_DECISION.md](WATCHED_GROUP_PERSISTENCE_DECISION.md) approves a separate future WatchedGroup-state database with its own schema version 1; it does not add tables to this schema.
+This document remains authoritative for the completed-batch database schema. [WATCHED_GROUP_PERSISTENCE_DECISION.md](WATCHED_GROUP_PERSISTENCE_DECISION.md) defines the separate WatchedGroup-state database implemented in Phase 9E2; it does not add tables to this schema.
 
 ## 1. Purpose And Non-Goals
 
@@ -549,9 +549,9 @@ Future durable storage is a local SQLite database only.
 
 Phase 9E2a sets this database's logical production location to
 `<user-application-support>/com.soleda.ScanFB/completed-batches.sqlite3`.
-The Go production resolver will derive the OS-provided user Application Support
-root; no username, repository path or DerivedData path is hardcoded. Runtime
-path resolution and production wiring remain unimplemented.
+Phase 9E2's Go production resolver is implemented for the separate
+`watched-groups.sqlite3` store only. Completed-batch production wiring remains
+unimplemented; no username, repository path or DerivedData path is hardcoded.
 
 The database must not store:
 
@@ -580,8 +580,10 @@ Deferred:
 - generated IDs;
 - import/export.
 
-The future `watched-groups.sqlite3` database evolves independently. Its initial
-schema v1 does not migrate or modify this completed-batch schema v1. Any future
+The implemented `watched-groups.sqlite3` database evolves independently. Its
+schema v1 contains `watched_group_schema_metadata`, `watched_groups` and
+`watched_group_selection_state`, uses explicit group positions and DELETE
+journal mode, and does not migrate or modify this completed-batch schema v1. Any future
 version increment for either non-empty database requires a separate explicit,
 ordered, transactional migration milestone and tests.
 

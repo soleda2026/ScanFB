@@ -9,17 +9,27 @@ enum WatchedGroupsBridgeOperation: String, Codable, Equatable, Hashable, Sendabl
 
 struct WatchedGroupBridgeValue: Codable, Equatable, Identifiable, Sendable {
     let id: String
+    let facebookGroupID: String
     let name: String
     let canonicalURL: String
     let createdAt: String
     let active: Bool
+    let notes: String
+    let lastSuccessfulScanAt: String
+    let lastError: String
+    let displayOrder: Int
 
     private enum CodingKeys: String, CodingKey {
         case id
+        case facebookGroupID = "facebook_group_id"
         case name
         case canonicalURL = "canonical_url"
         case createdAt = "created_at"
         case active
+        case notes
+        case lastSuccessfulScanAt = "last_successful_scan_at"
+        case lastError = "last_error"
+        case displayOrder = "display_order"
     }
 }
 
@@ -40,8 +50,6 @@ struct AddWatchedGroupBridgeValue: Codable, Equatable, Sendable {
 struct WatchedGroupsBridgeRequest: Codable, Equatable, Sendable {
     let schemaVersion: Int
     let operation: WatchedGroupsBridgeOperation
-    let groups: [WatchedGroupBridgeValue]
-    let cursor: Int
     let newGroup: AddWatchedGroupBridgeValue?
     let groupID: String?
     let active: Bool?
@@ -49,8 +57,6 @@ struct WatchedGroupsBridgeRequest: Codable, Equatable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case schemaVersion = "schema_version"
         case operation
-        case groups
-        case cursor
         case newGroup = "new_group"
         case groupID = "group_id"
         case active
@@ -68,6 +74,7 @@ enum WatchedGroupsBridgeErrorCode: String, Codable, Equatable, Sendable {
     case groupNotFound = "group_not_found"
     case insufficientActiveGroups = "insufficient_active_groups"
     case invalidCursor = "invalid_cursor"
+    case storageError = "storage_error"
 }
 
 struct WatchedGroupsBridgeResponse: Codable, Equatable, Sendable {
@@ -75,8 +82,8 @@ struct WatchedGroupsBridgeResponse: Codable, Equatable, Sendable {
     let operation: WatchedGroupsBridgeOperation
     let status: WatchedGroupsBridgeStatus
     let groups: [WatchedGroupBridgeValue]
-    let selection: [WatchedGroupBridgeValue]?
-    let nextCursor: Int?
+    let selection: [WatchedGroupBridgeValue]
+    let currentCursor: Int
     let errorCode: WatchedGroupsBridgeErrorCode?
 
     private enum CodingKeys: String, CodingKey {
@@ -85,12 +92,14 @@ struct WatchedGroupsBridgeResponse: Codable, Equatable, Sendable {
         case status
         case groups
         case selection
-        case nextCursor = "next_cursor"
+        case currentCursor = "current_cursor"
         case errorCode = "error_code"
     }
 }
 
 struct WatchedGroupsBridgeClient: Sendable {
+    static let schemaVersion = 2
+    static let maxRequestBytes = 64 * 1024
     static let maxResponseBytes = 1024 * 1024
 
     typealias OperationExecutor = @Sendable (
@@ -127,7 +136,11 @@ struct WatchedGroupsBridgeClient: Sendable {
     static func encodeRequest(_ request: WatchedGroupsBridgeRequest) throws -> Data {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
-        return try encoder.encode(request)
+        let data = try encoder.encode(request)
+        guard data.count <= maxRequestBytes else {
+            throw WatchedGroupsBridgeEncodingError.oversizedRequest
+        }
+        return data
     }
 
     static func decodeResponse(
@@ -136,7 +149,7 @@ struct WatchedGroupsBridgeClient: Sendable {
     ) -> Result<WatchedGroupsBridgeResponse, CoreReadinessBridgeError> {
         do {
             let response = try JSONDecoder().decode(WatchedGroupsBridgeResponse.self, from: data)
-            guard response.schemaVersion == CoreReadinessBridgeClient.schemaVersion,
+            guard response.schemaVersion == schemaVersion,
                   response.operation == operation else {
                 return .failure(.unsupportedResponseSchema)
             }
@@ -183,4 +196,8 @@ struct WatchedGroupsBridgeClient: Sendable {
             return decodeResponse(value.stdout, operation: request.operation)
         }
     }
+}
+
+private enum WatchedGroupsBridgeEncodingError: Error {
+    case oversizedRequest
 }

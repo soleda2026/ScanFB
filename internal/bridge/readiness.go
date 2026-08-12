@@ -130,6 +130,10 @@ func ServeReadiness(stdin io.Reader, stdout io.Writer, stderr io.Writer) int {
 
 // Serve dispatches one bounded helper request to an explicitly supported operation.
 func Serve(stdin io.Reader, stdout io.Writer, stderr io.Writer) int {
+	return ServeWithWatchedGroupRepositoryFactory(stdin, stdout, stderr, productionWatchedGroupRepositoryFactory)
+}
+
+func ServeWithWatchedGroupRepositoryFactory(stdin io.Reader, stdout io.Writer, stderr io.Writer, factory WatchedGroupRepositoryFactory) int {
 	payload, err := io.ReadAll(io.LimitReader(stdin, MaxWatchedGroupsRequestBytes+1))
 	if err != nil || len(payload) == 0 || len(payload) > MaxWatchedGroupsRequestBytes {
 		writeDiagnostic(stderr, "request rejected")
@@ -142,7 +146,7 @@ func Serve(stdin io.Reader, stdout io.Writer, stderr io.Writer) int {
 		return 2
 	}
 	if isWatchedGroupsOperation(envelope.Operation) {
-		return ServeWatchedGroups(bytes.NewReader(payload), stdout, stderr)
+		return ServeWatchedGroups(bytes.NewReader(payload), stdout, stderr, factory)
 	}
 	return ServeReadiness(bytes.NewReader(payload), stdout, stderr)
 }

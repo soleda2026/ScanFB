@@ -2,7 +2,7 @@
 
 ## Muc tieu
 
-ScanFB la app local tren macOS giup nguoi dung tim cac bai Facebook the hien nhu cau **can mua** trong cac group Facebook ma nguoi dung da tham gia va chu dong them vao danh sach theo doi.
+ScanFB la app local tren macOS giup nguoi dung tim cac bai Facebook the hien nhu cau **can mua** trong cac group Facebook ma tai khoan dang nhap trong Safari da tham gia. Product flow muc tieu se discover cac group nay, luu local va cho nguoi dung bat/tat group can theo doi; manual add chi la fallback/scaffolding, khong phai primary workflow.
 
 MVP tap trung vao built-in MacBook Search Profile: tim nguoi can mua MacBook hoac MacBook Pro. Workflow scan theo batch, phan loai deterministic, gom trung lead va hien thi ket qua co ly do ro rang. Marketplace la nguon phu, khong phai trong tam MVP.
 
@@ -25,7 +25,7 @@ Nguoi dung la ca nhan hoac nhom ban MacBook can theo doi nhu cau mua trong cac F
 
 ## Pham vi MVP
 
-- Quan ly danh sach Facebook group can theo doi.
+- Discover danh sach Facebook group ma tai khoan dang nhap trong Safari da tham gia, luu local va cho phep bat/tat group can theo doi.
 - Moi scan batch gom dung 5 group.
 - Scan tung group lan luot, khong mo nhieu group dong thoi.
 - Chi xet bai duoc tao trong ngay hien tai theo timezone `Asia/Ho_Chi_Minh`, tu 00:00 den thoi diem nguoi dung bam Scan.
@@ -72,6 +72,8 @@ MVP chi cung cap built-in MacBook Search Profile. Moi SearchProfile cua ScanFB d
 Sau MVP co the them buyer Search Profile khac nhu iPhone, may anh hoac laptop, nhung chi sau khi MacBook profile hoat dong on dinh va moi profile moi co fixture/rule deterministic rieng. App tim nguoi can ban, neu co, la du an/app khac dua tren kinh nghiem hoac core co the tai su dung tu ScanFB; khong xay abstraction, enum hoac code seller trong ScanFB hien tai.
 
 ## Hanh vi scan
+
+Moi explicit Scan action tu dong lay next five active groups theo internal persisted cursor, chay lan luot, dung va hien thi ket qua. Nguoi dung khong quan ly cursor va khong can bam mot action rieng de chuyen queue; lan Scan explicit tiep theo moi tiep tuc batch ke tiep. Real joined-group discovery va production scan execution van chua duoc implement trong milestone hien tai.
 
 Nguoi dung chon che do dia ly cho tung lan Scan:
 

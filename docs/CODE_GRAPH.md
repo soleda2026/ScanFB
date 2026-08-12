@@ -15,12 +15,12 @@ flowchart TD
     PERSIST_CONTRACT --> DOMAIN
     PERSIST_IMPL["Persistence implementation"] --> PERSIST_CONTRACT
     SQLITE["SQLite schema bootstrap, SaveBatch, and concrete LoadBatch"] --> PERSIST_CONTRACT
-    WATCHED_STATE_DECISION["Phase 9E2a dedicated WatchedGroup-state SQLite decision"] -.future implementation.-> PERSIST_IMPL
+    WATCHED_STATE["Phase 9E2 dedicated WatchedGroup-state SQLite v1"] --> PERSIST_IMPL
     MACOS_APP["macos/ScanFBApp SwiftUI shell"] -.future bridge.-> ORCH
     BRIDGE_HELPER["cmd/scanfb-bridge-helper typed operations"] -.typed request/response.-> BRIDGE_CORE
     BRIDGE_CORE["internal/bridge readiness and watched groups"]
     MACOS_APP -.local subprocess.-> BRIDGE_HELPER
-    GROUPS_UI["Phase 9E1 Watched Groups UI and session store"] --> MACOS_APP
+    GROUPS_UI["Phase 9E2 Watched Groups presentation store"] --> MACOS_APP
     OVERVIEW_FIXTURE["Overview fixture model and views"] --> MACOS_APP
     LEADS_FIXTURE["Leads fixture model and views"] --> MACOS_APP
     LEADS_INTERACTION_STATE["Leads session interaction state"] --> LEADS_FIXTURE
@@ -48,7 +48,7 @@ flowchart TD
     GROUP_SELECTOR --> DOMAIN
     BRIDGE_CORE --> WATCHED_GROUPS
     BRIDGE_CORE --> GROUP_SELECTOR
-    BRIDGE_CORE -.future internal path resolution.-> WATCHED_STATE_DECISION
+    BRIDGE_CORE --> WATCHED_STATE
     GROUP_SELECTOR --> LIFECYCLE_MAPPER["Phase 9D selection-to-lifecycle mapper"]
     LIFECYCLE_MAPPER --> LIFECYCLE
     PROFILE["SearchProfile"] --> DOMAIN
@@ -64,20 +64,20 @@ flowchart TD
 - `internal/blocklist`: Go package cho deterministic local blocklist identity primitives.
 - `internal/rules`: Go package cho deterministic buyer rules ownership.
 - `internal/dedup`: Go package cho deduplication ownership.
-- `internal/persistence`: Go package cho persistence-facing completed-batch contract, in-memory adapter va SQLite schema-bootstrap/SaveBatch/concrete LoadBatch ownership.
+- `internal/persistence`: Go package cho completed-batch persistence va independent Phase 9E2 WatchedGroup-state SQLite schema v1/repository ownership.
 - `internal/orchestration`: Go package cho thin synchronous use-case orchestration ownership.
 - `internal/facebook`: Go package cho Facebook/browser adapter boundary ownership.
 - `internal/ui`: Go-layer documentation/package placeholder; not the SwiftUI app root.
-- `internal/bridge`: bounded typed bridge adapter for Phase 8I.2 `core_readiness` and Phase 9E1 watched-group list/add/set-active/next-five operations. Watched-group requests reconstruct and use Phase 9B/9C authoritative services; the package does not import Facebook, persistence or SQLite.
+- `internal/bridge`: bounded typed adapter for Phase 8I.2 `core_readiness` and Phase 9E2 persistent watched-group list/add/set-active/next-five operations. It uses the Go-owned repository plus Phase 9B/9C services, exposes no raw path/SQL/client snapshot authority, and does not import Facebook.
 - `cmd/scanfb-bridge-helper`: one-request local subprocess helper that reads stdin, writes the machine response to stdout, writes bounded diagnostics to stderr and exits. Phase 8I.2a builds it during Debug app builds and copies it to `Contents/Helpers/scanfb-bridge-helper`.
-- `macos/ScanFBApp`: SwiftUI native macOS app shell implemented in Phase 8B, with the Phase 8 fixture screens, Phase 8I.2 Settings readiness row and Phase 9E1 session-only Watched Groups screen.
+- `macos/ScanFBApp`: SwiftUI native macOS app shell implemented in Phase 8B, with Phase 8 fixture screens, Phase 8I.2 Settings readiness row and Phase 9E2 persistent Watched Groups presentation.
 - App/UI: owner cua views, tabs, lead cards, settings va user actions.
 - Application services: owner cua deterministic in-memory scan batch model, Phase 9A group-attempt lifecycle state machine, Phase 9B WatchedGroup collection, Phase 9C five-group selection policy, Phase 9D selection-to-lifecycle mapping, batch state va time window.
 - Use-case orchestration: owner cua glue logic giua completed application result, `BatchRecord` conversion va repository save boundary.
 - Domain: owner cua normalization contracts, SearchProfile, BuyerIntentClassifier, rule engine, geographic classifier, deduplication, lead aggregation va reason codes.
 - Persistence-facing contracts: owner cua completed batch snapshot contracts.
 - Persistence implementation: owner cua local storage implementation.
-- WatchedGroup persistence decision: Phase 9E2a owner cua approved future Application Support path, separate `watched-groups.sqlite3` schema v1, full Phase 9B value plus Phase 9C cursor transaction boundary and fail-closed restore policy. It is documentation-only and adds no runtime edge yet.
+- WatchedGroup persistence: Phase 9E2 Go owner cua Application Support path, separate `watched-groups.sqlite3` schema v1, DELETE journal, full Phase 9B value plus Phase 9C cursor transaction boundary and fail-closed restore.
 - Facebook adapter: owner cua Phase 10B1 Safari-only user-triggered current-tab URL/title/bounded-source acquisition va fail-closed adapter errors; production DOM parsing/selector validation van deferred.
 - Prepared-page fixture extractor: Phase 10A owner cua typed local snapshot validation va deterministic ordered `RawPost` mapping; no live DOM/browser edge.
 - Safari active-tab acquisition: Phase 10B1 owner cua direct `/usr/bin/osascript` JXA call, caller-supplied capture time, bounded stdout/stderr, HTTPS URL validation va timeout/cancellation; no edge toi `RawPost`, application pipeline, persistence, SwiftUI hoac bridge.
@@ -90,7 +90,7 @@ flowchart TD
 - Dry Run fixture model/views: SwiftUI-only presentation nodes for Phase 8E review tabs/cards; no edge to Go core.
 - Blocklist fixture model/views: SwiftUI-only presentation nodes for Phase 8F sample blocklist entries; no edge to Go core and no ownership of blocklist semantics.
 - Settings fixture model/views: SwiftUI presentation nodes for Phase 8F read-only sample settings plus Phase 8I.2 readiness-only Go bridge check; no persistence writes and no lead/search/product data.
-- Watched Groups UI/store: Phase 9E1 SwiftUI owner of the current-session group snapshot and selection cursor. It displays bridge-returned order, collects name plus canonical HTTPS URL, and delegates validation, mutation and exact-five selection to Go; it has no persistence, Facebook or scan-execution edge.
+- Watched Groups UI/store: Phase 9E2/9E2b SwiftUI presentation owner. It displays authoritative bridge-returned state, keeps active toggles and a read-only next-five preview, hides manual add/queue advance from primary UX, and shows future discovery as explicitly unavailable. It has no SQLite/path, Facebook discovery or scan-execution edge.
 
 Phase 2 files trong `internal/domain` gom minimal models cho `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Domain package chi duoc import Go standard library.
 
@@ -120,7 +120,11 @@ Phase 9D them `internal/application/selection_lifecycle.go` cho deterministic ma
 
 Phase 9E1 them typed watched-group operations trong `internal/bridge`, `WatchedGroupsStore` va UI tai `macos/ScanFBApp`. Swift giu snapshot/cursor chi cho current session va gui chung tren moi one-shot helper call; Go tai tao Phase 9B collection, ap dung add/active mutation va goi Phase 9C selector de tra exact bridge order. UI khong tu sort/chon group, va slice khong co lifecycle, scan execution, Facebook, persistence, SQLite, scheduler, retry, goroutine/concurrency hoac networking.
 
-Phase 9E2a them docs-only [WATCHED_GROUP_PERSISTENCE_DECISION.md](WATCHED_GROUP_PERSISTENCE_DECISION.md). Decision approve hai Go-owned SQLite databases duoi `<user-application-support>/com.soleda.ScanFB/`: `completed-batches.sqlite3` giu schema v1 hien tai va future `watched-groups.sqlite3` co schema v1 rieng. Group state va exact cursor cung transaction/store; helper future tu resolve path, Swift khong thay path, tests inject temporary path. Dotted edge khong phai runtime implementation: chua co database/table/migration/path resolver/bridge mutation.
+Phase 9E2a them docs-only [WATCHED_GROUP_PERSISTENCE_DECISION.md](WATCHED_GROUP_PERSISTENCE_DECISION.md). Decision approve hai Go-owned SQLite databases duoi `<user-application-support>/com.soleda.ScanFB/`: `completed-batches.sqlite3` giu schema v1 hien tai va `watched-groups.sqlite3` bat dau schema v1 rieng. Phase 9E2a chua co runtime edge; Phase 9E2 ben duoi trien khai decision nay.
+
+Phase 9E2 them `SQLiteWatchedGroupRepository`, independent schema v1 va Go Application Support resolver. Repository restore full groups theo explicit insertion position, validate authoritative identity/metadata/cursor, dung DELETE journal, va transact add/set-active/cursor advance. Watched-group bridge v2 khong nhan client collection/cursor/path; Swift store chi render authoritative response va explicit loading/storage-error states. Existing completed-batch schema v1 khong doi; khong co migration runner, Facebook, scan execution, scheduler, retry, networking hoac generated ID.
+
+Phase 9E2b corrects product semantics without a new runtime edge. Future primary group input is a separately implemented joined-group discovery/synchronization path from the user's authenticated Facebook/Safari context. Current WatchedGroup storage remains source-neutral; manual add and `watched_groups_next_five` stay below the UI as fallback/test and future internal progression primitives. Rendering list/preview never advances cursor.
 
 Phase 10A them `internal/facebook/prepared_page.go` cho typed local `PreparedPageSnapshot` va `ExtractPreparedPage`. Extractor validate schema version, caller-supplied group/capture metadata, body, absolute RFC3339 timestamp, optional absolute HTTPS post URL va embedded group consistency; output la ordered `[]domain.RawPost`. Phase nay khong parse live Facebook DOM, khong acquire browser page, khong co cookie/credential/session/network, khong goi scan/lifecycle va khong co persistence, SwiftUI hoac bridge behavior.
 
@@ -162,8 +166,9 @@ Phase 8G extends only the `Leads` fixture screen with session-memory interaction
 
 Phase 8I.1 documents the bridge decision only. Phase 8I.2 implements the first
 readiness-only local subprocess slice using typed versioned schemas, Phase
-8I.2a adds Debug helper packaging, and Phase 9E1 adds only the four bounded
-watched-group operations. No socket, C binding, network listener, dependency,
+8I.2a adds Debug helper packaging, Phase 9E1 introduced four bounded
+watched-group operations, and Phase 9E2 backs them with Go-owned local state.
+No socket, C binding, network listener, new dependency,
 generated code, Release packaging policy, lead/search bridge or broad command
 bus exists.
 
@@ -183,9 +188,9 @@ bus exists.
 - `internal/persistence` duoc import `internal/application` va `internal/domain`.
 - `modernc.org/sqlite` chi duoc import trong `internal/persistence`.
 - `internal/orchestration` duoc import `internal/application` va `internal/persistence`.
-- `macos/ScanFBApp` currently has no production dependency on Go packages. It may depend on Go application/orchestration boundaries only through the selected future local subprocess bridge after a separate implementation milestone.
+- `macos/ScanFBApp` depends on Go only through typed local subprocess requests; it does not import Go packages or access SQLite directly.
 - Future SwiftUI-Go bridge slices may use only the selected local subprocess request/response model with typed versioned payloads.
-- Future Phase 9E2 may add only a narrow `internal/bridge` dependency on the dedicated Go WatchedGroup-state persistence boundary; bridge code must not expose raw SQL, filesystem paths or database-local IDs.
+- Phase 9E2 adds only a narrow `internal/bridge` dependency on the dedicated Go WatchedGroup-state persistence boundary; bridge code exposes no raw SQL, filesystem paths or database-local IDs.
 - Phase 8C Overview fixture views may depend only on local Swift value models and SwiftUI.
 - Phase 8D Leads fixture views may depend only on local Swift value models and SwiftUI.
 - Phase 8E Dry Run fixture views may depend only on local Swift value models and SwiftUI.

@@ -39,16 +39,16 @@ Trong Go skeleton, cac layer duoc anh xa toi package:
 - `internal/orchestration`: thin synchronous use cases ket noi completed application result voi persistence-facing contract.
 - `internal/rules`: deterministic buyer-intent, author, time va geographic rules.
 - `internal/dedup`: duplicate detection va lead aggregation.
-- `internal/persistence`: persistence-facing contracts, deterministic in-memory adapter cho completed batch snapshots, va SQLite schema-bootstrap/transactional `SaveBatch`/concrete `LoadBatch` implementation. Phase 9E2a approve future dedicated WatchedGroup-state SQLite repository, nhung chua co runtime/schema implementation, list/update/delete/search/paging API hoac migration execution.
+- `internal/persistence`: persistence-facing contracts, completed-batch SQLite implementation, va independent Phase 9E2 WatchedGroup-state SQLite schema v1/repository. WatchedGroup repository co narrow load/add/set-active/advance API, DELETE journal va khong co generic CRUD, migration execution hay completed-batch schema change.
 - `internal/facebook`: adapter bien ngoai cho Facebook/browser; domain khong duoc import.
 - `internal/ui`: Go-layer documentation/package placeholder. Native macOS UI implementation lives outside `internal/` using SwiftUI.
-- `internal/bridge`: bridge-facing Go package for bounded typed `core_readiness` and Phase 9E1 watched-group operations. It reconstructs the authoritative Phase 9B collection for each watched-group request and delegates selection to Phase 9C; it does not access Facebook, SQLite or persistence.
+- `internal/bridge`: bridge-facing Go package for bounded typed `core_readiness` and Phase 9E2 persistent watched-group operations. Watched-group handlers open the Go-owned repository, apply Phase 9B/9C policy and return authoritative refreshed state; requests expose no raw path, SQL, collection or cursor authority. It does not access Facebook.
 - `cmd/scanfb-bridge-helper`: local one-request subprocess helper for the bounded typed bridge; Phase 8I.2a packages it into Debug app bundles at `Contents/Helpers/scanfb-bridge-helper`.
-- `macos/ScanFBApp`: native SwiftUI macOS app shell from Phase 8B plus the Phase 8 fixture screens, Phase 8I.2 readiness status and Phase 9E1 session-only Watched Groups screen. It still has no lead/search bridge, persistence wiring, Facebook integration or production scan workflow.
+- `macos/ScanFBApp`: native SwiftUI macOS app shell from Phase 8B plus the Phase 8 fixture screens, Phase 8I.2 readiness status and Phase 9E2 persistent Watched Groups presentation. Swift owns no storage path, SQLite access, cursor policy or durable state. It still has no lead/search bridge, Facebook integration or production scan workflow.
 
 ### App/UI
 
-SwiftUI la approved native macOS presentation direction cho Phase 8. Phase 8B tao app shell tai `macos/ScanFBApp/`, nam ngoai Go `internal/` package tree. Phase 8C them Overview dashboard bang immutable fixture values trong SwiftUI-only presentation layer. Phase 8D them Leads tabs/cards bang immutable fixture values cho buyer-only presentation. Phase 8E them Dry Run review tabs/cards bang immutable fixture values cho included/review/excluded post presentation. Phase 8F them Blocklist va Settings screens bang immutable fixture values; display name chi la nhan phu, khong phai authoritative block identity, va settings la read-only presentation. Phase 8G/8H giu Leads interaction state (`new/viewed/ignored`) trong SwiftUI memory cho session hien tai; state nay khong phai persisted domain status hoac bridge schema. Phase 8H them action `Tương tác` de validate HTTPS fixture source URL va handoff cho macOS default browser bang SwiftUI `openURL`; action nay khong mutate state, khong chung minh interaction tren Facebook va khong doc credential, cookie hay browser session. Phase 8I.2 them `CoreReadinessBridgeClient` cho explicit user-triggered readiness check trong Settings. Phase 9E1 thay placeholder `Nhóm` bang Watched Groups UI; `WatchedGroupsStore` chi so huu current-session snapshot/cursor va goi bon typed bridge operations, con Go Phase 9B/9C so huu validation, mutation, insertion order va exact-five selection. Fixture values chi la display sample data, khong phai business logic, khong phai reason-code authority va khong claim den tu Facebook. Lead va Dry Run tab filtering trong Swift chi loc theo category fixture da khai bao san; Swift khong infer eligibility, khong sinh reason code, khong recompute rules va khong recompute dedup/source count. Shell van khong co lead/search bridge, database, Facebook SDK/API, networking client, WebKit, browser automation, persistence wiring, blocklist writes, lead status writes hoac production settings writes. UI khong import Facebook adapter truc tiep.
+SwiftUI la approved native macOS presentation direction cho Phase 8. Phase 8B tao app shell tai `macos/ScanFBApp/`, nam ngoai Go `internal/` package tree. Phase 8C-8H them fixture presentation va session-only Leads interaction state. Phase 8I.2 them `CoreReadinessBridgeClient` cho explicit user-triggered readiness check. Phase 9E1 thay placeholder `Nhóm` bang Watched Groups UI; Phase 9E2 chuyen durable group/cursor authority sang Go. `WatchedGroupsStore` request state khi screen khoi tao, phan biet loading/loaded/failure, va chi ap dung authoritative response sau list/add/toggle/advance. Swift khong resolve path, mo SQLite, persist file, gui full collection/cursor nhu authority, sort hay chon group doc lap. Fixture values chi la display sample data; lead va Dry Run tab filtering khong infer business outcomes. Shell van khong co lead/search bridge, Facebook SDK/API, networking client, WebKit, browser automation, blocklist writes, lead status writes hoac production settings writes. UI khong import Facebook adapter truc tiep.
 
 ### Application services
 
@@ -63,6 +63,8 @@ Phase 9C them `SelectNextFiveActiveGroups` de doc deterministic WatchedGroup sna
 Phase 9D them `NewScanBatchLifecycleFromSelection` de map mot already-selected exact-five `FiveGroupSelection` sang `GroupScanAttemptInput` theo dung selected-group order. Caller cung cap batch ID, `ScanWindow` va dung 5 attempt ID; final Phase 9A validation van do `NewScanBatchLifecycle` so huu. Mapper khong goi selector, khong doc broader collection, khong advance/persist cursor, khong start transition, khong chay scan va khong goi Facebook, persistence, UI hoac bridge.
 
 Phase 9E1 them bon bridge operations hep cho list, add, set-active va next-five. Vi helper la one-request subprocess, Swift gui full current-session snapshot va cursor tren moi call; Go tai tao `WatchedGroupCollection`, ap dung Phase 9B authoritative identity/URL/state rules va goi Phase 9C selector. Add chi nhan display name va canonical HTTPS URL tu UI, voi local ID va `createdAt` do Swift caller cung cap. Snapshot/cursor khong persisted; slice nay khong goi lifecycle, scan execution, Facebook, SQLite, scheduler, retry hoac concurrency.
+
+Phase 9E2 giu cung bon operation nhung thay the Phase 9E1 session authority. Helper resolve va mo dedicated Go-owned store tren moi call; list doc state, add/set-active commit mutation, va next-five atomically persist exact Phase 9C next cursor. Response thanh cong tra full ordered WatchedGroups, current selection va current cursor; request khong mang authoritative collection/cursor hay filesystem path. Phase 9E2b xac dinh `watched_groups_add` la fallback/scaffolding, `watched_groups_next_five` la internal progression primitive, va primary UI chi doc preview tu list response. Slice khong goi lifecycle, scan execution, Facebook, scheduler, retry hoac concurrency.
 
 ### Use-case orchestration
 
@@ -84,7 +86,9 @@ Phase 5G2 them durable SQLite `SaveBatch` cho mot completed `BatchRecord` snapsh
 
 `SQLiteBatchRepository` satisfy `BatchRepository` bang `SaveBatch(record BatchRecord) error`. Method nay validate `BatchRecord` truoc khi mutate database, ghi root va toan bo child collections trong mot transaction, translate duplicate `BatchRecordID` thanh `ErrBatchRecordAlreadyExists`, rollback moi write failure, va khong retry hay partial write. Concrete `LoadBatch` verify schema version 1, load child rows bang explicit positions, decode canonical timestamps/booleans, reject malformed stored enum-like values, run `BatchRecord.Validate`, va return zero record on failure. Khong co list/update/delete/search/paging/schema/migration/transaction API tren public contract.
 
-Phase 9E2a approve [WATCHED_GROUP_PERSISTENCE_DECISION.md](WATCHED_GROUP_PERSISTENCE_DECISION.md): Go-owned production storage nam trong OS-provided user Application Support root, thu muc `com.soleda.ScanFB`, voi hai database `completed-batches.sqlite3` va `watched-groups.sqlite3`. Existing completed-batch schema v1 giu nguyen; future WatchedGroup-state database bat dau schema v1 rieng va luu ordered full Phase 9B values cung exact Phase 9C cursor trong mot store/transaction boundary. Helper tu resolve production path, Swift khong thay path; tests van inject explicit temporary path. Day chi la decision, chua tao directory/database/schema/migration hoac bridge behavior.
+Phase 9E2 implements [WATCHED_GROUP_PERSISTENCE_DECISION.md](WATCHED_GROUP_PERSISTENCE_DECISION.md): Go-owned production storage nam trong OS-provided user Application Support root, thu muc `com.soleda.ScanFB`, voi hai database `completed-batches.sqlite3` va `watched-groups.sqlite3`. Existing completed-batch schema v1 giu nguyen; WatchedGroup-state database co schema v1 rieng, DELETE journal, explicit insertion positions va exact Phase 9C cursor. Helper resolve production path, Swift khong thay path; tests inject explicit temporary path. Khong co migration runner.
+
+WatchedGroup rows la source-neutral: cung identity/metadata/active/order model co the luu future discovered groups ma khong can schema change hay provenance field. Future discovery acquisition va synchronization la cac slice rieng; chung khong luu Facebook account, cookie, session hoac browser identity. Active/inactive la user-controlled eligibility. Cursor chi duoc advance boi future real batch progression, khong boi render/read preview va khong boi mot primary UI queue control.
 
 ### Facebook adapter
 
@@ -154,15 +158,14 @@ second force-kill grace. Phase 8I.2a adds Debug-only helper packaging at
 notarization and hardened-runtime policy remain deferred. Runtime resolution
 fails closed when the bundled helper is absent.
 
-Phase 9E1 reuses that one-request subprocess boundary for only
+Phase 9E1 introduced that one-request subprocess boundary for only
 `watched_groups_list`, `watched_groups_add`, `watched_groups_set_active` and
-`watched_groups_next_five`. Each request carries the Swift-owned current-session
-snapshot and cursor; the Go bridge reconstructs Phase 9B state and delegates
-exact-five ordering to Phase 9C. This is not persistence, a broad command bus,
-a lead/search bridge or production scan orchestration.
+`watched_groups_next_five` with session-owned Swift state.
 
-Phase 9E2a decides that future persistent watched-group calls resolve the
+Phase 9E2 persistent watched-group calls resolve the
 dedicated Application Support store internally in the helper. No bridge request
 or response carries a raw filesystem path, SQL, database handle or database-local
-ID. Phase 9E2 implementation must return authoritative Go-restored state and
-replace Swift snapshot/cursor authority with a finite typed advance intent.
+ID. Requests no longer carry the Swift snapshot/cursor as authority. Responses
+return authoritative Go-restored state; the finite `watched_groups_next_five`
+operation is the only explicit cursor-advance intent. This is not a broad command
+bus, lead/search bridge or production scan orchestration.

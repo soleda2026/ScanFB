@@ -175,6 +175,63 @@ Phase 9E2a is documentation-only. Its checks confirm:
   `UserDefaults`, `@AppStorage`, Phase 11, Facebook/Safari, browser/session data,
   scheduler, worker, network or cloud behavior is introduced.
 
+## WatchedGroup persistence implementation checks
+
+Phase 9E2 verifies the implemented Go-owned persistent flow:
+
+- temporary explicit-path repository tests cover schema v1 bootstrap, empty
+  state, full metadata and insertion-order reopen, active toggles, authoritative
+  identity conflicts, exact cursor persistence/advance and deterministic reopen;
+- malformed rows, schema inventory/version, metadata chronology, insertion
+  positions and zero/non-empty cursor bounds fail closed without repair;
+- add, set-active and cursor advance are transactional and failed mutations
+  preserve the prior state; DELETE journal mode and owner-only directory/database
+  and transient sidecar behavior are checked where deterministic;
+- bridge v2 tests cover persistent reopen, authoritative refreshed responses,
+  bounded typed storage errors and rejection of client-owned groups, cursor and
+  raw database path fields;
+- Swift store tests cover loading, restored empty/non-empty state, active state,
+  exact backend selection order, visible storage failure, one-call authoritative
+  add/toggle/advance refresh and absence of independent cursor/selection policy;
+- source audits confirm no `UserDefaults`, `@AppStorage`, Swift SQLite/file
+  persistence, completed-batch schema change, migration runner, Facebook/Safari,
+  Phase 11, scheduler, retry, worker, cloud or network behavior.
+
+Automated repository, bridge and Swift tests verify reopen persistence for groups,
+active state, insertion order and the exact cursor. Manual quit/relaunch persistence
+verification is intentionally deferred to Phase 9E3/9E4 because the corrected
+product contract has no supported primary group-population flow yet. This deferment
+is not a persistence failure.
+
+## Group discovery contract correction checks
+
+Phase 9E2b keeps the Phase 9E2 persistence/bridge tests and adds focused Swift
+checks that:
+
+- persisted groups, active state, insufficient/exact-five preview order and
+  storage-failure presentation remain authoritative;
+- startup/render requests only `watched_groups_list`, so preview does not
+  invoke `watched_groups_next_five` or advance the cursor;
+- the primary Groups view contains no manual Add Group entry point and no
+  `Chuyển lượt chọn` action;
+- the future `Đồng bộ nhóm đã tham gia` action is visibly disabled and described
+  as unavailable, with no fake discovery request, loading animation or data;
+- the next-five section is explicitly a read-only preview for a future Scan
+  batch, while active/inactive toggles remain functional.
+
+Go regressions confirm schema v1, source-neutral group identity/state,
+transactional cursor persistence and existing add/next-five bridge primitives
+remain unchanged. Source audits confirm no discovery implementation,
+Facebook/Safari change, account/session/browser storage or scan execution.
+
+User-guided verification of the freshly built corrected UI passed: the Groups
+screen opened; `+ Thêm nhóm` and `Chuyển lượt chọn` were absent; disabled
+`Đồng bộ nhóm đã tham gia` was visible and unavailable; the empty state stated
+that discovery is not implemented; and `Next 5 Groups` remained visible and
+read-only. The UI did not imply manual population or cursor advancement, and no
+discovery, Facebook, Safari or browser action occurred. This closeout does not
+relaunch the app.
+
 ## Test matrix toi thieu
 
 | ID | Fixture | Expected |
@@ -300,7 +357,8 @@ Phase 9E2a is documentation-only. Its checks confirm:
 - Phase 9D: Go-only mapper tests cover exact `FiveGroupSelection` order, caller-supplied batch/attempt IDs and `ScanWindow`, five pending lifecycle attempts, exact attempt-ID count, Phase 9A normalization/error propagation, malformed selection/identity rejection, input/cursor immutability, deterministic repetition, defensive snapshots, no re-selection, no lifecycle transition, no generated ID, no internal clock, no scan execution and no infrastructure imports.
 - Phase 9E1: Go bridge and Swift store tests cover authoritative Phase 9B add/active behavior, exact Phase 9C selection order, empty/insufficient/exact/more-than-five active groups, inactive handling, explicit cursor advancement, deterministic typed schemas, session-only ownership and no independent Swift selection logic.
 - Phase 9E2a: docs-only checks cover all location/schema candidates, one APPROVE outcome, exact Application Support path shape, Go/helper ownership, separate state schema v1, unchanged completed-batch v1, full WatchedGroup field inventory, cursor transaction/restore/corruption policy, temp-path test override and absence of runtime/schema/bridge/Swift persistence changes.
-- Phase 9E2: future implementation tests must cover dedicated temporary SQLite state bootstrap, exact full-value/insertion-order restore, authoritative identity conflicts, active metadata, exact cursor persistence/reopen behavior, atomic failures, typed bridge storage errors, Swift authoritative refresh and manual relaunch verification.
+- Phase 9E2: implemented Go/bridge/Swift tests cover dedicated temporary SQLite state bootstrap, exact full-value/insertion-order restore, authoritative identity conflicts, active metadata, exact cursor persistence/reopen behavior, atomic failures, typed bridge storage errors and Swift authoritative refresh. Manual relaunch persistence verification is intentionally deferred to Phase 9E3/9E4 until a supported primary population flow exists; this is not a persistence failure.
+- Phase 9E2b: Swift/source tests cover hidden manual add/queue advance, disabled unavailable joined-group synchronization copy, read-only next-five preview and list-only rendering; full Phase 9E2 storage/bridge regressions remain required because no schema or authority behavior changes.
 - Phase 9E+: later persistence, adapter and production scan orchestration tests must be defined by separate narrow milestones.
 - Phase 10A: Go-only prepared-page tests cover typed local fixture schema, exact ordered `RawPost` mapping, caller group/name/capture propagation, Vietnamese body preservation, absolute RFC3339 timestamps, optional absolute HTTPS post URLs, supplied stable/display-only author identity, missing-field fail-closed errors, group conflict rejection, determinism, input immutability, no fabricated optional data, no live DOM/browser/network/session/cookie/credential access, no scan/lifecycle execution and no persistence/UI/bridge behavior.
 - Phase 10B1: Go-only Safari active-tab acquisition tests cover strict deterministic response parsing, exact URL/title/content and caller timestamp preservation, optional empty title, absolute HTTPS/no-userinfo URL validation, empty/oversized content rejection with a 4 MiB decoded-content bound and finite worst-case JSON transport envelope, direct `/usr/bin/osascript` JXA arguments, front-window current-tab-only reads, bounded separate stdout/stderr, explicit start/nonzero/TCC/not-running/no-window/no-tab/timeout/cancellation errors, result fields without browser secrets, and source audits excluding Chrome, Accessibility/UI scripting, WebKit/extension, network/listener, browser profile stores, `RawPost`/Phase 10A automatic extraction, Phase 11 lifecycle/pipeline, persistence, SQLite, Swift, Xcode and bridge behavior. User-guided manual validation acquired one expected active group page successfully without printing raw HTML; its approximately 1.5-1.6 MB source remained below the 4 MiB bound.

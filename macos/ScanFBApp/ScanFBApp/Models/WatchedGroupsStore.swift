@@ -1,59 +1,58 @@
 import Combine
 import Foundation
 
+enum WatchedGroupsLoadState: Equatable {
+    case idle
+    case loading
+    case loaded
+    case failed
+}
+
 @MainActor
 final class WatchedGroupsStore: ObservableObject {
     @Published private(set) var groups: [WatchedGroupBridgeValue] = []
     @Published private(set) var nextFive: [WatchedGroupBridgeValue] = []
+    @Published private(set) var loadState: WatchedGroupsLoadState = .idle
     @Published private(set) var isBusy = false
     @Published private(set) var errorMessage: String?
 
     private let client: WatchedGroupsBridgeClient
     private let idProvider: () -> String
     private let dateProvider: () -> Date
-    private var cursor = 0
-    private var nextCursor: Int?
-    private var hasLoaded = false
 
     init(
         client: WatchedGroupsBridgeClient = WatchedGroupsBridgeClient(),
         idProvider: @escaping () -> String = { UUID().uuidString },
-        dateProvider: @escaping () -> Date = Date.init,
-        initialGroups: [WatchedGroupBridgeValue] = []
+        dateProvider: @escaping () -> Date = Date.init
     ) {
         self.client = client
         self.idProvider = idProvider
         self.dateProvider = dateProvider
-        groups = initialGroups
     }
 
     var needsMoreActiveGroups: Bool {
-        nextFive.isEmpty
-    }
-
-    var canAdvanceSelection: Bool {
-        nextCursor != nil
+        loadState == .loaded && nextFive.isEmpty
     }
 
     func loadIfNeeded() async {
-        guard !hasLoaded else {
+        guard loadState == .idle else {
             return
         }
-        hasLoaded = true
+        loadState = .loading
         isBusy = true
         errorMessage = nil
 
-        let response = await client.perform(request(operation: .list))
-        guard applyCollectionResponse(response, operation: .list) else {
-            isBusy = false
-            return
+        let result = await client.perform(request(operation: .list))
+        if applyAuthoritativeResponse(result, operation: .list) {
+            loadState = .loaded
+        } else {
+            loadState = .failed
         }
-        await refreshSelection()
         isBusy = false
     }
 
     func addGroup(name: String, canonicalURL: String) async -> Bool {
-        guard !isBusy else {
+        guard loadState == .loaded, !isBusy else {
             return false
         }
         isBusy = true
@@ -65,83 +64,29 @@ final class WatchedGroupsStore: ObservableObject {
             canonicalURL: canonicalURL,
             createdAt: Self.rfc3339String(from: dateProvider())
         )
-        let response = await client.perform(request(operation: .add, newGroup: newGroup))
-        guard applyCollectionResponse(response, operation: .add) else {
-            isBusy = false
-            return false
-        }
-
-        await refreshSelection()
+        let result = await client.perform(request(operation: .add, newGroup: newGroup))
+        let succeeded = applyAuthoritativeResponse(result, operation: .add)
         isBusy = false
-        return true
+        return succeeded
     }
 
     func setActive(_ active: Bool, for groupID: String) async {
-        guard !isBusy else {
+        guard loadState == .loaded, !isBusy else {
             return
         }
         isBusy = true
         errorMessage = nil
 
-        let response = await client.perform(request(
+        let result = await client.perform(request(
             operation: .setActive,
             groupID: groupID,
             active: active
         ))
-        guard applyCollectionResponse(response, operation: .setActive) else {
-            isBusy = false
-            return
-        }
-
-        await refreshSelection()
+        _ = applyAuthoritativeResponse(result, operation: .setActive)
         isBusy = false
     }
 
-    func advanceSelection() async {
-        guard !isBusy, let nextCursor else {
-            return
-        }
-        cursor = nextCursor
-        isBusy = true
-        errorMessage = nil
-        await refreshSelection()
-        isBusy = false
-    }
-
-    private func refreshSelection() async {
-        let result = await client.perform(request(operation: .nextFive))
-        switch result {
-        case let .failure(error):
-            nextFive = []
-            nextCursor = nil
-            errorMessage = transportMessage(for: error)
-        case let .success(response):
-            guard response.operation == .nextFive else {
-                nextFive = []
-                nextCursor = nil
-                errorMessage = "Phản hồi chọn nhóm không hợp lệ."
-                return
-            }
-            if response.status == .ok,
-               let selection = response.selection,
-               selection.count == 5,
-               let returnedCursor = response.nextCursor {
-                nextFive = selection
-                nextCursor = returnedCursor
-                errorMessage = nil
-                return
-            }
-            nextFive = []
-            nextCursor = nil
-            if response.errorCode == .insufficientActiveGroups {
-                errorMessage = nil
-            } else {
-                errorMessage = domainMessage(for: response.errorCode)
-            }
-        }
-    }
-
-    private func applyCollectionResponse(
+    private func applyAuthoritativeResponse(
         _ result: Result<WatchedGroupsBridgeResponse, CoreReadinessBridgeError>,
         operation: WatchedGroupsBridgeOperation
     ) -> Bool {
@@ -158,12 +103,13 @@ final class WatchedGroupsStore: ObservableObject {
                 errorMessage = domainMessage(for: response.errorCode)
                 return false
             }
-            groups = response.groups
-            if groups.isEmpty {
-                cursor = 0
-            } else if cursor >= groups.count {
-                cursor = 0
+            guard response.selection.isEmpty || response.selection.count == 5 else {
+                errorMessage = "Phản hồi chọn nhóm không hợp lệ."
+                return false
             }
+            groups = response.groups
+            nextFive = response.selection
+            errorMessage = nil
             return true
         }
     }
@@ -175,10 +121,8 @@ final class WatchedGroupsStore: ObservableObject {
         active: Bool? = nil
     ) -> WatchedGroupsBridgeRequest {
         WatchedGroupsBridgeRequest(
-            schemaVersion: CoreReadinessBridgeClient.schemaVersion,
+            schemaVersion: WatchedGroupsBridgeClient.schemaVersion,
             operation: operation,
-            groups: groups,
-            cursor: cursor,
             newGroup: newGroup,
             groupID: groupID,
             active: active
@@ -194,9 +138,11 @@ final class WatchedGroupsStore: ObservableObject {
         case .groupNotFound:
             return "Không tìm thấy nhóm cần cập nhật."
         case .invalidCursor:
-            return "Vị trí chọn nhóm không còn hợp lệ."
+            return "Vị trí chọn nhóm đã lưu không hợp lệ."
         case .insufficientActiveGroups:
             return "Cần ít nhất 5 nhóm đang hoạt động."
+        case .storageError:
+            return "Không thể mở hoặc đọc dữ liệu nhóm đã lưu."
         case nil:
             return "Go core từ chối thao tác quản lý nhóm."
         }
@@ -220,5 +166,4 @@ final class WatchedGroupsStore: ObservableObject {
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return formatter.string(from: date)
     }
-
 }

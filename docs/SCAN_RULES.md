@@ -4,10 +4,13 @@ Tai lieu nay la nguon chuan tac cao nhat cho hanh vi scan, filter, SearchProfile
 
 ## Nguon va batch
 
-- Nguon chinh la Facebook group ma nguoi dung da tham gia va chu dong them vao danh sach theo doi.
+- Nguon chinh la Facebook group ma tai khoan da dang nhap trong Safari cua nguoi dung da tham gia. Product flow muc tieu discover danh sach nay, luu local va cho nguoi dung bat/tat group can theo doi.
+- Manual add chi la fallback/scaffolding, khong phai primary workflow. Real joined-group discovery chua duoc implement.
 - Khong gioi han tong so group luu trong app.
 - Moi scan batch gom dung 5 group.
-- Sau moi batch, app dung, tra ket qua va cho nguoi dung bam Scan batch tiep theo.
+- App tu chon next five active groups tu internal persisted cursor. Xem preview khong advance cursor.
+- Khi production execution ton tai, mot explicit Scan action chay nam group lan luot, advance cursor nhu mot phan cua batch progression, dung va tra ket qua. Explicit Scan action tiep theo moi tiep tuc batch ke.
+- Nguoi dung khong quan ly cursor va khong can mot action rieng de chuyen queue.
 - Khong mo nhieu group dong thoi.
 - Khong cuon vo han.
 - Khong retry lien tuc.

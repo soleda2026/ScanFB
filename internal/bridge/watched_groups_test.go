@@ -3,202 +3,275 @@ package bridge
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/soleda2026/ScanFB/internal/domain"
+	"github.com/soleda2026/ScanFB/internal/persistence"
 )
 
-func TestWatchedGroupsListPreservesInsertionOrderAndActiveState(t *testing.T) {
-	groups := []WatchedGroupBridgeValue{
-		bridgeGroup("group-c", "Group C", true),
-		bridgeGroup("group-a", "Group A", false),
-		bridgeGroup("group-b", "Group B", true),
+func TestWatchedGroupsPersistentFlowRestoresAndAdvancesAuthoritativeState(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "watched-groups.sqlite3")
+	for i := 0; i < 6; i++ {
+		id := "group-" + string(rune('a'+i))
+		response := serveWatchedGroupsRequest(t, path, WatchedGroupsRequest{
+			SchemaVersion: WatchedGroupsSchemaVersion,
+			Operation:     OperationWatchedGroupsAdd,
+			NewGroup: &AddWatchedGroupBridgeValue{
+				ID:           id,
+				Name:         "Group " + string(rune('A'+i)),
+				CanonicalURL: "https://www.facebook.com/groups/" + id,
+				CreatedAt:    bridgeCreatedAt(i),
+			},
+		})
+		if response.Status != WatchedGroupsStatusOK || len(response.Groups) != i+1 {
+			t.Fatalf("add %d response = %#v", i, response)
+		}
 	}
 
-	response := HandleWatchedGroups(WatchedGroupsRequest{
-		SchemaVersion: SchemaVersion,
+	listed := serveWatchedGroupsRequest(t, path, WatchedGroupsRequest{
+		SchemaVersion: WatchedGroupsSchemaVersion,
 		Operation:     OperationWatchedGroupsList,
-		Groups:        groups,
 	})
+	assertBridgeGroupIDs(t, listed.Groups, []string{"group-a", "group-b", "group-c", "group-d", "group-e", "group-f"})
+	assertBridgeGroupIDs(t, listed.Selection, []string{"group-a", "group-b", "group-c", "group-d", "group-e"})
+	if listed.CurrentCursor != 0 {
+		t.Fatalf("listed cursor = %d, want 0", listed.CurrentCursor)
+	}
 
-	if response.Status != WatchedGroupsStatusOK || !reflect.DeepEqual(response.Groups, groups) {
-		t.Fatalf("list response = %#v, want groups %#v", response, groups)
+	advanced := serveWatchedGroupsRequest(t, path, WatchedGroupsRequest{
+		SchemaVersion: WatchedGroupsSchemaVersion,
+		Operation:     OperationWatchedGroupsNextFive,
+	})
+	if advanced.CurrentCursor != 5 {
+		t.Fatalf("advanced cursor = %d, want 5", advanced.CurrentCursor)
+	}
+	assertBridgeGroupIDs(t, advanced.Selection, []string{"group-f", "group-a", "group-b", "group-c", "group-d"})
+
+	restored := serveWatchedGroupsRequest(t, path, WatchedGroupsRequest{
+		SchemaVersion: WatchedGroupsSchemaVersion,
+		Operation:     OperationWatchedGroupsList,
+	})
+	if !reflect.DeepEqual(restored, advanced) {
+		restored.Operation = advanced.Operation
+		if !reflect.DeepEqual(restored, advanced) {
+			t.Fatalf("restored response = %#v, want %#v", restored, advanced)
+		}
 	}
 }
 
-func TestWatchedGroupsAddUsesDomainValidationAndStartsActive(t *testing.T) {
-	response := HandleWatchedGroups(WatchedGroupsRequest{
-		SchemaVersion: SchemaVersion,
-		Operation:     OperationWatchedGroupsAdd,
-		NewGroup: &AddWatchedGroupBridgeValue{
-			ID:           "group-a",
-			Name:         "Group A",
-			CanonicalURL: "https://www.facebook.com/groups/group-a",
-			CreatedAt:    bridgeCreatedAt(),
-		},
-	})
-
-	if response.Status != WatchedGroupsStatusOK || len(response.Groups) != 1 {
-		t.Fatalf("add response = %#v", response)
+func TestWatchedGroupsSetActivePersistsAndRefreshesSelection(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "watched-groups.sqlite3")
+	for i := 0; i < 6; i++ {
+		id := "group-" + string(rune('a'+i))
+		serveWatchedGroupsRequest(t, path, WatchedGroupsRequest{
+			SchemaVersion: WatchedGroupsSchemaVersion,
+			Operation:     OperationWatchedGroupsAdd,
+			NewGroup: &AddWatchedGroupBridgeValue{
+				ID: id, Name: id, CanonicalURL: "https://www.facebook.com/groups/" + id, CreatedAt: bridgeCreatedAt(i),
+			},
+		})
 	}
-	if !response.Groups[0].Active || response.Groups[0].Name != "Group A" {
-		t.Fatalf("added group = %#v, want active Group A", response.Groups[0])
-	}
-}
-
-func TestWatchedGroupsAddRejectsInvalidAndDuplicateCanonicalURL(t *testing.T) {
-	invalid := HandleWatchedGroups(WatchedGroupsRequest{
-		SchemaVersion: SchemaVersion,
-		Operation:     OperationWatchedGroupsAdd,
-		NewGroup: &AddWatchedGroupBridgeValue{
-			ID:           "group-a",
-			Name:         "Group A",
-			CanonicalURL: "http://www.facebook.com/groups/group-a",
-			CreatedAt:    bridgeCreatedAt(),
-		},
-	})
-	if invalid.Status != WatchedGroupsStatusError || invalid.ErrorCode != WatchedGroupsErrorInvalidGroup {
-		t.Fatalf("invalid add response = %#v", invalid)
-	}
-
-	existing := bridgeGroup("group-a", "Group A", true)
-	duplicate := HandleWatchedGroups(WatchedGroupsRequest{
-		SchemaVersion: SchemaVersion,
-		Operation:     OperationWatchedGroupsAdd,
-		Groups:        []WatchedGroupBridgeValue{existing},
-		NewGroup: &AddWatchedGroupBridgeValue{
-			ID:           "group-b",
-			Name:         "Group B",
-			CanonicalURL: existing.CanonicalURL,
-			CreatedAt:    bridgeCreatedAt(),
-		},
-	})
-	if duplicate.Status != WatchedGroupsStatusError || duplicate.ErrorCode != WatchedGroupsErrorDuplicateGroup {
-		t.Fatalf("duplicate add response = %#v", duplicate)
-	}
-}
-
-func TestWatchedGroupsSetActiveUsesCollectionOperation(t *testing.T) {
 	active := false
-	response := HandleWatchedGroups(WatchedGroupsRequest{
-		SchemaVersion: SchemaVersion,
+	updated := serveWatchedGroupsRequest(t, path, WatchedGroupsRequest{
+		SchemaVersion: WatchedGroupsSchemaVersion,
 		Operation:     OperationWatchedGroupsSetActive,
-		Groups:        []WatchedGroupBridgeValue{bridgeGroup("group-a", "Group A", true)},
-		GroupID:       "group-a",
+		GroupID:       "group-b",
 		Active:        &active,
 	})
+	if updated.Groups[1].Active {
+		t.Fatal("group-b remains active")
+	}
+	assertBridgeGroupIDs(t, updated.Selection, []string{"group-a", "group-c", "group-d", "group-e", "group-f"})
 
-	if response.Status != WatchedGroupsStatusOK || len(response.Groups) != 1 || response.Groups[0].Active {
-		t.Fatalf("set-active response = %#v", response)
+	active = true
+	reactivated := serveWatchedGroupsRequest(t, path, WatchedGroupsRequest{
+		SchemaVersion: WatchedGroupsSchemaVersion,
+		Operation:     OperationWatchedGroupsSetActive,
+		GroupID:       "group-b",
+		Active:        &active,
+	})
+	if !reactivated.Groups[1].Active {
+		t.Fatal("group-b was not reactivated")
 	}
 }
 
-func TestWatchedGroupsNextFiveReturnsExactGoSelectionOrder(t *testing.T) {
-	groups := bridgeGroups(7)
-	response := HandleWatchedGroups(WatchedGroupsRequest{
-		SchemaVersion: SchemaVersion,
-		Operation:     OperationWatchedGroupsNextFive,
-		Groups:        groups,
-		Cursor:        5,
-	})
-
-	if response.Status != WatchedGroupsStatusOK || response.NextCursor == nil || *response.NextCursor != 3 {
-		t.Fatalf("selection response = %#v", response)
+func TestWatchedGroupsListPreservesFullPersistentMetadata(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "watched-groups.sqlite3")
+	repo, err := persistence.OpenSQLiteWatchedGroupRepository(path)
+	if err != nil {
+		t.Fatalf("open repository: %v", err)
 	}
-	assertBridgeGroupIDs(t, response.Selection, []string{"group-f", "group-g", "group-a", "group-b", "group-c"})
-}
-
-func TestWatchedGroupsNextFiveSkipsInactiveAndDoesNotReturnPartialSelection(t *testing.T) {
-	groups := bridgeGroups(7)
-	groups[1].Active = false
-	selected := HandleWatchedGroups(WatchedGroupsRequest{
-		SchemaVersion: SchemaVersion,
-		Operation:     OperationWatchedGroupsNextFive,
-		Groups:        groups,
-	})
-	assertBridgeGroupIDs(t, selected.Selection, []string{"group-a", "group-c", "group-d", "group-e", "group-f"})
-
-	groups[4].Active = false
-	groups[5].Active = false
-	insufficient := HandleWatchedGroups(WatchedGroupsRequest{
-		SchemaVersion: SchemaVersion,
-		Operation:     OperationWatchedGroupsNextFive,
-		Groups:        groups,
-	})
-	if insufficient.Status != WatchedGroupsStatusError || insufficient.ErrorCode != WatchedGroupsErrorInsufficientActive {
-		t.Fatalf("insufficient response = %#v", insufficient)
+	createdAt := time.Date(2026, time.August, 12, 9, 0, 0, 0, time.FixedZone("Asia/Ho_Chi_Minh", 7*60*60))
+	group, err := domain.NewWatchedGroup("local-a", "facebook-a", "https://www.facebook.com/groups/a", "Group A", createdAt)
+	if err != nil {
+		t.Fatalf("NewWatchedGroup() error = %v", err)
 	}
-	if len(insufficient.Selection) != 0 || insufficient.NextCursor != nil {
-		t.Fatalf("insufficient response contains partial selection: %#v", insufficient)
+	group, err = group.WithMetadata(domain.WatchedGroupMetadata{
+		Name: "Group A", Notes: "note", LastSuccessfulScanAt: createdAt.Add(time.Hour), LastError: "last error", DisplayOrder: 9,
+	})
+	if err != nil {
+		t.Fatalf("WithMetadata() error = %v", err)
+	}
+	if _, err := repo.Add(group.WithActive(false)); err != nil {
+		t.Fatalf("Add() error = %v", err)
+	}
+	if err := repo.Close(); err != nil {
+		t.Fatalf("Close() error = %v", err)
+	}
+
+	response := serveWatchedGroupsRequest(t, path, WatchedGroupsRequest{SchemaVersion: WatchedGroupsSchemaVersion, Operation: OperationWatchedGroupsList})
+	if len(response.Groups) != 1 {
+		t.Fatalf("groups = %#v", response.Groups)
+	}
+	got := response.Groups[0]
+	if got.FacebookGroupID != "facebook-a" || got.Notes != "note" || got.LastSuccessfulScanAt == "" || got.LastError != "last error" || got.DisplayOrder != 9 || got.Active {
+		t.Fatalf("full metadata response = %#v", got)
 	}
 }
 
-func TestWatchedGroupsSnapshotFailureDoesNotMutateRequest(t *testing.T) {
-	groups := bridgeGroups(5)
-	groups[4].CanonicalURL = groups[0].CanonicalURL
-	before := append([]WatchedGroupBridgeValue(nil), groups...)
-
-	response := HandleWatchedGroups(WatchedGroupsRequest{
-		SchemaVersion: SchemaVersion,
-		Operation:     OperationWatchedGroupsNextFive,
-		Groups:        groups,
-	})
-
-	if response.Status != WatchedGroupsStatusError || !reflect.DeepEqual(groups, before) {
-		t.Fatalf("malformed snapshot response=%#v mutated=%v", response, !reflect.DeepEqual(groups, before))
+func TestWatchedGroupsInsufficientActiveIsSuccessfulWithoutPartialSelection(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "watched-groups.sqlite3")
+	for i := 0; i < 4; i++ {
+		id := "group-" + string(rune('a'+i))
+		serveWatchedGroupsRequest(t, path, WatchedGroupsRequest{
+			SchemaVersion: WatchedGroupsSchemaVersion,
+			Operation:     OperationWatchedGroupsAdd,
+			NewGroup:      &AddWatchedGroupBridgeValue{ID: id, Name: id, CanonicalURL: "https://www.facebook.com/groups/" + id, CreatedAt: bridgeCreatedAt(i)},
+		})
+	}
+	response := serveWatchedGroupsRequest(t, path, WatchedGroupsRequest{SchemaVersion: WatchedGroupsSchemaVersion, Operation: OperationWatchedGroupsList})
+	if response.Status != WatchedGroupsStatusOK || len(response.Selection) != 0 || response.CurrentCursor != 0 {
+		t.Fatalf("insufficient response = %#v", response)
 	}
 }
 
-func TestServeDispatchesWatchedGroupsWithoutDiagnosticsOnSuccess(t *testing.T) {
-	request := WatchedGroupsRequest{
-		SchemaVersion: SchemaVersion,
-		Operation:     OperationWatchedGroupsList,
-		Groups:        []WatchedGroupBridgeValue{},
+func TestWatchedGroupsAddRejectsInvalidAndDuplicateWithoutOverwrite(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "watched-groups.sqlite3")
+	invalid := serveWatchedGroupsRequest(t, path, WatchedGroupsRequest{
+		SchemaVersion: WatchedGroupsSchemaVersion,
+		Operation:     OperationWatchedGroupsAdd,
+		NewGroup:      &AddWatchedGroupBridgeValue{ID: "a", Name: "A", CanonicalURL: "http://example.com/a", CreatedAt: bridgeCreatedAt(0)},
+	})
+	if invalid.ErrorCode != WatchedGroupsErrorInvalidGroup {
+		t.Fatalf("invalid add = %#v", invalid)
 	}
+	first := AddWatchedGroupBridgeValue{ID: "a", Name: "A", CanonicalURL: "https://example.com/shared", CreatedAt: bridgeCreatedAt(0)}
+	serveWatchedGroupsRequest(t, path, WatchedGroupsRequest{SchemaVersion: WatchedGroupsSchemaVersion, Operation: OperationWatchedGroupsAdd, NewGroup: &first})
+	duplicate := AddWatchedGroupBridgeValue{ID: "b", Name: "B", CanonicalURL: first.CanonicalURL, CreatedAt: bridgeCreatedAt(1)}
+	response := serveWatchedGroupsRequest(t, path, WatchedGroupsRequest{SchemaVersion: WatchedGroupsSchemaVersion, Operation: OperationWatchedGroupsAdd, NewGroup: &duplicate})
+	if response.ErrorCode != WatchedGroupsErrorDuplicateGroup {
+		t.Fatalf("duplicate add = %#v", response)
+	}
+	listed := serveWatchedGroupsRequest(t, path, WatchedGroupsRequest{SchemaVersion: WatchedGroupsSchemaVersion, Operation: OperationWatchedGroupsList})
+	if len(listed.Groups) != 1 || listed.Groups[0].ID != "a" {
+		t.Fatalf("failed duplicate mutated state: %#v", listed)
+	}
+}
+
+func TestWatchedGroupsRequestRejectsClientOwnedStateAndPaths(t *testing.T) {
+	for _, payload := range []string{
+		`{"schema_version":2,"operation":"watched_groups_list","groups":[]}`,
+		`{"schema_version":2,"operation":"watched_groups_list","cursor":0}`,
+		`{"schema_version":2,"operation":"watched_groups_list","database_path":"/tmp/state.sqlite3"}`,
+	} {
+		if _, err := DecodeWatchedGroupsRequest(strings.NewReader(payload)); !errors.Is(err, ErrMalformedRequest) {
+			t.Fatalf("DecodeWatchedGroupsRequest(%s) error = %v, want malformed", payload, err)
+		}
+	}
+
+	request := WatchedGroupsRequest{SchemaVersion: WatchedGroupsSchemaVersion, Operation: OperationWatchedGroupsList}
 	payload, err := json.Marshal(request)
 	if err != nil {
-		t.Fatalf("Marshal request: %v", err)
+		t.Fatalf("Marshal() error = %v", err)
+	}
+	var keys map[string]json.RawMessage
+	if err := json.Unmarshal(payload, &keys); err != nil {
+		t.Fatalf("Unmarshal(request keys) error = %v", err)
+	}
+	for _, forbidden := range []string{"groups", "cursor", "database_path"} {
+		if _, exists := keys[forbidden]; exists {
+			t.Fatalf("request payload contains key %q: %s", forbidden, payload)
+		}
+	}
+}
+
+func TestWatchedGroupsRequestAndResponseRemainBounded(t *testing.T) {
+	oversizedRequest := strings.Repeat(" ", MaxWatchedGroupsRequestBytes+1)
+	if _, err := DecodeWatchedGroupsRequest(strings.NewReader(oversizedRequest)); !errors.Is(err, ErrMalformedRequest) {
+		t.Fatalf("oversized request error = %v, want malformed", err)
 	}
 
+	response := WatchedGroupsResponse{
+		SchemaVersion: WatchedGroupsSchemaVersion,
+		Operation:     OperationWatchedGroupsList,
+		Status:        WatchedGroupsStatusOK,
+		Groups: []WatchedGroupBridgeValue{{
+			ID:    "group-a",
+			Notes: strings.Repeat("x", MaxWatchedGroupsResponseBytes),
+		}},
+		Selection: []WatchedGroupBridgeValue{},
+	}
+	if _, err := EncodeWatchedGroupsResponse(response); !errors.Is(err, ErrResponseTooLarge) {
+		t.Fatalf("oversized response error = %v, want response too large", err)
+	}
+}
+
+func TestMalformedPersistentStateMapsToStorageError(t *testing.T) {
+	if got := watchedGroupsErrorCode(persistence.ErrInvalidStoredWatchedGroupState); got != WatchedGroupsErrorStorage {
+		t.Fatalf("error code = %q, want %q", got, WatchedGroupsErrorStorage)
+	}
+}
+
+func TestWatchedGroupsStorageFailureReturnsTypedRedactedError(t *testing.T) {
+	payload := []byte(`{"schema_version":2,"operation":"watched_groups_list"}`)
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	if exitCode := Serve(bytes.NewReader(payload), &stdout, &stderr); exitCode != 0 {
-		t.Fatalf("Serve exit=%d stderr=%q", exitCode, stderr.String())
+	exit := ServeWithWatchedGroupRepositoryFactory(bytes.NewReader(payload), &stdout, &stderr, func() (WatchedGroupStateRepository, error) {
+		return nil, errors.New("private /Users/name/state.sqlite3 open failed")
+	})
+	if exit != 0 {
+		t.Fatalf("exit = %d, stderr=%q", exit, stderr.String())
 	}
-	if stderr.Len() != 0 {
-		t.Fatalf("stderr = %q, want empty", stderr.String())
-	}
-
 	var response WatchedGroupsResponse
 	if err := json.Unmarshal(bytes.TrimSpace(stdout.Bytes()), &response); err != nil {
-		t.Fatalf("stdout is not watched-groups JSON: %v", err)
+		t.Fatalf("decode response: %v", err)
 	}
-	if response.Status != WatchedGroupsStatusOK || response.Operation != OperationWatchedGroupsList {
+	if response.ErrorCode != WatchedGroupsErrorStorage || response.Status != WatchedGroupsStatusError {
 		t.Fatalf("response = %#v", response)
 	}
-}
-
-func bridgeGroups(count int) []WatchedGroupBridgeValue {
-	groups := make([]WatchedGroupBridgeValue, count)
-	for i := range groups {
-		id := "group-" + string(rune('a'+i))
-		groups[i] = bridgeGroup(id, "Group "+string(rune('A'+i)), true)
-	}
-	return groups
-}
-
-func bridgeGroup(id string, name string, active bool) WatchedGroupBridgeValue {
-	return WatchedGroupBridgeValue{
-		ID:           id,
-		Name:         name,
-		CanonicalURL: "https://www.facebook.com/groups/" + id,
-		CreatedAt:    bridgeCreatedAt(),
-		Active:       active,
+	if strings.Contains(stdout.String()+stderr.String(), "/Users/") {
+		t.Fatalf("diagnostics leaked raw path: stdout=%q stderr=%q", stdout.String(), stderr.String())
 	}
 }
 
-func bridgeCreatedAt() string {
-	return time.Date(2026, time.August, 12, 9, 0, 0, 0, time.FixedZone("Asia/Ho_Chi_Minh", 7*60*60)).Format(time.RFC3339Nano)
+func serveWatchedGroupsRequest(t *testing.T, path string, request WatchedGroupsRequest) WatchedGroupsResponse {
+	t.Helper()
+	payload, err := json.Marshal(request)
+	if err != nil {
+		t.Fatalf("Marshal(request) error = %v", err)
+	}
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	exit := ServeWithWatchedGroupRepositoryFactory(bytes.NewReader(payload), &stdout, &stderr, func() (WatchedGroupStateRepository, error) {
+		return persistence.OpenSQLiteWatchedGroupRepository(path)
+	})
+	if exit != 0 {
+		t.Fatalf("Serve() exit=%d stdout=%q stderr=%q", exit, stdout.String(), stderr.String())
+	}
+	var response WatchedGroupsResponse
+	if err := json.Unmarshal(bytes.TrimSpace(stdout.Bytes()), &response); err != nil {
+		t.Fatalf("Unmarshal(response) error = %v; stdout=%q", err, stdout.String())
+	}
+	return response
+}
+
+func bridgeCreatedAt(index int) string {
+	return time.Date(2026, time.August, 12, 9, index, 0, 0, time.FixedZone("Asia/Ho_Chi_Minh", 7*60*60)).Format(time.RFC3339Nano)
 }
 
 func assertBridgeGroupIDs(t *testing.T, groups []WatchedGroupBridgeValue, want []string) {
