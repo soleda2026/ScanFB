@@ -39,3 +39,29 @@ func TestHelperProcessReadinessRoundTrip(t *testing.T) {
 		t.Fatalf("CoreIdentity = %q, want scanfb-core", response.CoreIdentity)
 	}
 }
+
+func TestHelperProcessWatchedGroupsRoundTrip(t *testing.T) {
+	command := exec.Command("go", "run", ".")
+	command.Stdin = bytes.NewBufferString(`{"schema_version":1,"operation":"watched_groups_list","groups":[],"cursor":0}`)
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	command.Stdout = &stdout
+	command.Stderr = &stderr
+
+	if err := command.Run(); err != nil {
+		t.Fatalf("helper failed: %v; stderr=%q", err, stderr.String())
+	}
+
+	var response struct {
+		SchemaVersion int    `json:"schema_version"`
+		Operation     string `json:"operation"`
+		Status        string `json:"status"`
+	}
+	if err := json.Unmarshal(bytes.TrimSpace(stdout.Bytes()), &response); err != nil {
+		t.Fatalf("stdout is not JSON response: %v; stdout=%q", err, stdout.String())
+	}
+	if response.SchemaVersion != 1 || response.Operation != "watched_groups_list" || response.Status != "ok" {
+		t.Fatalf("unexpected response: %#v", response)
+	}
+}

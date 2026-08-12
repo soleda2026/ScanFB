@@ -39,6 +39,10 @@ type ReadinessResponse struct {
 	CoreIdentity    string `json:"core_identity"`
 }
 
+type requestEnvelope struct {
+	Operation string `json:"operation"`
+}
+
 func ReadyResponse() ReadinessResponse {
 	return ReadinessResponse{
 		SchemaVersion:   SchemaVersion,
@@ -122,6 +126,25 @@ func ServeReadiness(stdin io.Reader, stdout io.Writer, stderr io.Writer) int {
 	}
 
 	return 0
+}
+
+// Serve dispatches one bounded helper request to an explicitly supported operation.
+func Serve(stdin io.Reader, stdout io.Writer, stderr io.Writer) int {
+	payload, err := io.ReadAll(io.LimitReader(stdin, MaxWatchedGroupsRequestBytes+1))
+	if err != nil || len(payload) == 0 || len(payload) > MaxWatchedGroupsRequestBytes {
+		writeDiagnostic(stderr, "request rejected")
+		return 2
+	}
+
+	var envelope requestEnvelope
+	if err := json.Unmarshal(payload, &envelope); err != nil {
+		writeDiagnostic(stderr, "request rejected")
+		return 2
+	}
+	if isWatchedGroupsOperation(envelope.Operation) {
+		return ServeWatchedGroups(bytes.NewReader(payload), stdout, stderr)
+	}
+	return ServeReadiness(bytes.NewReader(payload), stdout, stderr)
 }
 
 func writeResponse(writer io.Writer, response ReadinessResponse) error {

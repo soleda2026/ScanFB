@@ -524,11 +524,29 @@ Tests: Focused application tests cho valid mapping, order, pending state, exact 
 
 Stop conditions: Can re-selection, generated ID, cursor ownership, lifecycle execution, Facebook, persistence hoac UI/bridge wiring.
 
-## Phase 9E+ - UI, bridge, adapter and orchestration slices
+## Phase 9E1 - Minimal macOS Watched Groups UI
 
-Exact scope: Future narrow milestones may expose queue/lifecycle presentation through an approved bridge, add one-group collection integration and later five-group production scan orchestration.
+Status: complete. Automated verification and user-guided manual UI verification passed.
 
-Protected areas: Khong gop UI, bridge, Facebook adapter, persistence hoac production execution vao Phase 9D; moi slice phai co scope, tests va boundaries rieng.
+Exact scope: Replace the `Nhóm` placeholder with a session-only SwiftUI screen that lists watched groups, adds a group from display name plus canonical HTTPS URL, toggles active state and displays the exact next five returned by Go Phase 9C. A bounded typed local-subprocess bridge reconstructs Phase 9B state from the caller snapshot on each request.
+
+Protected areas: Khong persistence/cursor storage, SQLite, Facebook/Safari, lifecycle construction, scan execution, Phase 11, scheduler, retry, concurrency, networking, independent Swift identity/ordering/selection logic hoac broad bridge command bus.
+
+Acceptance criteria: Empty and fewer-than-five states are clear; group rows show name and active control; add and toggle outcomes come from authoritative Go validation; exact-five and larger active sets display the bridge-returned 1-5 order; cursor advances only through an explicit UI action; state resets when the app restarts.
+
+Tests: Focused Go bridge tests, focused Swift store/schema tests, full Go regression/vet, full macOS tests/build and CLI smoke check. Closeout automation does not relaunch the already manually verified app.
+
+Manual verification: The freshly built Debug app launched and opened the Groups screen; empty/add/active-toggle flows passed; fewer than five active groups produced no partial selection; exactly five produced the exact application order; and six active groups advanced from `1,2,3,4,5` to `6,1,2,3,4` after one explicit `Chuyển lượt chọn` action. No scan or browser/Safari action occurred. Group identities used for verification are intentionally not recorded. Session-only state remains intentional.
+
+Non-blocking future polish: The screen currently mixes Vietnamese labels with `Watched Groups` and `Next 5 Groups`; a later UI polish slice may make the language consistent.
+
+Stop conditions: Can persistence, production scan, Facebook acquisition, lifecycle execution, scheduler, retry, concurrency hoac broader product data bridge.
+
+## Phase 9E+ - Later adapter and orchestration slices
+
+Exact scope: Future narrow milestones may add persistence, expose lifecycle presentation through an approved bridge, add one-group collection integration and later five-group production scan orchestration.
+
+Protected areas: Khong gop Facebook adapter, persistence hoac production execution vao Phase 9E1; moi slice phai co scope, tests va boundaries rieng.
 
 Acceptance criteria: Defined by each future milestone.
 

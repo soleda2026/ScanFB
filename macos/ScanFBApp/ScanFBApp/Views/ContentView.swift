@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selection: AppSection? = AppSection.defaultSection
+    @StateObject private var watchedGroupsStore = WatchedGroupsStore()
 
     var body: some View {
         NavigationSplitView {
@@ -15,7 +16,7 @@ struct ContentView: View {
             case .dryRun:
                 DryRunFixtureView()
             case .groups:
-                PlaceholderDetailView(section: selection ?? AppSection.defaultSection)
+                WatchedGroupsView(store: watchedGroupsStore)
             case .blocklist:
                 BlocklistFixtureView()
             case .settings:

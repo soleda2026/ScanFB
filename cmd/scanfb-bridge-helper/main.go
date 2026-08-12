@@ -7,5 +7,5 @@ import (
 )
 
 func main() {
-	os.Exit(bridge.ServeReadiness(os.Stdin, os.Stdout, os.Stderr))
+	os.Exit(bridge.Serve(os.Stdin, os.Stdout, os.Stderr))
 }

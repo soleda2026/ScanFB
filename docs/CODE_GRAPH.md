@@ -16,10 +16,10 @@ flowchart TD
     PERSIST_IMPL["Persistence implementation"] --> PERSIST_CONTRACT
     SQLITE["SQLite schema bootstrap, SaveBatch, and concrete LoadBatch"] --> PERSIST_CONTRACT
     MACOS_APP["macos/ScanFBApp SwiftUI shell"] -.future bridge.-> ORCH
-    MACOS_APP -.future bridge.-> APP
-    BRIDGE_HELPER["cmd/scanfb-bridge-helper core_readiness"] -.typed request/response.-> BRIDGE_CORE
-    BRIDGE_CORE["internal/bridge readiness only"]
-    MACOS_APP -.Phase 8I.2 subprocess.-> BRIDGE_HELPER
+    BRIDGE_HELPER["cmd/scanfb-bridge-helper typed operations"] -.typed request/response.-> BRIDGE_CORE
+    BRIDGE_CORE["internal/bridge readiness and watched groups"]
+    MACOS_APP -.local subprocess.-> BRIDGE_HELPER
+    GROUPS_UI["Phase 9E1 Watched Groups UI and session store"] --> MACOS_APP
     OVERVIEW_FIXTURE["Overview fixture model and views"] --> MACOS_APP
     LEADS_FIXTURE["Leads fixture model and views"] --> MACOS_APP
     LEADS_INTERACTION_STATE["Leads session interaction state"] --> LEADS_FIXTURE
@@ -45,6 +45,8 @@ flowchart TD
     WATCHED_GROUPS --> DOMAIN
     APP --> GROUP_SELECTOR["Phase 9C active-only circular five-group selector"]
     GROUP_SELECTOR --> DOMAIN
+    BRIDGE_CORE --> WATCHED_GROUPS
+    BRIDGE_CORE --> GROUP_SELECTOR
     GROUP_SELECTOR --> LIFECYCLE_MAPPER["Phase 9D selection-to-lifecycle mapper"]
     LIFECYCLE_MAPPER --> LIFECYCLE
     PROFILE["SearchProfile"] --> DOMAIN
@@ -64,9 +66,9 @@ flowchart TD
 - `internal/orchestration`: Go package cho thin synchronous use-case orchestration ownership.
 - `internal/facebook`: Go package cho Facebook/browser adapter boundary ownership.
 - `internal/ui`: Go-layer documentation/package placeholder; not the SwiftUI app root.
-- `internal/bridge`: Phase 8I.2 readiness-only bridge adapter. It supports only `core_readiness` and returns only `schema_version`, `readiness_status` and `core_identity`; it does not import Facebook, persistence or SQLite.
-- `cmd/scanfb-bridge-helper`: Phase 8I.2 one-request local subprocess helper that reads stdin, writes the machine response to stdout, writes bounded diagnostics to stderr and exits. Phase 8I.2a builds it during Debug app builds and copies it to `Contents/Helpers/scanfb-bridge-helper`.
-- `macos/ScanFBApp`: SwiftUI native macOS app shell implemented in Phase 8B, with Phase 8C static fixture Overview dashboard, Phase 8D fixture-only Leads tabs/cards, Phase 8E fixture-only Dry Run review tabs/cards, Phase 8F fixture-only Blocklist/Settings screens, Phase 8G session-only Leads interaction state, Phase 8H fixture source URL browser handoff and Phase 8I.2 Settings readiness row.
+- `internal/bridge`: bounded typed bridge adapter for Phase 8I.2 `core_readiness` and Phase 9E1 watched-group list/add/set-active/next-five operations. Watched-group requests reconstruct and use Phase 9B/9C authoritative services; the package does not import Facebook, persistence or SQLite.
+- `cmd/scanfb-bridge-helper`: one-request local subprocess helper that reads stdin, writes the machine response to stdout, writes bounded diagnostics to stderr and exits. Phase 8I.2a builds it during Debug app builds and copies it to `Contents/Helpers/scanfb-bridge-helper`.
+- `macos/ScanFBApp`: SwiftUI native macOS app shell implemented in Phase 8B, with the Phase 8 fixture screens, Phase 8I.2 Settings readiness row and Phase 9E1 session-only Watched Groups screen.
 - App/UI: owner cua views, tabs, lead cards, settings va user actions.
 - Application services: owner cua deterministic in-memory scan batch model, Phase 9A group-attempt lifecycle state machine, Phase 9B WatchedGroup collection, Phase 9C five-group selection policy, Phase 9D selection-to-lifecycle mapping, batch state va time window.
 - Use-case orchestration: owner cua glue logic giua completed application result, `BatchRecord` conversion va repository save boundary.
@@ -85,6 +87,7 @@ flowchart TD
 - Dry Run fixture model/views: SwiftUI-only presentation nodes for Phase 8E review tabs/cards; no edge to Go core.
 - Blocklist fixture model/views: SwiftUI-only presentation nodes for Phase 8F sample blocklist entries; no edge to Go core and no ownership of blocklist semantics.
 - Settings fixture model/views: SwiftUI presentation nodes for Phase 8F read-only sample settings plus Phase 8I.2 readiness-only Go bridge check; no persistence writes and no lead/search/product data.
+- Watched Groups UI/store: Phase 9E1 SwiftUI owner of the current-session group snapshot and selection cursor. It displays bridge-returned order, collects name plus canonical HTTPS URL, and delegates validation, mutation and exact-five selection to Go; it has no persistence, Facebook or scan-execution edge.
 
 Phase 2 files trong `internal/domain` gom minimal models cho `RawPost`, `AuthorIdentity`, `SearchProfile`, `GeographicMode`, `ScanWindow` va `ScanRequest`. Domain package chi duoc import Go standard library.
 
@@ -111,6 +114,8 @@ Phase 9B them `internal/domain/watched_group.go` va `internal/application/watche
 Phase 9C them `internal/application/five_group_selection.go` cho pure deterministic selection tu WatchedGroup snapshot. Selector bat dau tai explicit caller-managed collection-position cursor, traverses toi da mot circular cycle theo insertion order, skip inactive, tra dung 5 distinct active groups va next cursor ngay sau group thu nam. Insufficient active groups fail closed; display/time metadata khong sort; cursor khong persist; khong co lifecycle construction, generated ID, scan execution, Facebook, persistence, SQLite, SwiftUI, bridge, scheduler, retry, goroutine/concurrency hoac networking.
 
 Phase 9D them `internal/application/selection_lifecycle.go` cho deterministic mapping tu mot approved `FiveGroupSelection` sang `ScanBatchLifecycle`. Mapper preserve exact selection order, ghep dung 5 caller-supplied attempt ID theo index va delegate batch ID, `ScanWindow` va attempt validation cho Phase 9A constructor. Mapper khong re-select, khong doc collection, khong dung/advance cursor, khong start attempt, khong chay scan, khong tao ID va khong co Facebook, persistence, SQLite, SwiftUI, bridge, scheduler, retry, goroutine/concurrency hoac networking.
+
+Phase 9E1 them typed watched-group operations trong `internal/bridge`, `WatchedGroupsStore` va UI tai `macos/ScanFBApp`. Swift giu snapshot/cursor chi cho current session va gui chung tren moi one-shot helper call; Go tai tao Phase 9B collection, ap dung add/active mutation va goi Phase 9C selector de tra exact bridge order. UI khong tu sort/chon group, va slice khong co lifecycle, scan execution, Facebook, persistence, SQLite, scheduler, retry, goroutine/concurrency hoac networking.
 
 Phase 10A them `internal/facebook/prepared_page.go` cho typed local `PreparedPageSnapshot` va `ExtractPreparedPage`. Extractor validate schema version, caller-supplied group/capture metadata, body, absolute RFC3339 timestamp, optional absolute HTTPS post URL va embedded group consistency; output la ordered `[]domain.RawPost`. Phase nay khong parse live Facebook DOM, khong acquire browser page, khong co cookie/credential/session/network, khong goi scan/lifecycle va khong co persistence, SwiftUI hoac bridge behavior.
 
@@ -151,10 +156,11 @@ Phase 8F replaces only the `Blocklist` and `Cài đặt` placeholders with fixtu
 Phase 8G extends only the `Leads` fixture screen with session-memory interaction state. Phase 8H narrows that state model to `new`, `viewed` and `ignored`, and adds stateless `Tương tác` browser handoff for deterministic synthetic HTTPS fixture source URLs. The state is SwiftUI-only presentation state, starts as `new` for every fixture lead, can be changed only by viewed/ignored card actions, resets on app restart, does not change eligibility tabs/categories, does not recompute reasons, and has no persistence, database, bridge, Facebook SDK/API, WebKit, browser automation, networking client, timestamp, random value or package dependency.
 
 Phase 8I.1 documents the bridge decision only. Phase 8I.2 implements the first
-readiness-only local subprocess slice using typed versioned schemas. Phase
-8I.2a adds Debug helper packaging only. No socket, C binding, network listener,
-dependency, generated code, Release packaging policy or product data bridge
-exists yet.
+readiness-only local subprocess slice using typed versioned schemas, Phase
+8I.2a adds Debug helper packaging, and Phase 9E1 adds only the four bounded
+watched-group operations. No socket, C binding, network listener, dependency,
+generated code, Release packaging policy, lead/search bridge or broad command
+bus exists.
 
 ## Allowed dependencies
 

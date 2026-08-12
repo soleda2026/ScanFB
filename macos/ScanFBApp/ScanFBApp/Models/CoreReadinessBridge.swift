@@ -186,7 +186,7 @@ struct CoreReadinessBridgeClient: Sendable {
         }
     }
 
-    private static func runHelperProcess(
+    static func runHelperProcess(
         helperURL: URL,
         requestData: Data,
         timeout: TimeInterval
