@@ -243,6 +243,115 @@ final class WatchedGroupsStoreTests: XCTestCase {
         XCTAssertEqual(requests.map(\.operation), [.list])
     }
 
+    func testPreparedScanRequiresAnActiveEnrolledGroup() {
+        XCTAssertFalse(PreparedGroupScanStore.hasActiveGroup([]))
+        XCTAssertFalse(PreparedGroupScanStore.hasActiveGroup([group("group-a", active: false)]))
+        XCTAssertTrue(PreparedGroupScanStore.hasActiveGroup([group("group-a", active: true)]))
+    }
+
+    func testPreparedScanRowsStartAtOneAddRemoveAndStopAtOneHundred() {
+        let store = makePreparedScanStore()
+        XCTAssertEqual(store.posts.count, 1)
+
+        store.addPost()
+        XCTAssertEqual(store.posts.count, 2)
+        store.removePost(id: store.posts[0].id)
+        XCTAssertEqual(store.posts.count, 1)
+        store.removePost(id: store.posts[0].id)
+        XCTAssertEqual(store.posts.count, 1)
+
+        for _ in 0..<120 {
+            store.addPost()
+        }
+        XCTAssertEqual(store.posts.count, 100)
+    }
+
+    func testPreparedScanValidationRejectsEmptyBodyAndAuthor() {
+        let store = makePreparedScanStore()
+        let activeGroup = group("group-a", active: true)
+
+        store.posts[0].authorDisplayName = "Buyer One"
+        XCTAssertEqual(store.validationMessage(for: activeGroup), "Bài 1 chưa có nội dung.")
+
+        store.posts[0].body = "Can mua MacBook tai HCM"
+        store.posts[0].authorDisplayName = "   "
+        XCTAssertEqual(store.validationMessage(for: activeGroup), "Bài 1 chưa có tác giả.")
+    }
+
+    func testPreparedScanPayloadUsesSchemaOneExactHCMTimeAndPreservesOrder() throws {
+        let store = makePreparedScanStore()
+        let createdAt = testDate("2026-08-13T02:15:30Z")
+        store.posts[0].body = "First body"
+        store.posts[0].authorDisplayName = "First Author"
+        store.posts[0].createdAt = createdAt
+        store.posts[0].postID = "post-1"
+        store.posts[0].postURL = "https://www.facebook.com/groups/group-a/posts/post-1"
+        store.addPost()
+        store.posts[1].body = "Second body"
+        store.posts[1].authorDisplayName = "Second Author"
+        store.posts[1].createdAt = createdAt.addingTimeInterval(60)
+
+        let request = store.makeRequest(group: group("group-a", active: true), actionAt: createdAt)
+        XCTAssertEqual(request.schemaVersion, 1)
+        XCTAssertEqual(request.preparedSnapshot.schemaVersion, 1)
+        XCTAssertEqual(request.preparedSnapshot.posts.map(\.body), ["First body", "Second body"])
+        XCTAssertEqual(request.preparedSnapshot.posts[0].createdAt, "2026-08-13T09:15:30.000+07:00")
+        XCTAssertEqual(request.preparedSnapshot.posts[0].postID, "post-1")
+        XCTAssertEqual(request.preparedSnapshot.posts[0].postURL, "https://www.facebook.com/groups/group-a/posts/post-1")
+
+        let data = try PreparedGroupScanBridgeClient.encodeRequest(request)
+        let root = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let snapshot = try XCTUnwrap(root["prepared_snapshot"] as? [String: Any])
+        XCTAssertNil(snapshot["group_id"])
+        XCTAssertNil(snapshot["group_name"])
+        XCTAssertNil(snapshot["captured_at"])
+    }
+
+    func testPreparedScanValidFormSendsExactlyOneRequestAndPublishesSummary() async {
+        let stub = PreparedGroupScanBridgeStub(result: .success(preparedScanResponse()))
+        let store = makePreparedScanStore(stub: stub)
+        store.posts[0].body = "Can mua MacBook tai HCM"
+        store.posts[0].authorDisplayName = "Buyer One"
+
+        await store.submit(group: group("group-a", active: true))
+
+        XCTAssertEqual(store.result?.includedPostCount, 1)
+        XCTAssertNil(store.errorMessage)
+        let requests = await stub.recordedRequests()
+        XCTAssertEqual(requests.count, 1)
+        XCTAssertEqual(requests[0].groupID, "group-a")
+    }
+
+    func testPreparedScanFailureShowsErrorWithoutPartialResult() async {
+        let stub = PreparedGroupScanBridgeStub(result: .success(preparedScanResponse(
+            status: .error,
+            attemptStatus: "failed",
+            errorCode: .invalidPreparedSnapshot
+        )))
+        let store = makePreparedScanStore(stub: stub)
+        store.posts[0].body = "Invalid"
+        store.posts[0].authorDisplayName = "Buyer One"
+
+        await store.submit(group: group("group-a", active: true))
+
+        XCTAssertNil(store.result)
+        XCTAssertEqual(store.errorMessage, "Dữ liệu bài viết không hợp lệ. Hãy kiểm tra nội dung, tác giả và thời gian.")
+        let requestCount = await stub.requestCount()
+        XCTAssertEqual(requestCount, 1)
+    }
+
+    func testPreparedScanUIHasNoCursorFileOrClipboardBehavior() throws {
+        let source = try groupsViewSource()
+
+        XCTAssertTrue(source.contains("Nhập dữ liệu quét"))
+        XCTAssertTrue(source.contains("Quét dữ liệu đã nhập"))
+        XCTAssertFalse(source.contains("AdvanceCursor"))
+        XCTAssertFalse(source.contains("fileImporter"))
+        XCTAssertFalse(source.contains("NSPasteboard"))
+        XCTAssertFalse(source.contains("@AppStorage"))
+        XCTAssertFalse(source.contains("UserDefaults"))
+    }
+
     private func makeStore(
         responses: [WatchedGroupsBridgeOperation: [Result<WatchedGroupsBridgeResponse, CoreReadinessBridgeError>]]
     ) -> WatchedGroupsStore {
@@ -250,6 +359,16 @@ final class WatchedGroupsStoreTests: XCTestCase {
         return WatchedGroupsStore(client: WatchedGroupsBridgeClient { request in
             await stub.perform(request)
         })
+    }
+
+    private func makePreparedScanStore(
+        stub: PreparedGroupScanBridgeStub = PreparedGroupScanBridgeStub(result: .failure(.malformedResponse))
+    ) -> PreparedGroupScanStore {
+        PreparedGroupScanStore(
+            client: PreparedGroupScanBridgeClient { request in await stub.perform(request) },
+            idProvider: { "caller-owned-id" },
+            dateProvider: { testDate("2026-08-13T03:00:00Z") }
+        )
     }
 }
 
@@ -318,6 +437,30 @@ private actor DeferredWatchedGroupsBridge {
     }
 }
 
+private actor PreparedGroupScanBridgeStub {
+    private let result: Result<PreparedGroupScanBridgeResponse, CoreReadinessBridgeError>
+    private var requests: [PreparedGroupScanBridgeRequest] = []
+
+    init(result: Result<PreparedGroupScanBridgeResponse, CoreReadinessBridgeError>) {
+        self.result = result
+    }
+
+    func perform(
+        _ request: PreparedGroupScanBridgeRequest
+    ) -> Result<PreparedGroupScanBridgeResponse, CoreReadinessBridgeError> {
+        requests.append(request)
+        return result
+    }
+
+    func recordedRequests() -> [PreparedGroupScanBridgeRequest] {
+        requests
+    }
+
+    func requestCount() -> Int {
+        requests.count
+    }
+}
+
 private func response(
     _ operation: WatchedGroupsBridgeOperation,
     groups: [WatchedGroupBridgeValue],
@@ -371,4 +514,32 @@ private func group(_ id: String, active: Bool) -> WatchedGroupBridgeValue {
         lastError: "",
         displayOrder: 0
     )
+}
+
+private func preparedScanResponse(
+    status: PreparedGroupScanBridgeStatus = .ok,
+    attemptStatus: String = "succeeded",
+    errorCode: PreparedGroupScanBridgeErrorCode? = nil
+) -> PreparedGroupScanBridgeResponse {
+    PreparedGroupScanBridgeResponse(
+        schemaVersion: 1,
+        operation: .scan,
+        status: status,
+        groupName: "Group A",
+        attemptStatus: attemptStatus,
+        collectedPostCount: status == .ok ? 1 : 0,
+        evaluatedPostCount: status == .ok ? 1 : 0,
+        includedPostCount: status == .ok ? 1 : 0,
+        reviewPostCount: 0,
+        excludedPostCount: 0,
+        allowedLeadCount: status == .ok ? 1 : 0,
+        blockedLeadCount: 0,
+        unresolvedLeadCount: 0,
+        errorCode: errorCode,
+        errorMessage: errorCode == nil ? nil : "prepared snapshot rejected"
+    )
+}
+
+private func testDate(_ value: String) -> Date {
+    ISO8601DateFormatter().date(from: value)!
 }

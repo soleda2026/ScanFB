@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/soleda2026/ScanFB/internal/orchestration"
 )
 
 const (
@@ -134,8 +136,8 @@ func Serve(stdin io.Reader, stdout io.Writer, stderr io.Writer) int {
 }
 
 func ServeWithWatchedGroupRepositoryFactory(stdin io.Reader, stdout io.Writer, stderr io.Writer, factory WatchedGroupRepositoryFactory) int {
-	payload, err := io.ReadAll(io.LimitReader(stdin, MaxWatchedGroupsRequestBytes+1))
-	if err != nil || len(payload) == 0 || len(payload) > MaxWatchedGroupsRequestBytes {
+	payload, err := io.ReadAll(io.LimitReader(stdin, MaxBridgeDispatchRequestBytes+1))
+	if err != nil || len(payload) == 0 || len(payload) > MaxBridgeDispatchRequestBytes {
 		writeDiagnostic(stderr, "request rejected")
 		return 2
 	}
@@ -147,6 +149,9 @@ func ServeWithWatchedGroupRepositoryFactory(stdin io.Reader, stdout io.Writer, s
 	}
 	if isWatchedGroupsOperation(envelope.Operation) {
 		return ServeWatchedGroups(bytes.NewReader(payload), stdout, stderr, factory)
+	}
+	if envelope.Operation == OperationPreparedGroupScan {
+		return ServePreparedGroupScan(bytes.NewReader(payload), stdout, stderr, factory, orchestration.RunOneGroupScan)
 	}
 	return ServeReadiness(bytes.NewReader(payload), stdout, stderr)
 }

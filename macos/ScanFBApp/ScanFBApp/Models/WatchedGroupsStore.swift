@@ -167,3 +167,196 @@ final class WatchedGroupsStore: ObservableObject {
         return formatter.string(from: date)
     }
 }
+
+struct PreparedPostDraft: Identifiable, Equatable {
+    let id: UUID
+    var body: String
+    var authorDisplayName: String
+    var authorUsername: String
+    var authorFacebookUserID: String
+    var authorCanonicalProfileURL: String
+    var createdAt: Date
+    var postURL: String
+    var postID: String
+
+    init(id: UUID = UUID(), createdAt: Date) {
+        self.id = id
+        body = ""
+        authorDisplayName = ""
+        authorUsername = ""
+        authorFacebookUserID = ""
+        authorCanonicalProfileURL = ""
+        self.createdAt = createdAt
+        postURL = ""
+        postID = ""
+    }
+}
+
+@MainActor
+final class PreparedGroupScanStore: ObservableObject {
+    static let minimumPostCount = 1
+    static let maximumPostCount = 100
+    static let hoChiMinhTimeZone = TimeZone(identifier: "Asia/Ho_Chi_Minh")!
+
+    @Published var posts: [PreparedPostDraft]
+    @Published private(set) var isSubmitting = false
+    @Published private(set) var result: PreparedGroupScanBridgeResponse?
+    @Published private(set) var errorMessage: String?
+
+    private let client: PreparedGroupScanBridgeClient
+    private let idProvider: () -> String
+    private let dateProvider: () -> Date
+
+    init(
+        client: PreparedGroupScanBridgeClient = PreparedGroupScanBridgeClient(),
+        idProvider: @escaping () -> String = { UUID().uuidString },
+        dateProvider: @escaping () -> Date = Date.init
+    ) {
+        self.client = client
+        self.idProvider = idProvider
+        self.dateProvider = dateProvider
+        posts = [PreparedPostDraft(createdAt: dateProvider())]
+    }
+
+    static func hasActiveGroup(_ groups: [WatchedGroupBridgeValue]) -> Bool {
+        groups.contains(where: \.active)
+    }
+
+    func beginSession() {
+        posts = [PreparedPostDraft(createdAt: dateProvider())]
+        result = nil
+        errorMessage = nil
+        isSubmitting = false
+    }
+
+    func addPost() {
+        guard posts.count < Self.maximumPostCount else { return }
+        posts.append(PreparedPostDraft(createdAt: dateProvider()))
+    }
+
+    func removePost(id: UUID) {
+        guard posts.count > Self.minimumPostCount else { return }
+        posts.removeAll { $0.id == id }
+    }
+
+    func validationMessage(for group: WatchedGroupBridgeValue) -> String? {
+        guard group.active else {
+            return "Nhóm này đang tắt. Hãy bật nhóm trước khi quét."
+        }
+        guard (Self.minimumPostCount...Self.maximumPostCount).contains(posts.count) else {
+            return "Cần nhập từ 1 đến 100 bài viết."
+        }
+        for (index, post) in posts.enumerated() {
+            if post.body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return "Bài \(index + 1) chưa có nội dung."
+            }
+            let hasAuthor = [
+                post.authorDisplayName,
+                post.authorUsername,
+                post.authorFacebookUserID,
+                post.authorCanonicalProfileURL,
+            ].contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            if !hasAuthor {
+                return "Bài \(index + 1) chưa có tác giả."
+            }
+        }
+        return nil
+    }
+
+    func submit(group: WatchedGroupBridgeValue) async {
+        guard !isSubmitting else { return }
+        if let validation = validationMessage(for: group) {
+            errorMessage = validation
+            result = nil
+            return
+        }
+
+        let request = makeRequest(group: group, actionAt: dateProvider())
+        isSubmitting = true
+        errorMessage = nil
+        result = nil
+        let bridgeResult = await client.perform(request)
+        switch bridgeResult {
+        case let .failure(error):
+            errorMessage = transportMessage(for: error)
+        case let .success(response):
+            guard response.status == .ok, response.attemptStatus == "succeeded" else {
+                errorMessage = domainMessage(for: response.errorCode)
+                isSubmitting = false
+                return
+            }
+            result = response
+        }
+        isSubmitting = false
+    }
+
+    func makeRequest(group: WatchedGroupBridgeValue, actionAt: Date) -> PreparedGroupScanBridgeRequest {
+        let values = posts.map { post in
+            PreparedSnapshotPostBridgeValue(
+                postID: Self.optionalValue(post.postID),
+                postURL: Self.optionalValue(post.postURL),
+                author: PreparedSnapshotAuthorBridgeValue(
+                    facebookUserID: Self.optionalValue(post.authorFacebookUserID),
+                    canonicalProfileURL: Self.optionalValue(post.authorCanonicalProfileURL),
+                    username: Self.optionalValue(post.authorUsername),
+                    displayName: post.authorDisplayName
+                ),
+                body: post.body,
+                createdAt: Self.rfc3339String(from: post.createdAt)
+            )
+        }
+        return PreparedGroupScanBridgeRequest(
+            schemaVersion: PreparedGroupScanBridgeClient.schemaVersion,
+            operation: .scan,
+            groupID: group.id,
+            scanID: idProvider(),
+            attemptID: idProvider(),
+            actionAt: Self.rfc3339String(from: actionAt),
+            preparedSnapshot: PreparedSnapshotBridgeValue(
+                schemaVersion: PreparedGroupScanBridgeClient.preparedSnapshotSchemaVersion,
+                posts: values
+            )
+        )
+    }
+
+    static func rfc3339String(from date: Date) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.timeZone = hoChiMinhTimeZone
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter.string(from: date)
+    }
+
+    private static func optionalValue(_ value: String) -> String? {
+        value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : value
+    }
+
+    private func domainMessage(for code: PreparedGroupScanBridgeErrorCode?) -> String {
+        switch code {
+        case .invalidRequest:
+            return "Yêu cầu quét không hợp lệ."
+        case .groupNotFound:
+            return "Không tìm thấy nhóm đã chọn trong dữ liệu đã lưu."
+        case .inactiveGroup:
+            return "Nhóm đã chọn hiện không hoạt động."
+        case .invalidPreparedSnapshot:
+            return "Dữ liệu bài viết không hợp lệ. Hãy kiểm tra nội dung, tác giả và thời gian."
+        case .storageError:
+            return "Không thể đọc dữ liệu nhóm đã lưu."
+        case .scanFailed, nil:
+            return "Không thể hoàn tất lần quét dữ liệu đã nhập."
+        }
+    }
+
+    private func transportMessage(for error: CoreReadinessBridgeError) -> String {
+        switch error {
+        case .helperExecutableMissing:
+            return "Không tìm thấy Go helper trong ứng dụng."
+        case .timeout:
+            return "Go helper phản hồi quá thời gian cho phép."
+        case .cancelled:
+            return "Thao tác đã bị hủy."
+        default:
+            return "Không thể gửi dữ liệu quét tới Go core."
+        }
+    }
+}

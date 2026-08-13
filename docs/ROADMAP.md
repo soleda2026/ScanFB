@@ -870,7 +870,7 @@ Implementation: `facebook.NewPreparedSnapshotCollector(payload []byte)` defensiv
 
 ## Phase 11C2 - Typed bridge and manual prepared-post form wiring
 
-Status: planned, not implemented.
+Status: complete after implementation, automated verification and user-guided manual acceptance with synthetic data.
 
 Exact scope: Add one narrow typed local bridge operation and ScanFB-owned macOS form that constructs the already-approved Phase 11C1 JSON v1 payload for one authoritative enrolled group and invokes the existing one-group orchestration path.
 
@@ -879,6 +879,12 @@ Protected areas: No file picker/import, bulk clipboard reader, Safari/browser, s
 Acceptance criteria: Swift only presents typed fields and encodes the canonical payload; Go remains authoritative for group identity, capture/scan time, strict validation, Phase 10A mapping and Phase 11A execution. Missing absolute time or another invalid field fails visibly with no partial result.
 
 Tests: Focused bridge schema/operation tests, Swift store/form tests, complete Go/macOS regressions and separately guided local manual validation with synthetic data only.
+
+Implementation: `prepared_group_scan` accepts one persisted group ID, caller-owned scan/attempt IDs, one explicit `+07:00` action timestamp and one nested prepared-snapshot JSON v1 object. Go reloads and verifies the active group, constructs the current-day `ScanWindow`, uses the built-in MacBook SearchProfile and default `hcm` mode, then invokes `PreparedSnapshotCollector` and `RunOneGroupScan` exactly once. The Groups UI provides ordered typed rows and a count-only success/error summary. Input and result remain in memory; watched-group cursor/state are read-only during this operation.
+
+Manual acceptance: A fresh bundle preserved the enrolled WatchedGroup, disabled prepared input while inactive, enabled it after activation, displayed one complete initial row and rejected empty body visibly without fake result or crash. One synthetic post completed through Swift form -> typed bridge -> Phase 11C1 -> Phase 10A -> Phase 11A -> existing pipeline and returned collected 1, evaluated 1, included 0, review 1, excluded 0 and allowed lead 0. No five-group execution or visible queue progression occurred. After full quit/relaunch, the group remained persisted while the form returned to one empty row and the prior input/result were absent.
+
+Non-blocking follow-up candidate before broader UI polish: after empty-body validation, valid body/author edits do not immediately clear the stale `Bài 1 chưa có nội dung.` message. A subsequent valid submission succeeds, so this is validation-state polish rather than a Phase 11C2 correctness failure.
 
 Stop conditions: Requires multiple input formats, Swift-owned validation/identity/time authority, file/clipboard automation, persistence, browser access, Phase 11A redesign, batch-five execution or cursor progression.
 
