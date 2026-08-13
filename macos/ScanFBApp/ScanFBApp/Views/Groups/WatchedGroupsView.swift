@@ -182,6 +182,9 @@ private struct PreparedGroupScanSheet: View {
                 .help("Đóng")
             }
             .padding(20)
+            .onChange(of: store.posts) {
+                store.formDidChange(group: group)
+            }
 
             Divider()
 

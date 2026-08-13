@@ -278,6 +278,76 @@ final class WatchedGroupsStoreTests: XCTestCase {
         XCTAssertEqual(store.validationMessage(for: activeGroup), "Bài 1 chưa có tác giả.")
     }
 
+    func testPreparedScanEditingBodyRecomputesPresentedValidation() async {
+        let stub = PreparedGroupScanBridgeStub(result: .failure(.malformedResponse))
+        let store = makePreparedScanStore(stub: stub)
+        let activeGroup = group("group-a", active: true)
+
+        await store.submit(group: activeGroup)
+        XCTAssertEqual(store.errorMessage, "Bài 1 chưa có nội dung.")
+
+        store.posts[0].body = "Can mua MacBook tai HCM"
+        store.formDidChange(group: activeGroup)
+
+        XCTAssertEqual(store.errorMessage, "Bài 1 chưa có tác giả.")
+        let requestCount = await stub.requestCount()
+        XCTAssertEqual(requestCount, 0)
+    }
+
+    func testPreparedScanEditingAuthorClearsOnlyResolvedValidation() async {
+        let stub = PreparedGroupScanBridgeStub(result: .failure(.malformedResponse))
+        let store = makePreparedScanStore(stub: stub)
+        let activeGroup = group("group-a", active: true)
+        store.posts[0].body = "Can mua MacBook tai HCM"
+
+        await store.submit(group: activeGroup)
+        XCTAssertEqual(store.errorMessage, "Bài 1 chưa có tác giả.")
+
+        store.posts[0].authorDisplayName = "Buyer One"
+        store.formDidChange(group: activeGroup)
+
+        XCTAssertNil(store.errorMessage)
+        XCTAssertNil(store.validationMessage(for: activeGroup))
+        let requestCount = await stub.requestCount()
+        XCTAssertEqual(requestCount, 0)
+    }
+
+    func testPreparedScanEditingBodyDoesNotClearRemainingAuthorError() async {
+        let store = makePreparedScanStore()
+        let activeGroup = group("group-a", active: true)
+        store.posts[0].body = "Initial body"
+
+        await store.submit(group: activeGroup)
+        XCTAssertEqual(store.errorMessage, "Bài 1 chưa có tác giả.")
+
+        store.posts[0].body = "Updated body"
+        store.formDidChange(group: activeGroup)
+
+        XCTAssertEqual(store.errorMessage, "Bài 1 chưa có tác giả.")
+    }
+
+    func testPreparedScanEditingDoesNotClearBridgeErrorOrSubmitAgain() async {
+        let stub = PreparedGroupScanBridgeStub(result: .success(preparedScanResponse(
+            status: .error,
+            attemptStatus: "failed",
+            errorCode: .invalidPreparedSnapshot
+        )))
+        let store = makePreparedScanStore(stub: stub)
+        let activeGroup = group("group-a", active: true)
+        store.posts[0].body = "Can mua MacBook tai HCM"
+        store.posts[0].authorDisplayName = "Buyer One"
+
+        await store.submit(group: activeGroup)
+        XCTAssertEqual(store.errorMessage, "Dữ liệu bài viết không hợp lệ. Hãy kiểm tra nội dung, tác giả và thời gian.")
+
+        store.posts[0].body = "Updated valid body"
+        store.formDidChange(group: activeGroup)
+
+        XCTAssertEqual(store.errorMessage, "Dữ liệu bài viết không hợp lệ. Hãy kiểm tra nội dung, tác giả và thời gian.")
+        let requestCount = await stub.requestCount()
+        XCTAssertEqual(requestCount, 1)
+    }
+
     func testPreparedScanPayloadUsesSchemaOneExactHCMTimeAndPreservesOrder() throws {
         let store = makePreparedScanStore()
         let createdAt = testDate("2026-08-13T02:15:30Z")
@@ -345,6 +415,7 @@ final class WatchedGroupsStoreTests: XCTestCase {
 
         XCTAssertTrue(source.contains("Nhập dữ liệu quét"))
         XCTAssertTrue(source.contains("Quét dữ liệu đã nhập"))
+        XCTAssertTrue(source.contains(".onChange(of: store.posts)"))
         XCTAssertFalse(source.contains("AdvanceCursor"))
         XCTAssertFalse(source.contains("fileImporter"))
         XCTAssertFalse(source.contains("NSPasteboard"))

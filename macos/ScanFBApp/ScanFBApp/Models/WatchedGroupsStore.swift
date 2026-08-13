@@ -206,6 +206,7 @@ final class PreparedGroupScanStore: ObservableObject {
     private let client: PreparedGroupScanBridgeClient
     private let idProvider: () -> String
     private let dateProvider: () -> Date
+    private var isPresentingLocalValidation = false
 
     init(
         client: PreparedGroupScanBridgeClient = PreparedGroupScanBridgeClient(),
@@ -227,6 +228,7 @@ final class PreparedGroupScanStore: ObservableObject {
         result = nil
         errorMessage = nil
         isSubmitting = false
+        isPresentingLocalValidation = false
     }
 
     func addPost() {
@@ -263,11 +265,19 @@ final class PreparedGroupScanStore: ObservableObject {
         return nil
     }
 
+    func formDidChange(group: WatchedGroupBridgeValue) {
+        guard isPresentingLocalValidation else { return }
+        let validation = validationMessage(for: group)
+        errorMessage = validation
+        isPresentingLocalValidation = validation != nil
+    }
+
     func submit(group: WatchedGroupBridgeValue) async {
         guard !isSubmitting else { return }
         if let validation = validationMessage(for: group) {
             errorMessage = validation
             result = nil
+            isPresentingLocalValidation = true
             return
         }
 
@@ -275,6 +285,7 @@ final class PreparedGroupScanStore: ObservableObject {
         isSubmitting = true
         errorMessage = nil
         result = nil
+        isPresentingLocalValidation = false
         let bridgeResult = await client.perform(request)
         switch bridgeResult {
         case let .failure(error):

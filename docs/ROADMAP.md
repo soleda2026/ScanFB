@@ -884,9 +884,23 @@ Implementation: `prepared_group_scan` accepts one persisted group ID, caller-own
 
 Manual acceptance: A fresh bundle preserved the enrolled WatchedGroup, disabled prepared input while inactive, enabled it after activation, displayed one complete initial row and rejected empty body visibly without fake result or crash. One synthetic post completed through Swift form -> typed bridge -> Phase 11C1 -> Phase 10A -> Phase 11A -> existing pipeline and returned collected 1, evaluated 1, included 0, review 1, excluded 0 and allowed lead 0. No five-group execution or visible queue progression occurred. After full quit/relaunch, the group remained persisted while the form returned to one empty row and the prior input/result were absent.
 
-Non-blocking follow-up candidate before broader UI polish: after empty-body validation, valid body/author edits do not immediately clear the stale `Bài 1 chưa có nội dung.` message. A subsequent valid submission succeeds, so this is validation-state polish rather than a Phase 11C2 correctness failure.
+The non-blocking stale-validation defect observed during Phase 11C2 manual acceptance is addressed by Phase 11C2a below.
 
 Stop conditions: Requires multiple input formats, Swift-owned validation/identity/time authority, file/clipboard automation, persistence, browser access, Phase 11A redesign, batch-five execution or cursor progression.
+
+## Phase 11C2a - Prepared-post form validation-state polish
+
+Status: complete after implementation, focused automated verification, macOS Debug build verification and user-guided manual acceptance.
+
+Exact scope: Recompute only presented local row validation after prepared-post field edits so a resolved error is removed or replaced by the next current local error without requiring another submit.
+
+Protected areas: No Go or bridge change, validation-authority transfer, scan semantic change, automatic submit, new form feature, persistence, cursor/batch behavior, Safari/Facebook behavior or Xcode project change.
+
+Acceptance criteria: An invalid submit still presents the relevant row error; editing its field immediately updates that presentation state; unrelated remaining validation stays visible; editing alone sends no bridge request and starts no scan; the existing explicit valid-submit path is unchanged.
+
+Tests: Focused Swift store/form tests and macOS Debug build. Manual acceptance checks the empty-submit, edit-to-clear or edit-to-recompute, and subsequent explicit valid-submit flow.
+
+Manual acceptance: ScanFB was explicitly terminated before the newly built Phase 11C2a Debug bundle was relaunched. For one active enrolled group, submitting the initial empty row showed `Bài 1 chưa có nội dung.`. Entering body text without another submit immediately removed that stale body error and presented the still-relevant `Bài 1 chưa có tác giả.` error. Editing alone triggered no scan or bridge request. No private group identity or exact synthetic input was recorded. The prior focused automated and build verification results were not rerun during this docs-only closeout.
 
 ## Phase 12 - Scan batch 5 group
 
